@@ -29,7 +29,7 @@ func AuthenticateUser(next echo.HandlerFunc) echo.HandlerFunc {
 
         user, err := model.GetUserByUserId(session.UserId)
         if err != nil {
-            slog.Error("could not find user with id in the session", "error", err)
+            slog.Error("could not find user with id in the session", "error", err, "token", session.Token)
             cookie.MaxAge = -1
             c.SetCookie(cookie)
             return c.Redirect(http.StatusTemporaryRedirect, "/login")
