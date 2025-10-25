@@ -26,6 +26,13 @@ func GetSessionByUserId(userId int) (Session, error) {
     return session, err
 }
 
+func GetSessionByToken(token string) (Session, error) {
+    row := db.DB.QueryRow("SELECT id, user_id, token, expires_at FROM session WHERE token = ? AND expires_at > NOW()", token)
+    session := Session{}
+    err := row.Scan(&session.Id, &session.UserId, &session.Token, &session.ExpiresAt)
+    return session, err
+}
+
 func (s *Session) UpdateExpiry() error {
     s.setNewExpiresAt()
     _, err := db.DB.Exec("UPDATE session SET expires_at = ? WHERE id = ?", s.ExpiresAt, s.Id)
