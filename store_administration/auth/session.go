@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/vukovlevi/netstore/store_administration/model"
@@ -10,21 +11,24 @@ const (
     TOKEN_LENGTH = 64
 )
 
-func CreateOrUpdateSessionForUser(userId int) error {
+func CreateOrUpdateSessionForUser(userId int, ctx *context.Context) error {
     session, err := model.GetSessionByUserId(userId)
     if err != nil {
         if err == sql.ErrNoRows {
-            return createSessionForUser(userId)
+            return createSessionForUser(userId, ctx)
         }
         return err
     }
+
+    *ctx = context.WithValue(*ctx, "session", session)
     return session.UpdateExpiry()
 }
 
-func createSessionForUser(userId int) error {
+func createSessionForUser(userId int, ctx *context.Context) error {
     session := model.Session{
         UserId: userId,
         Token: generateToken(TOKEN_LENGTH),
     }
+    *ctx = context.WithValue(*ctx, "session", session)
     return session.InsertNewSession()
 }

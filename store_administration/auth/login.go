@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -13,7 +14,7 @@ var (
     ErrBadPassword = errors.New("password mismatch")
 )
 
-func LoginUser(username, password string) error {
+func LoginUser(username, password string, ctx *context.Context) error {
     user, err := model.GetUserByUsername(username)
     if err != nil {
         if err == sql.ErrNoRows {
@@ -26,7 +27,7 @@ func LoginUser(username, password string) error {
         return ErrBadPassword
     }
 
-    return nil
+    return CreateOrUpdateSessionForUser(user.Id, ctx)
 }
 
 func checkPassword(tryPassword, realPassword string) bool {
