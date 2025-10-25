@@ -8,7 +8,7 @@ import (
 )
 
 const (
-    TOKEN_LENGTH = 64
+    TOKEN_LENGTH = 32
 )
 
 func CreateOrUpdateSessionForUser(userId int, ctx *context.Context) error {

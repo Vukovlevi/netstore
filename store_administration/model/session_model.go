@@ -19,6 +19,7 @@ type Session struct {
 }
 
 func GetSessionByUserId(userId int) (Session, error) {
+    //TODO: deleting expired sessions from db daily
     row := db.DB.QueryRow("SELECT id, user_id, token, expires_at FROM session WHERE user_id = ? AND expires_at > NOW()", userId)
     session := Session{}
     err := row.Scan(&session.Id, &session.UserId, &session.Token, &session.ExpiresAt)

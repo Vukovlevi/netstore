@@ -39,7 +39,7 @@ func HandleLogin(c echo.Context) error {
     }
 
     SetSessionCookie(c, session)
-    return c.Redirect(http.StatusOK, "/")
+    return c.JSON(http.StatusOK, map[string]string{"message": "faca"})
 }
 
 func createLoginErrorCodeAndMessage(err error) (int, string) {
@@ -50,7 +50,7 @@ func createLoginErrorCodeAndMessage(err error) (int, string) {
         return http.StatusBadRequest, "bad password" //TODO: user-readable error message
     default:
         slog.Error("could not log in user", "error", err)
-        return http.StatusInternalServerError, "something went wrong" //TODO: user-readable error message
+        return http.StatusInternalServerError, "something went wrong during login" //TODO: user-readable error message
     }
 }
 

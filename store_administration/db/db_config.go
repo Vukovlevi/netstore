@@ -35,5 +35,5 @@ func CreateDatabaseConfig() DBConfig {
 }
 
 func (c *DBConfig) ToConnectionString() string {
-    return fmt.Sprintf("%s:%s@%s(%s:%s)/%s", c.username, c.password, c.protocol, c.host, c.port, c.dbName)
+    return fmt.Sprintf("%s:%s@%s(%s:%s)/%s?parseTime=true&loc=Local", c.username, c.password, c.protocol, c.host, c.port, c.dbName)
 }

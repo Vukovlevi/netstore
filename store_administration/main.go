@@ -28,7 +28,7 @@ func main() {
 
     e := echo.New()
     apiGroup := e.Group("/api")
-    apiGroup.GET("/login", route.HandleLogin)
+    apiGroup.POST("/login", route.HandleLogin)
     e.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
     e.Logger.Fatal(e.Start(":8000")) //TODO: read address from config

@@ -16,11 +16,11 @@ type User struct {
     PhoneNumber string
     Email string
     Role string
-    DeletedAt time.Time
+    DeletedAt *time.Time
 }
 
 func GetUserByUsername(username string) (User, error) {
-    row := db.DB.QueryRow("SELECT id, firtname, lastname, username, password, password_changed, phone_number, email, role.name, deleted_at FROM user INNER JOIN role ON user.role_id = role.id WHERE username = ? AND deleted_at IS NULL", username)
+    row := db.DB.QueryRow("SELECT user.id, firstname, lastname, username, password, password_changed, phone_number, email, role.name, deleted_at FROM user INNER JOIN role ON user.role_id = role.id WHERE username = ? AND deleted_at IS NULL", username)
     user := User{}
     err := row.Scan(&user.Id, &user.Firtname, &user.Lastname, &user.Username, &user.Password, &user.PasswordChanged, &user.PhoneNumber, &user.Email, &user.Role, &user.DeletedAt)
     return user, err
