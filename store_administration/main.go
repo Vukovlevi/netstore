@@ -49,6 +49,7 @@ func main() {
     apiStoreLeaderOrHRGroup.POST("/user", route.HandlePostUser)
     apiStoreLeaderOrHRGroup.PUT("/user", route.HandleUpdateUser)
     apiStoreLeaderOrHRGroup.DELETE("/user", route.HandleDeleteUser)
+    apiStoreLeaderOrHRGroup.GET("/role", route.HandleGetAllRole)
 
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
