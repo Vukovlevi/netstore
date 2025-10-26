@@ -1,6 +1,6 @@
 package route
 
-func CreateErrormessage(message string) map[string]string {
+func CreateErrorMessage(message string) map[string]string {
     return createJSONMessage("error", message)
 }
 

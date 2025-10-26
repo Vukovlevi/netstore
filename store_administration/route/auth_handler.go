@@ -18,24 +18,24 @@ type LoginRequest struct {
 func HandleLogin(c echo.Context) error {
     loginReq := LoginRequest{}
     if err := c.Bind(&loginReq); err != nil {
-        return c.JSON(http.StatusInternalServerError, createErrormessage("could not bind login request")) //TODO: user-readable error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind login request")) //TODO: user-readable error message
     }
 
     if loginReq.Username == "" || loginReq.Password == "" {
-        return c.JSON(http.StatusBadRequest, createErrormessage("missing username or password")) //TODO: user-readable error message
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage("missing username or password")) //TODO: user-readable error message
     }
 
     ctx := context.Background()
     err := auth.LoginUser(loginReq.Username, loginReq.Password, &ctx)
     if err != nil {
         code, msg := createLoginErrorCodeAndMessage(err)
-        return c.JSON(code, createErrormessage(msg))
+        return c.JSON(code, CreateErrorMessage(msg))
     }
 
     sessionContext := ctx.Value("session")
     session, ok := sessionContext.(model.Session)
     if !ok {
-        return c.JSON(http.StatusInternalServerError, createErrormessage("could not read session from login context")) //TODO: user-readable error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not read session from login context")) //TODO: user-readable error message
     }
 
     SetSessionCookie(c, session)

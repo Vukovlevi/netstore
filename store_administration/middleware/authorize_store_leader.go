@@ -13,7 +13,7 @@ func AuthorizeStoreLeader(next echo.HandlerFunc) echo.HandlerFunc {
     return func(c echo.Context) error {
         user := c.Get("user").(model.User)
         if user.Role != auth.ROLE_STORE_LEADER {
-            return c.JSON(http.StatusUnauthorized, route.CreateErrormessage("unauthorized access")) //TODO: user-readable error message
+            return c.JSON(http.StatusUnauthorized, route.CreateErrorMessage("unauthorized access")) //TODO: user-readable error message
         }
         return next(c)
     }
