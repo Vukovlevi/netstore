@@ -89,3 +89,18 @@ func HandleDeleteUser(c echo.Context) error {
 
     return c.NoContent(http.StatusNoContent)
 }
+
+func HandleGetUser(c echo.Context) error {
+    user := c.Get("user").(model.User)
+    return c.JSON(http.StatusOK, user)
+}
+
+func HandleGetAllUser(c echo.Context) error {
+    users, err := model.GetAllUser()
+    if err != nil {
+        slog.Error("could not get all user", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not get all user")) //TODO: user-readable error message
+    }
+
+    return c.JSON(http.StatusOK, users)
+}

@@ -34,10 +34,9 @@ func GetUserByUsername(username string) (User, error) {
 }
 
 func GetUserByUserId(userId int) (User, error) {
-    row := db.DB.QueryRow("SELECT user.id, firstname, lastname, username, password, password_changed, phone_number, email, role.name, deleted_at FROM user INNER JOIN role ON user.role_id = role.id WHERE user.id = ? AND deleted_at IS NULL", userId)
+    row := db.DB.QueryRow("SELECT user.id, firstname, lastname, username, password_changed, phone_number, email, role.name, deleted_at FROM user INNER JOIN role ON user.role_id = role.id WHERE user.id = ? AND deleted_at IS NULL", userId)
     user := User{}
-    err := row.Scan(&user.Id, &user.Firstname, &user.Lastname, &user.Username, &user.Password, &user.PasswordChanged, &user.PhoneNumber, &user.Email, &user.Role, &user.DeletedAt)
-    user.Password = ""
+    err := row.Scan(&user.Id, &user.Firstname, &user.Lastname, &user.Username, &user.PasswordChanged, &user.PhoneNumber, &user.Email, &user.Role, &user.DeletedAt)
     return user, err
 }
 
@@ -54,6 +53,25 @@ func (u *User) UpdateUser() error {
 func (u *User) DeleteUser() error {
     _, err := db.DB.Exec("UPDATE user SET deleted_at = NOW() WHERE id = ?", u.Id)
     return err
+}
+
+func GetAllUser() ([]User, error) {
+    rows, err := db.DB.Query("SELECT user.id, firstname, lastname, username, phone_number, email, role.name, deleted_at FROM user INNER JOIN role ON user.role_id = role.id WHERE deleted_at IS NULL")
+    if err != nil {
+        return []User{}, err
+    }
+
+    users := make([]User, 0)
+    for rows.Next() {
+        user := User{}
+        err = rows.Scan(&user.Id, &user.Firstname, &user.Lastname, &user.Username, &user.PhoneNumber, &user.Email, &user.Role, &user.DeletedAt)
+        if err != nil {
+            return []User{}, err
+        }
+        users = append(users, user)
+    }
+
+    return users, nil
 }
 
 func (u *User) EncryptPassword() error {

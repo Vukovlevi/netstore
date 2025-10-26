@@ -44,6 +44,8 @@ func main() {
     apiStoreLeaderGroup.GET("/store-detail", route.HandleGetStoreDetail)
     apiStoreLeaderGroup.PUT("/store-detail", route.HandleUpdateStoreDetail)
 
+    apiAuthGroup.GET("/user", route.HandleGetUser)
+    apiStoreLeaderOrHRGroup.GET("/all-user", route.HandleGetAllUser)
     apiStoreLeaderOrHRGroup.POST("/user", route.HandlePostUser)
     apiStoreLeaderOrHRGroup.PUT("/user", route.HandleUpdateUser)
     apiStoreLeaderOrHRGroup.DELETE("/user", route.HandleDeleteUser)
