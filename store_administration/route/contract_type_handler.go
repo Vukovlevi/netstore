@@ -14,6 +14,10 @@ func HandlePostContractType(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, CreateErrormessage("could not bind contract type")) //TODO: user-readalbe error message
     }
 
+    if err := contractType.ValidateInsert(); err != nil {
+        return c.JSON(http.StatusBadRequest, CreateErrormessage(err.Error()))
+    }
+
     if err := contractType.InsertNewContractType(); err != nil {
         slog.Error("could not save new contract type", "error", err, "contract type", contractType)
         return c.JSON(http.StatusBadRequest, CreateErrormessage("could not save contract type (possibly existing)")) //TODO: user-readable error message
@@ -36,7 +40,10 @@ func HandleUpdateContractType(c echo.Context) error {
     if err := c.Bind(&contractType); err != nil {
         return c.JSON(http.StatusInternalServerError, CreateErrormessage("could not bind contract type")) //TODO: user-readalbe error message
     }
-    //TODO: decide if validating will be a thing
+
+    if err := contractType.ValidateUpdate(); err != nil {
+        return c.JSON(http.StatusBadRequest, CreateErrormessage(err.Error()))
+    }
 
     if err := contractType.UpdateContractType(); err != nil {
         slog.Error("could not update contract type", "error", err, "contract type", contractType)
@@ -50,6 +57,10 @@ func HandleDeleteContractType(c echo.Context) error {
     contractType := model.ContractType{}
     if err := c.Bind(&contractType); err != nil {
         return c.JSON(http.StatusInternalServerError, CreateErrormessage("could not bind contract type")) //TODO: user-readalbe error message
+    }
+
+    if err := contractType.ValidateDelete(); err != nil {
+        return c.JSON(http.StatusBadRequest, CreateErrormessage(err.Error()))
     }
 
     if err := contractType.DeleteContractType(); err != nil {

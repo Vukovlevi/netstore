@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 
 	"github.com/vukovlevi/netstore/store_administration/db"
 )
@@ -43,4 +44,33 @@ func (c *ContractType) UpdateContractType() error {
 func (c *ContractType) DeleteContractType() error {
     _, err := db.DB.Exec("DELETE FROM contract_type WHERE id = ?", c.Id)
     return err
+}
+
+//Returns user-readable error
+func (c *ContractType) ValidateInsert() error {
+    if c.Name == "" || c.WeeklyHours == 0 {
+        return errors.New("missing name or weekly hours in contract type") //TODO: user-readable error message
+    }
+
+    if c.WeeklyHours > 168 || c.WeeklyHours < 0 {
+        return errors.New("invalid weekly hours value in contract type") //TODO: user-readable error message
+    }
+
+    return nil
+}
+
+//Return user-readable error
+func (c *ContractType) ValidateUpdate() error {
+    if c.Id == 0 {
+        return errors.New("missing id in contract type to be updated") //TODO: user-readable error message
+    }
+    return c.ValidateInsert()
+}
+
+//Returns user-readable error
+func (c *ContractType) ValidateDelete() error {
+    if c.Id == 0 {
+        return errors.New("missing id in contract type to be deleted") //TODO: user-readable error message
+    }
+    return nil
 }
