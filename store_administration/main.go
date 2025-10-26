@@ -31,10 +31,11 @@ func main() {
     apiGroup := e.Group("/api")
     apiAuthGroup := apiGroup.Group("", middleware.AuthenticateUser)
     apiStoreLeaderGroup := apiAuthGroup.Group("", middleware.AuthorizeStoreLeader)
+    apiStoreLeaderOrHRGroup := apiAuthGroup.Group("", middleware.AuthorizeStoreLeaderOrHR)
 
     apiGroup.POST("/login", route.HandleLogin)
 
-    apiAuthGroup.GET("/contract-type", route.HandleGetAllContractType, middleware.AuthorizeGetAllContractTypes)
+    apiStoreLeaderOrHRGroup.GET("/contract-type", route.HandleGetAllContractType)
     apiStoreLeaderGroup.POST("/contract-type", route.HandlePostContractType)
     apiStoreLeaderGroup.PUT("/contract-type", route.HandleUpdateContractType)
     apiStoreLeaderGroup.DELETE("/contract-type", route.HandleDeleteContractType)
@@ -42,6 +43,10 @@ func main() {
     apiStoreLeaderGroup.GET("/store-type", route.HandleGetAllStoreType)
     apiStoreLeaderGroup.GET("/store-detail", route.HandleGetStoreDetail)
     apiStoreLeaderGroup.PUT("/store-detail", route.HandleUpdateStoreDetail)
+
+    apiStoreLeaderOrHRGroup.POST("/user", route.HandlePostUser)
+    apiStoreLeaderOrHRGroup.PUT("/user", route.HandleUpdateUser)
+    apiStoreLeaderOrHRGroup.DELETE("/user", route.HandleDeleteUser)
 
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
