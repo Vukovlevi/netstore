@@ -47,7 +47,7 @@ func (u *User) InsertNewUser() error {
 }
 
 func (u *User) UpdateUser() error {
-    _, err := db.DB.Exec("UPDATE user SET firstname = ?, lastname = ?, username = ?, phone_number = ?, email = ?, role_id = ?", u.Firstname, u.Lastname, u.Username, u.PhoneNumber, u.Email, u.RoleId)
+    _, err := db.DB.Exec("UPDATE user SET firstname = ?, lastname = ?, username = ?, phone_number = ?, email = ?, role_id = ? WHERE id = ?", u.Firstname, u.Lastname, u.Username, u.PhoneNumber, u.Email, u.RoleId, u.Id)
     return err
 }
 
