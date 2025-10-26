@@ -6,7 +6,6 @@ import (
 	"errors"
 
 	"github.com/vukovlevi/netstore/store_administration/model"
-	"golang.org/x/crypto/bcrypt"
 )
 
 var (
@@ -22,15 +21,11 @@ func LoginUser(username, password string, ctx *context.Context) error {
         }
         return err
     }
+    *ctx = context.WithValue(*ctx, "user", user)
 
-    if ok := checkPassword(password, user.Password); !ok {
+    if ok := model.CheckPassword(password, user.Password); !ok {
         return ErrBadPassword
     }
 
     return CreateOrUpdateSessionForUser(user.Id, ctx)
-}
-
-func checkPassword(tryPassword, realPassword string) bool {
-    err := bcrypt.CompareHashAndPassword([]byte(realPassword), []byte(tryPassword))
-    return err == nil
 }

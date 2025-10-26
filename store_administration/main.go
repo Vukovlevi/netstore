@@ -50,6 +50,9 @@ func main() {
     apiStoreLeaderOrHRGroup.PUT("/user", route.HandleUpdateUser)
     apiStoreLeaderOrHRGroup.DELETE("/user", route.HandleDeleteUser)
     apiStoreLeaderOrHRGroup.GET("/role", route.HandleGetAllRole)
+    apiAuthGroup.POST("/password-change", route.HandleUpdateUserPassword)
+
+    //TODO: implement password-change rendering without authentication middleware
 
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 

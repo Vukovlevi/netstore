@@ -35,10 +35,23 @@ func HandleLogin(c echo.Context) error {
     sessionContext := ctx.Value("session")
     session, ok := sessionContext.(model.Session)
     if !ok {
+        slog.Error("could not read session from login context")
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not read session from login context")) //TODO: user-readable error message
     }
 
     SetSessionCookie(c, session)
+
+    sessionUser := ctx.Value("user")
+    user, ok := sessionUser.(model.User)
+    if !ok {
+        slog.Error("could not read user from login context")
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not read user from login context")) //TODO: user-readable error message
+    }
+
+    if !user.PasswordChanged {
+        return c.Redirect(http.StatusTemporaryRedirect, "/password-change")
+    }
+
     return c.JSON(http.StatusOK, map[string]string{"message": "faca"})
 }
 

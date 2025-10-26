@@ -9,6 +9,11 @@ import (
 	"github.com/vukovlevi/netstore/store_administration/model"
 )
 
+type PasswordUpdate struct {
+    OldPassword string `json:"oldPassword"`
+    NewPassword string `json:"newPassword"`
+}
+
 func HandlePostUser(c echo.Context) error {
     user := model.User{}
     if err := c.Bind(&user); err != nil {
@@ -103,4 +108,29 @@ func HandleGetAllUser(c echo.Context) error {
     }
 
     return c.JSON(http.StatusOK, users)
+}
+
+func HandleUpdateUserPassword(c echo.Context) error {
+    newPassword := PasswordUpdate{}
+    if err := c.Bind(&newPassword); err != nil {
+        slog.Error("could not bind password update", "error", err)
+        return c.JSON(http.StatusInternalServerError, "could not bind password update") //TODO: user-readable error message
+    }
+
+    user := c.Get("user").(model.User)
+    if err := user.ValidateUpdatePassword(newPassword.OldPassword, newPassword.NewPassword); err != nil {
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage(err.Error()))
+    }
+
+    if err := user.EncryptPassword(); err != nil {
+        slog.Error("could not encrypt user password while updating said password", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not encrypt user password while updating password")) //TODO: user-readable error message
+    }
+
+    if err := user.UpdatePassword(); err != nil {
+        slog.Error("could not update password for user", "error", err, "user", user)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not update password for user"))
+    }
+
+    return c.JSON(http.StatusOK, CreateMessage("password sucessfully updated"))
 }

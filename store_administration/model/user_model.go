@@ -3,6 +3,7 @@ package model
 import (
 	"database/sql"
 	"errors"
+	"log/slog"
 
 	"github.com/vukovlevi/netstore/store_administration/db"
 	"golang.org/x/crypto/bcrypt"
@@ -74,6 +75,11 @@ func GetAllUser() ([]User, error) {
     return users, nil
 }
 
+func (u *User) UpdatePassword() error {
+    _, err := db.DB.Exec("UPDATE user SET password = ?, password_changed = TRUE WHERE id = ?", u.Password, u.Id)
+    return err
+}
+
 func (u *User) EncryptPassword() error {
     hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), PASSWORD_HASH_COST)
     if err != nil {
@@ -106,4 +112,31 @@ func (u *User) ValidateDelete() error {
         return errors.New("missing id for deleting user") //TODO: hungarian error message
     }
     return nil
+}
+
+//Returns user-readable error
+func (u *User) ValidateUpdatePassword(oldPassword, newPassword string) error {
+    if len(newPassword) < 8 {
+        return errors.New("the new password is not long enough (at least 8 characters)") //TODO: user-readable error message
+    }
+
+    realOldPassword := ""
+    row := db.DB.QueryRow("SELECT password FROM user WHERE id = ?", u.Id)
+    err := row.Scan(&realOldPassword)
+    if err != nil {
+        slog.Error("could not scan real old password of user during password change", "error", err)
+        return errors.New("something went wrong") //TODO: user-readable error message
+    }
+
+    if !CheckPassword(oldPassword, realOldPassword) {
+        return errors.New("password does not match your password") //TODO: user-readable error message
+    }
+
+    u.Password = newPassword
+    return nil
+}
+
+func CheckPassword(tryPassword, realPassword string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(realPassword), []byte(tryPassword))
+    return err == nil
 }

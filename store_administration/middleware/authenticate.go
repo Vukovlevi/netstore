@@ -35,6 +35,10 @@ func AuthenticateUser(next echo.HandlerFunc) echo.HandlerFunc {
             return c.Redirect(http.StatusTemporaryRedirect, "/login")
         }
 
+        if !user.PasswordChanged {
+            return c.Redirect(http.StatusTemporaryRedirect, "/password-change")
+        }
+
         c.Set("user", user)
         return next(c)
     }
