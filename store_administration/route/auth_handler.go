@@ -49,7 +49,7 @@ func HandleLogin(c echo.Context) error {
     }
 
     if !user.PasswordChanged {
-        return c.Redirect(http.StatusTemporaryRedirect, "/password-change")
+        return c.Redirect(http.StatusSeeOther, "/password-change")
     }
 
     return c.JSON(http.StatusOK, map[string]string{"message": "faca"})
@@ -71,6 +71,7 @@ func SetSessionCookie(c echo.Context, session model.Session) {
     c.SetCookie(&http.Cookie{
         Name: "auth_token",
         Value: session.Token,
+        Path: "/",
         SameSite: http.SameSiteStrictMode,
         HttpOnly: true,
         Secure: false, //TODO: read from config
