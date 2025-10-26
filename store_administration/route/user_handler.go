@@ -40,7 +40,7 @@ func HandlePostUser(c echo.Context) error {
 
     if err := user.InsertNewUser(); err != nil {
         slog.Error("could not save new user", "error", err, "user", user)
-        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not save new user")) //TODO: user-readable error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not save new user (may exist already with same username)")) //TODO: user-readable error message
     }
 
     return c.JSON(http.StatusCreated, CreateMessage("new user successfully created"))
