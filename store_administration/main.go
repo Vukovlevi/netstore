@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/vukovlevi/netstore/store_administration/config"
 	"github.com/vukovlevi/netstore/store_administration/db"
 	"github.com/vukovlevi/netstore/store_administration/middleware"

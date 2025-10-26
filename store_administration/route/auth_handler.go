@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/vukovlevi/netstore/store_administration/auth"
 	"github.com/vukovlevi/netstore/store_administration/model"
 )
