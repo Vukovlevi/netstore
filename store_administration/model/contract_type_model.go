@@ -42,7 +42,7 @@ func (c *ContractType) UpdateContractType() error {
 }
 
 func (c *ContractType) DeleteContractType() error {
-    _, err := db.DB.Exec("DELETE FROM contract_type WHERE id = ?", c.Id)
+    _, err := db.DB.Exec("UPDATE contract_type SET deleted_at = NOW() WHERE id = ?", c.Id)
     return err
 }
 
