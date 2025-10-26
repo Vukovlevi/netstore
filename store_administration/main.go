@@ -39,6 +39,8 @@ func main() {
     apiStoreLeaderGroup.PUT("/contract-type", route.HandleUpdateContractType)
     apiStoreLeaderGroup.DELETE("/contract-type", route.HandleDeleteContractType)
 
+    apiStoreLeaderGroup.GET("/store-type", route.HandleGetAllStoreType)
+
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
     e.Logger.Fatal(e.Start(":8000")) //TODO: read address from config
