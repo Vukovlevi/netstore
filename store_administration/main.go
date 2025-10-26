@@ -40,6 +40,8 @@ func main() {
     apiStoreLeaderGroup.DELETE("/contract-type", route.HandleDeleteContractType)
 
     apiStoreLeaderGroup.GET("/store-type", route.HandleGetAllStoreType)
+    apiStoreLeaderGroup.GET("/store-detail", route.HandleGetStoreDetail)
+    apiStoreLeaderGroup.PUT("/store-detail", route.HandleUpdateStoreDetail)
 
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
