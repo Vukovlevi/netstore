@@ -34,3 +34,13 @@ func GetAllContractType() ([]ContractType, error) {
     }
     return contractTypes, nil
 }
+
+func (c *ContractType) UpdateContractType() error {
+    _, err := db.DB.Exec("UPDATE contract_type SET name = ?, weekly_hours = ? WHERE id = ?", c.Name, c.WeeklyHours, c.Id)
+    return err
+}
+
+func (c *ContractType) DeleteContractType() error {
+    _, err := db.DB.Exec("DELETE FROM contract_type WHERE id = ?", c.Id)
+    return err
+}
