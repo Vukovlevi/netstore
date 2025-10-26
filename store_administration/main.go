@@ -30,8 +30,15 @@ func main() {
     e := echo.New()
     apiGroup := e.Group("/api")
     apiAuthGroup := apiGroup.Group("", middleware.AuthenticateUser)
+    apiStoreLeaderGroup := apiAuthGroup.Group("", middleware.AuthorizeStoreLeader)
 
     apiGroup.POST("/login", route.HandleLogin)
+
+    apiAuthGroup.GET("/contract-type", route.HandleGetAllContractType, middleware.AuthorizeGetAllContractTypes)
+    apiStoreLeaderGroup.POST("/contract-type", route.HandlePostContractType)
+    apiStoreLeaderGroup.PUT("/contract-type", route.HandleUpdateContractType)
+    apiStoreLeaderGroup.DELETE("/contract-type", route.HandleDeleteContractType)
+
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
     e.Logger.Fatal(e.Start(":8000")) //TODO: read address from config
