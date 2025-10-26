@@ -32,6 +32,7 @@ func GetAllContractType() ([]ContractType, error) {
         if err != nil {
             return []ContractType{}, err
         }
+        contractTypes = append(contractTypes, contractType)
     }
     return contractTypes, nil
 }
