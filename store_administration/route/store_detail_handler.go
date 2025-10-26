@@ -24,6 +24,10 @@ func HandleUpdateStoreDetail(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind store detail")) //TODO: user-readable error message
     }
 
+    if err := storeDetail.ValidateUpdate(); err != nil {
+        return c.JSON(http.StatusBadRequest, CreateMessage(err.Error()))
+    }
+
     if err := storeDetail.UpdateStoreDetail(); err != nil {
         slog.Error("could not update store detail", "error", err, "store detail", storeDetail)
         return c.JSON(http.StatusBadRequest, CreateErrorMessage("could not update store detail")) //TODO: user-readable error message

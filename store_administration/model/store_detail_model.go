@@ -1,6 +1,10 @@
 package model
 
-import "github.com/vukovlevi/netstore/store_administration/db"
+import (
+	"errors"
+
+	"github.com/vukovlevi/netstore/store_administration/db"
+)
 
 type StoreDetail struct {
     Address string `json:"address"`
@@ -19,4 +23,12 @@ func GetStoreDetail() (StoreDetail, error) {
 func (s *StoreDetail) UpdateStoreDetail() error {
     _, err := db.DB.Exec("UPDATE store_detail SET address = ?, central_server_address = ?, central_server_port = ?, store_type_id = ?", s.Address, s.CentralServerAddress, s.CentralServerPort, s.StoreTypeId)
     return err
+}
+
+//Returns user-readable error
+func (s *StoreDetail) ValidateUpdate() error {
+    if s.Address == "" || s.CentralServerAddress == "" || s.CentralServerPort == 0 || s.StoreTypeId == 0 {
+        return errors.New("missing address or central server address, etc") //TODO: user-readable error message
+    }
+    return nil
 }
