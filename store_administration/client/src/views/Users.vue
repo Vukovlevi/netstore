@@ -11,7 +11,7 @@ const filteredUsers: Ref<User[], User[]> = ref([])
 
 async function getUsers() {
     try {
-        const resp = await fetch("/api/user")
+        const resp = await fetch("/api/all-user")
         const data = await resp.json()
 
         if (data.error) {

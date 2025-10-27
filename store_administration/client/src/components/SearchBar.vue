@@ -4,6 +4,7 @@ import { ref } from "vue"
 const { searchItem } = defineProps<{ searchItem: string }>()
 const searchValue = ref("")
 const emits = defineEmits(["search"])
+//TODO: make enter hit work (button submit, preventdefault)
 </script>
 
 <template>
