@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue"
+import { router } from "../router/index.ts"
 
 const username = ref("")
 const password = ref("")
@@ -19,7 +20,7 @@ async function login() {
             throw data.error //TODO: error management
         }
 
-        window.location.replace("/")
+        router.push("/")
     } catch (err) {
         console.error(err)
         //TODO: error management
