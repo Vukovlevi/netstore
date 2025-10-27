@@ -25,6 +25,7 @@ func AuthenticateUser(next echo.HandlerFunc) echo.HandlerFunc {
             slog.Error("could not update session expiry during authentication through middleware")
         }
         cookie.Expires = session.ExpiresAt
+        cookie.Path = "/"
         c.SetCookie(cookie)
 
         user, err := model.GetUserByUserId(session.UserId)
