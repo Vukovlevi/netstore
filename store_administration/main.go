@@ -52,6 +52,10 @@ func main() {
     apiStoreLeaderOrHRGroup.GET("/role", route.HandleGetAllRole)
     apiAuthGroup.POST("/password-change", route.HandleUpdateUserPassword)
 
+    apiAuthGroup.GET("/echo", route.HandleGetEcho)
+    e.Static("/assets", "public/assets")
+    e.GET("/*", func(c echo.Context) error {return c.File("public/index.html")})
+
     //TODO: implement password-change rendering without authentication middleware
 
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
