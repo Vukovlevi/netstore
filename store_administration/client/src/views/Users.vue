@@ -11,8 +11,12 @@ import type { Role } from "../types/Role.ts";
 let users: User[] = [];
 const filteredUsers: Ref<User[], User[]> = ref([]);
 let roles: Role[] = [];
+
 const isError = ref(false);
 const errorMessage = ref("");
+const isSuccess = ref(false);
+const successMessage = ref("");
+
 const currentUser: Ref<User | null, User | null> = ref(null);
 const mode: Ref<"all" | "single", "all" | "single"> = ref("all");
 
@@ -105,6 +109,33 @@ onMounted(() => {
     >
       {{ errorMessage }}
     </div>
+
+    <div
+      v-if="isSuccess"
+      class="p-3 text-sm rounded-lg border border-green-400 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 mb-3"
+      role="alert"
+    >
+      {{ successMessage }}
+    </div>
+
+    <!--
+    <div
+      v-if="isWarning"
+      class="p-3 text-sm rounded-lg border border-amber-400 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800 mb-3"
+      role="alert"
+    >
+      {{ warningMessage }}
+    </div>
+
+    <div
+      v-if="isInfo"
+      class="p-3 text-sm rounded-lg border border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 mb-3"
+      role="alert"
+    >
+      {{ infoMessage }}
+    </div>
+  -->
+
     <div
       class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
@@ -120,6 +151,14 @@ onMounted(() => {
           }
         "
         @back="() => (mode = 'all')"
+        @success="
+          (msg, user) => {
+            isSuccess = true;
+            successMessage = msg;
+            users.push(user);
+            filteredUsers = users;
+          }
+        "
       />
     </div>
   </div>

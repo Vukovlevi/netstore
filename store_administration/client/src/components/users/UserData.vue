@@ -51,7 +51,8 @@ async function saveUser() {
       return;
     }
 
-    emits("success", data.message);
+    user.role.value = props.roles.find((x) => x.id == user.roleId.value)!.name;
+    emits("success", data.message, user.toUser());
   } catch (err) {
     console.error(err);
     emits(
@@ -68,6 +69,8 @@ onMounted(() => {
     httpMethod = "PUT";
   }
 });
+
+//TODO: üzenetek törlése nézetváltáskor + feedback kezelés
 </script>
 
 <template>
