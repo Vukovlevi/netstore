@@ -4,12 +4,17 @@ import { onMounted, ref } from "vue";
 
 import UserTable from "../components/users/UserTable.vue";
 import SearchBar from "../components/SearchBar.vue";
-import type { User } from "../types/User";
+import UserData from "../components/users/UserData.vue";
+import type { User } from "../types/User.ts";
+import type { Role } from "../types/Role.ts";
 
 let users: User[] = [];
 const filteredUsers: Ref<User[], User[]> = ref([]);
+let roles: Role[] = [];
 const isError = ref(false);
 const errorMessage = ref("");
+const currentUser: Ref<User | null, User | null> = ref(null);
+const mode: Ref<"all" | "single", "all" | "single"> = ref("all");
 
 async function getUsers() {
   try {
@@ -33,6 +38,27 @@ async function getUsers() {
   }
 }
 
+async function getRoles() {
+  try {
+    const resp = await fetch("/api/role");
+    const data = await resp.json();
+
+    if (data.error) {
+      errorMessage.value = data.error;
+      isError.value = true;
+      return;
+    }
+
+    isError.value = false;
+    roles = data as Role[];
+  } catch (err) {
+    errorMessage.value =
+      "Ismeretlen hiba miatt nem sikerült lekérni a rangokat (csak felvitelnél és módosításnál jelent problémát)!";
+    isError.value = true;
+    console.error(err);
+  }
+}
+
 function search(searchValue: string) {
   if (searchValue == "") {
     filteredUsers.value = users;
@@ -48,6 +74,7 @@ function search(searchValue: string) {
 
 onMounted(() => {
   getUsers();
+  getRoles();
 });
 </script>
 
@@ -61,14 +88,19 @@ onMounted(() => {
       </h2>
       <button
         class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
+        @click="() => (mode = 'single')"
       >
         Felhasználó felvitele
       </button>
     </div>
-    <SearchBar search-item="Felhasználók" @search="search" />
+    <SearchBar
+      search-item="Felhasználók"
+      @search="search"
+      v-if="mode == 'all'"
+    />
     <div
       v-if="isError"
-      class="p-4 text-sm rounded-lg border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 mb-3"
+      class="p-3 text-sm rounded-lg border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 mb-3"
       role="alert"
     >
       {{ errorMessage }}
@@ -76,7 +108,19 @@ onMounted(() => {
     <div
       class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
-      <UserTable :users="filteredUsers" />
+      <UserTable :users="filteredUsers" v-if="mode == 'all'" />
+      <UserData
+        :user="currentUser"
+        :roles="roles"
+        v-else
+        @error="
+          (msg) => {
+            isError = true;
+            errorMessage = msg;
+          }
+        "
+        @back="() => (mode = 'all')"
+      />
     </div>
   </div>
 </template>
