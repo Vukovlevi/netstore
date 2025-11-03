@@ -70,7 +70,7 @@ onMounted(() => {
   }
 });
 
-//TODO: üzenetek törlése nézetváltáskor + feedback kezelés
+//TODO: üzenetek törlése nézetváltáskor + feedback kezelés + vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
 </script>
 
 <template>
