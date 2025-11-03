@@ -8,6 +8,8 @@ import type { User } from "../types/User";
 
 let users: User[] = [];
 const filteredUsers: Ref<User[], User[]> = ref([]);
+const isError = ref(false);
+const errorMessage = ref("");
 
 async function getUsers() {
   try {
@@ -15,14 +17,19 @@ async function getUsers() {
     const data = await resp.json();
 
     if (data.error) {
-      throw data.error;
+      errorMessage.value = data.error;
+      isError.value = true;
+      return;
     }
 
+    isError.value = false;
     users = data as User[];
     filteredUsers.value = users;
   } catch (err) {
+    errorMessage.value =
+      "Ismeretlen hiba miatt nem sikerült lekérni a felhasználókat!";
+    isError.value = true;
     console.error(err);
-    //TODO: error management in general on the frontend with client side validation
   }
 }
 
@@ -45,7 +52,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-7xl mt-3">
+  <div class="mx-auto max-w-7xl mt-[5rem]">
     <div
       class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
     >
@@ -59,6 +66,13 @@ onMounted(() => {
       </button>
     </div>
     <SearchBar search-item="Felhasználók" @search="search" />
+    <div
+      v-if="isError"
+      class="p-4 text-sm rounded-lg border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 mb-3"
+      role="alert"
+    >
+      {{ errorMessage }}
+    </div>
     <div
       class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
