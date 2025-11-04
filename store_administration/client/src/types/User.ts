@@ -56,7 +56,7 @@ class UserClass {
       password: this.password.value,
       passwordConfirm: this.passwordConfirm.value,
       passwordChanged: this.passwordChanged.value,
-      phoneNumber: this.phoneNumber.value.replaceAll(" ", ""),
+      phoneNumber: this.phoneNumber.value.replace(" ", ""),
       email: this.email.value,
       role: this.role.value,
       roleId: this.roleId.value,
