@@ -76,6 +76,11 @@ function search(searchValue: string) {
   );
 }
 
+function modifyUser(user: User) {
+  currentUser.value = user
+  mode.value = "single"
+}
+
 onMounted(() => {
   getUsers();
   getRoles();
@@ -139,7 +144,7 @@ onMounted(() => {
     <div
       class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
-      <UserTable :users="filteredUsers" v-if="mode == 'all'" />
+      <UserTable :users="filteredUsers" v-if="mode == 'all'" @modify="(user: User) => modifyUser(user)" />
       <UserData
         :user="currentUser"
         :roles="roles"

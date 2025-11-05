@@ -12,6 +12,10 @@ const props = defineProps<{ user: User | null; roles: Role[] }>();
 const emits = defineEmits(["error", "success", "back"]);
 const user = new UserClass(props.user);
 
+//TODO: elrejteni a nem módosítható tulajdonságokat
+//TODO: megfelelően kezelni a módosítást (jelenleg új felhasználóként jelenik meg a módosított is)
+
+//TODO: átcsinálni, hogy külön kezelje a módosítást és új felvitelt
 function validate(): { message: string; valid: boolean } {
   if (
     user.firstname.value == "" ||

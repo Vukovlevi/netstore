@@ -3,6 +3,7 @@ import type { User } from "../../types/User";
 import UserRow from "./UserRow.vue";
 
 const { users } = defineProps<{ users: User[] }>();
+const emits = defineEmits(["modify", "delete"])
 </script>
 
 <template>
@@ -39,10 +40,16 @@ const { users } = defineProps<{ users: User[] }>();
         >
           Rang
         </th>
+        <th
+          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          scope="col"
+        >
+          Vezérlők
+        </th>
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-      <UserRow v-for="user in users" :user="user" />
+      <UserRow v-for="user in users" :user="user" @modify="(user: User) => emits('modify', user)" />
     </tbody>
   </table>
 </template>
