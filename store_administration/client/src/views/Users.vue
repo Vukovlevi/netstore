@@ -7,15 +7,14 @@ import SearchBar from "../components/SearchBar.vue";
 import UserData from "../components/users/UserData.vue";
 import type { User } from "../types/User.ts";
 import type { Role } from "../types/Role.ts";
+import Feedback from "../components/Feedback.vue";
+import type { FeedbackType, Feedback as TFeedback } from "../types/Feedback.ts";
 
 let users: User[] = [];
 const filteredUsers: Ref<User[], User[]> = ref([]);
 let roles: Role[] = [];
 
-const isError = ref(false);
-const errorMessage = ref("");
-const isSuccess = ref(false);
-const successMessage = ref("");
+const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null)
 
 const currentUser: Ref<User | null, User | null> = ref(null);
 const mode: Ref<"all" | "single", "all" | "single"> = ref("all");
@@ -26,18 +25,15 @@ async function getUsers() {
     const data = await resp.json();
 
     if (data.error) {
-      errorMessage.value = data.error;
-      isError.value = true;
+      feedback.value = {type: "error", message: (data.error as string)};
       return;
     }
 
-    isError.value = false;
+    feedback.value = null;
     users = data as User[];
     filteredUsers.value = users;
   } catch (err) {
-    errorMessage.value =
-      "Ismeretlen hiba miatt nem sikerült lekérni a felhasználókat!";
-    isError.value = true;
+    feedback.value = {type: "error", message: "Ismeretlen hiba miatt nem sikerült lekérni a felhasználókat!"};
     console.error(err);
   }
 }
@@ -48,17 +44,14 @@ async function getRoles() {
     const data = await resp.json();
 
     if (data.error) {
-      errorMessage.value = data.error;
-      isError.value = true;
+      feedback.value = {type: "error", message: (data.error as string)};
       return;
     }
 
-    isError.value = false;
+    feedback.value = null
     roles = data as Role[];
   } catch (err) {
-    errorMessage.value =
-      "Ismeretlen hiba miatt nem sikerült lekérni a rangokat (csak felvitelnél és módosításnál jelent problémát)!";
-    isError.value = true;
+    feedback.value = {type: "error", message: "Ismeretlen hiba miatt nem sikerült lekérni a rangokat (csak felvitelnél és módosításnál jelent problémát)!"};
     console.error(err);
   }
 }
@@ -107,39 +100,7 @@ onMounted(() => {
       @search="search"
       v-if="mode == 'all'"
     />
-    <div
-      v-if="isError"
-      class="p-3 text-sm rounded-lg border border-red-400 bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800 mb-3"
-      role="alert"
-    >
-      {{ errorMessage }}
-    </div>
-
-    <div
-      v-if="isSuccess"
-      class="p-3 text-sm rounded-lg border border-green-400 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800 mb-3"
-      role="alert"
-    >
-      {{ successMessage }}
-    </div>
-
-    <!--
-    <div
-      v-if="isWarning"
-      class="p-3 text-sm rounded-lg border border-amber-400 bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800 mb-3"
-      role="alert"
-    >
-      {{ warningMessage }}
-    </div>
-
-    <div
-      v-if="isInfo"
-      class="p-3 text-sm rounded-lg border border-blue-400 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800 mb-3"
-      role="alert"
-    >
-      {{ infoMessage }}
-    </div>
-  -->
+    <Feedback v-if="feedback != null" :feedback="feedback"/>
 
     <div
       class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
@@ -149,21 +110,8 @@ onMounted(() => {
         :user="currentUser"
         :roles="roles"
         v-else
-        @error="
-          (msg) => {
-            isError = true;
-            errorMessage = msg;
-          }
-        "
+        @feedback="(type: FeedbackType, msg: string) => feedback = {type: type, message: msg}"
         @back="() => (mode = 'all')"
-        @success="
-          (msg, user) => {
-            isSuccess = true;
-            successMessage = msg;
-            users.push(user);
-            filteredUsers = users;
-          }
-        "
       />
     </div>
   </div>

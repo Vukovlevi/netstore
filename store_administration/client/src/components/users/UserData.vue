@@ -9,7 +9,7 @@ let httpMethod = "POST";
 const display = ref(NEW_USER);
 
 const props = defineProps<{ user: User | null; roles: Role[] }>();
-const emits = defineEmits(["error", "success", "back"]);
+const emits = defineEmits(["feedback", "back"]);
 const user = new UserClass(props.user);
 
 //TODO: elrejteni a nem módosítható tulajdonságokat
@@ -38,7 +38,7 @@ function validate(): { message: string; valid: boolean } {
 async function saveUser() {
   const { message, valid } = validate();
   if (!valid) {
-    emits("error", message);
+    emits("feedback", "error", message);
     return;
   }
 
@@ -51,15 +51,16 @@ async function saveUser() {
     const data = await resp.json();
 
     if (data.error) {
-      emits("error", "A mentés közben hiba történt: " + data.error);
+      emits("feedback", "error", "A mentés közben hiba történt: " + data.error);
       return;
     }
 
     user.role.value = props.roles.find((x) => x.id == user.roleId.value)!.name;
-    emits("success", data.message, user.toUser());
+    emits("feedback", "success", data.message, user.toUser());
   } catch (err) {
     console.error(err);
     emits(
+      "feedback",
       "error",
       "Ismeretlen hiba miatt a következő műveletet nem sikerült végrehatjani: " +
         display.value
