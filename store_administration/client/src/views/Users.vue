@@ -74,6 +74,24 @@ function modifyUser(user: User) {
   mode.value = "single"
 }
 
+function handleFeedback(type: FeedbackType, msg: string, user: User | null, isUpdate: boolean) {
+  feedback.value = {type: type, message: msg}
+  if (user == null) return;
+  
+  if (isUpdate) updateUser(user);
+  else createNewUser(user);
+}
+
+function createNewUser(user: User) {
+  users.push(user);
+  filteredUsers.value = users;
+}
+
+function updateUser(user: User) {
+  const idx = users.findIndex(x => x.id == user.id);
+  users[idx] = user;
+}
+
 onMounted(() => {
   getUsers();
   getRoles();
@@ -107,10 +125,10 @@ onMounted(() => {
     >
       <UserTable :users="filteredUsers" v-if="mode == 'all'" @modify="(user: User) => modifyUser(user)" />
       <UserData
+        v-else
         :user="currentUser"
         :roles="roles"
-        v-else
-        @feedback="(type: FeedbackType, msg: string) => feedback = {type: type, message: msg}"
+        @feedback="handleFeedback"
         @back="() => (mode = 'all')"
       />
     </div>

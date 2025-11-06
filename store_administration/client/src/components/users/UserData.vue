@@ -5,18 +5,18 @@ import type { Role } from "../../types/Role.ts";
 
 const NEW_USER = "Új felhasználó felvitele";
 const UPDATE_USER = "Felhasználó módosítása";
-let httpMethod = "POST";
-const display = ref(NEW_USER);
 
 const props = defineProps<{ user: User | null; roles: Role[] }>();
 const emits = defineEmits(["feedback", "back"]);
 const user = new UserClass(props.user);
+const isUpdate = ref(false);
 
-//TODO: elrejteni a nem módosítható tulajdonságokat
-//TODO: megfelelően kezelni a módosítást (jelenleg új felhasználóként jelenik meg a módosított is)
-
-//TODO: átcsinálni, hogy külön kezelje a módosítást és új felvitelt
 function validate(): { message: string; valid: boolean } {
+  if (props.user == null) return validateNewUser();
+  else return validateUpdateUser();
+}
+
+function validateNewUser(): {message: string, valid: boolean} {
   if (
     user.firstname.value == "" ||
     user.lastname.value == "" ||
@@ -35,47 +35,71 @@ function validate(): { message: string; valid: boolean } {
   return { message: "", valid: true };
 }
 
+function validateUpdateUser() : { message: string; valid: boolean } {
+  if (user.id.value == 0) {
+    return {
+      message: "Nincs módosításra kijelölt felhasználó!",
+      valid: false,
+    };
+  }
+
+  if (
+    user.firstname.value == "" ||
+    user.lastname.value == "" ||
+    user.username.value == "" ||
+    user.roleId.value == 0
+  ) {
+    return {
+      message: "A *-gal jelölt mezők kitöltése kötelező!",
+      valid: false,
+    };
+  }
+
+  return { message: "", valid: true };
+}
+
 async function saveUser() {
   const { message, valid } = validate();
   if (!valid) {
-    emits("feedback", "error", message);
+    emits("feedback", "warning", message, null, false);
     return;
   }
 
   try {
     const resp = await fetch("/api/user", {
-      method: httpMethod,
+      method: isUpdate.value ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user.toUser()),
     });
     const data = await resp.json();
 
     if (data.error) {
-      emits("feedback", "error", "A mentés közben hiba történt: " + data.error);
+      emits("feedback", "error", "A mentés közben hiba történt: " + data.error, null, false);
       return;
     }
 
     user.role.value = props.roles.find((x) => x.id == user.roleId.value)!.name;
-    emits("feedback", "success", data.message, user.toUser());
+    emits("feedback", "success", data.message, user.toUser(), isUpdate.value);
   } catch (err) {
     console.error(err);
     emits(
       "feedback",
       "error",
       "Ismeretlen hiba miatt a következő műveletet nem sikerült végrehatjani: " +
-        display.value
+        isUpdate.value ? UPDATE_USER : NEW_USER,
+        null, false
     );
   }
 }
 
 onMounted(() => {
   if (props.user != null) {
-    display.value = UPDATE_USER;
-    httpMethod = "PUT";
+    user.roleId.value = Number(props.user.role);
+    user.role.value = props.roles.find(x => x.id == user.roleId.value)!.name;
   }
 });
 
-//TODO: üzenetek törlése nézetváltáskor + feedback kezelés + vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
+//TODO: vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
 </script>
 
 <template>
@@ -86,7 +110,7 @@ onMounted(() => {
           Dolgozó adatai
         </h1>
         <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-          {{ display }}
+          {{ isUpdate ? UPDATE_USER : NEW_USER }}
         </p>
       </div>
 
@@ -144,7 +168,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div v-if="!isUpdate" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -162,7 +186,7 @@ onMounted(() => {
             </div>
           </div>
 
-          <div>
+          <div v-if="!isUpdate">
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300"
               for="password_confirm"
@@ -235,7 +259,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="flex items-center">
+        <div v-if="!isUpdate" class="flex items-center">
           <input
             id="disable_password_change"
             name="disable_password_change"
