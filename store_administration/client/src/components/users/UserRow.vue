@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { User } from "../../types/User";
 const { user } = defineProps<{ user: User }>();
-const emits = defineEmits(["modify"])
+const emits = defineEmits(["modify", "delete"])
 </script>
 
 <template>
@@ -40,7 +40,7 @@ const emits = defineEmits(["modify"])
           Módosítás
         </button>
         <button
-          @click=""
+          @click="() => emits('delete', user.id)"
           class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded"
         >
           Törlés

@@ -49,7 +49,7 @@ const emits = defineEmits(["modify", "delete"])
       </tr>
     </thead>
     <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-      <UserRow v-for="user in users" :user="user" @modify="(user: User) => emits('modify', user)" />
+      <UserRow v-for="user in users" :user="user" @modify="(user: User) => emits('modify', user)" @delete="(userId: number) => emits('delete', userId)" />
     </tbody>
   </table>
 </template>

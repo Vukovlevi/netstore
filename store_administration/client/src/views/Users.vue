@@ -71,6 +71,7 @@ function search(searchValue: string) {
 
 function modifyUser(user: User) {
   currentUser.value = user
+  feedback.value = null;
   mode.value = "single"
 }
 
@@ -93,6 +94,28 @@ function updateUser(user: User) {
   users[idx] = user;
 }
 
+async function deleteUser(userId: Number) {
+  try {
+    const resp = await fetch("/api/user", {
+      method: "DELETE",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({id: userId}),
+    })
+
+    if (!resp.ok) {
+      feedback.value = {type: "error", message: "Felhasználó törlése sikertelen!"};
+      return;
+    }
+    
+    users = users.filter(x => x.id != userId);
+    filteredUsers.value = users;
+    feedback.value = {type: "success", message: "Felhasználó törlése sikeres!"};
+  } catch (err) {
+    feedback.value = {type: "error", message: "Ismeretlen hiba miatt nem sikerült törölni a felhasználót!"};
+    console.error(err);
+  }
+}
+
 onMounted(() => {
   getUsers();
   getRoles();
@@ -109,7 +132,7 @@ onMounted(() => {
       </h2>
       <button
         class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
-        @click="() => (mode = 'single')"
+        @click="() => {mode = 'single'; feedback = null;}"
       >
         Felhasználó felvitele
       </button>
@@ -124,7 +147,7 @@ onMounted(() => {
     <div
       class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
-      <UserTable :users="filteredUsers" v-if="mode == 'all'" @modify="(user: User) => modifyUser(user)" />
+      <UserTable :users="filteredUsers" v-if="mode == 'all'" @modify="(user: User) => modifyUser(user)" @delete="deleteUser" />
       <UserData
         v-else
         :user="currentUser"
