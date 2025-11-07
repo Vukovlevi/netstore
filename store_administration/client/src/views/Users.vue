@@ -130,7 +130,7 @@ onMounted(() => {
         :user="currentUser"
         :roles="roles"
         @feedback="handleFeedback"
-        @back="() => {mode = 'all'; feedback = null}"
+        @back="() => {mode = 'all'; feedback = null; currentUser = null;}"
       />
     </div>
   </div>
