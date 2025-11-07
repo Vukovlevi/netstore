@@ -21,10 +21,12 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
+  if (from.path == "/" + PASSWORD_CHANGE_URL && to.path == from.path) {
+    return next();
+  }
   const authState = await isAuthenticated();
 
   if (authState.passwordChangeUrl != "") {
-    console.log("ide belépünk")
     next("/" + authState.passwordChangeUrl);
     return;
   }
