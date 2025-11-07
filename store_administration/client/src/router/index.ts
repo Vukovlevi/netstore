@@ -10,6 +10,7 @@ const routes = [
     component: () => import("../views/Users.vue"),
     meta: { requiresAuth: true },
   },
+  {path: "/password-change", component: () => import("../components/profile/PasswordChange.vue"), meta: {requiresAuth: true},},
 ];
 
 const router = createRouter({

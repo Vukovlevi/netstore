@@ -44,12 +44,6 @@ import { RouterLink } from "vue-router";
       </RouterLink>
       <RouterLink
         class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
-        to="/login"
-      >
-        Bejelentkezés
-      </RouterLink>
-      <RouterLink
-        class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
         to="/users"
       >
         Felhasználók kezelése
