@@ -11,37 +11,37 @@ const emits = defineEmits(["modify", "delete"])
     <thead class="bg-gray-50 dark:bg-gray-700/50">
       <tr>
         <th
-          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
           scope="col"
         >
           Név
         </th>
         <th
-          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
           scope="col"
         >
           Felhasználónév
         </th>
         <th
-          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
           scope="col"
         >
           Telefonszám
         </th>
         <th
-          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
           scope="col"
         >
           Email cím
         </th>
         <th
-          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
           scope="col"
         >
           Rang
         </th>
         <th
-          class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+          class="px-6 py-3 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
           scope="col"
         >
           Vezérlők

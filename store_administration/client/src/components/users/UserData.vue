@@ -94,8 +94,9 @@ async function saveUser() {
 
 onMounted(() => {
   if (props.user != null) {
-    user.roleId.value = Number(props.user.role);
-    user.role.value = props.roles.find(x => x.id == user.roleId.value)!.name;
+    const role = props.roles.find(x => x.name == props.user!.role)!;
+    user.roleId.value = role.id;
+    isUpdate.value = true;
   }
 });
 

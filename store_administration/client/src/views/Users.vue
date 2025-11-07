@@ -76,6 +76,7 @@ function modifyUser(user: User) {
 
 function handleFeedback(type: FeedbackType, msg: string, user: User | null, isUpdate: boolean) {
   feedback.value = {type: type, message: msg}
+  console.log(feedback.value)
   if (user == null) return;
   
   if (isUpdate) updateUser(user);
@@ -129,7 +130,7 @@ onMounted(() => {
         :user="currentUser"
         :roles="roles"
         @feedback="handleFeedback"
-        @back="() => (mode = 'all')"
+        @back="() => {mode = 'all'; feedback = null}"
       />
     </div>
   </div>
