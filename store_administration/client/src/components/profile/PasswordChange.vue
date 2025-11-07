@@ -10,7 +10,23 @@ const password = reactive({
 })
 const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null);
 
+function validate(): boolean {
+  if (password.oldPassword == "" || password.newPassword == "") {
+    feedback.value = {type: "warning", message: "A *-gal jelölt mezők kitöltése kötelező!"};
+    return false;
+  }
+
+  if (password.newPassword != password.newConfirm) {
+    feedback.value = {type: "warning", message: "A két jelszó nem egyezik!"};
+    return false;
+  }
+
+  return true;
+}
+
 async function changePassword() {
+  if (!validate()) return;
+  
     try {
         const resp = await fetch("/api/password-change", {
             method: "POST",
