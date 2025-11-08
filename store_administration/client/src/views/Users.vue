@@ -95,6 +95,11 @@ function updateUser(user: User) {
 }
 
 async function deleteUser(userId: Number) {
+  if (userId == 0) {
+    feedback.value = { type: "warning", message: "A felhasználó azonosítója hiányzik, próbáld meg frissíteni az oldalt!" }
+    return;
+  }
+
   try {
     const resp = await fetch("/api/user", {
       method: "DELETE",
@@ -102,14 +107,20 @@ async function deleteUser(userId: Number) {
       body: JSON.stringify({ id: userId }),
     })
 
-    if (!resp.ok) {
-      feedback.value = { type: "error", message: "Felhasználó törlése sikertelen!" };
+    if (resp.status == 204) {
+      users = users.filter(x => x.id != userId);
+      filteredUsers.value = users;
+      feedback.value = { type: "success", message: "Felhasználó törlése sikeres!" };
       return;
     }
 
-    users = users.filter(x => x.id != userId);
-    filteredUsers.value = users;
-    feedback.value = { type: "success", message: "Felhasználó törlése sikeres!" };
+    const data = await resp.json()
+    if (data.error) {
+      feedback.value = { type: "error", message: data.error };
+      return;
+    }
+
+    feedback.value = { type: "error", message: "Felhasználó törlése sikertelen!" };
   } catch (err) {
     feedback.value = { type: "error", message: "Ismeretlen hiba miatt nem sikerült törölni a felhasználót!" };
     console.error(err);

@@ -38,7 +38,7 @@ function validateNewUser(): { message: string, valid: boolean } {
 function validateUpdateUser(): { message: string; valid: boolean } {
   if (user.id.value == 0) {
     return {
-      message: "Nincs módosításra kijelölt felhasználó!",
+      message: "A felhasználó azonosítója hiányzik, próbáld meg frissíteni az oldalt!",
       valid: false,
     };
   }
