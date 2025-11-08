@@ -12,7 +12,10 @@ const routes = [
     component: () => import("../views/Users.vue"),
     meta: { requiresAuth: true },
   },
-  {path: "/password-change", component: () => import("../components/profile/PasswordChange.vue"),},
+  {
+    path: "/password-change",
+    component: () => import("../components/profile/PasswordChange.vue"),
+  },
 ];
 
 const router = createRouter({
@@ -20,12 +23,12 @@ const router = createRouter({
   routes,
 });
 
-router.beforeEach(async (to, from, next) => {
-  if (from.path == "/" + PASSWORD_CHANGE_URL && to.path == from.path) {
+router.beforeEach(async (to, _, next) => {
+  if (to.path == "/" + PASSWORD_CHANGE_URL) {
     return next();
   }
-  const authState = await isAuthenticated();
 
+  const authState = await isAuthenticated();
   if (authState.passwordChangeUrl != "") {
     next("/" + authState.passwordChangeUrl);
     return;
@@ -40,7 +43,10 @@ router.beforeEach(async (to, from, next) => {
 
 export { router };
 
-async function isAuthenticated(): Promise<{valid: boolean, passwordChangeUrl: string}> {
+async function isAuthenticated(): Promise<{
+  valid: boolean;
+  passwordChangeUrl: string;
+}> {
   try {
     const resp = await fetch("/api/echo");
 
@@ -50,9 +56,9 @@ async function isAuthenticated(): Promise<{valid: boolean, passwordChangeUrl: st
       lastPart = "";
     }
 
-    return {valid: !resp.redirected, passwordChangeUrl: lastPart};
+    return { valid: !resp.redirected, passwordChangeUrl: lastPart };
   } catch (err) {
     console.error(err);
-    return {valid: false, passwordChangeUrl: ""};
+    return { valid: false, passwordChangeUrl: "" };
   }
 }
