@@ -16,6 +16,11 @@ const routes = [
     path: "/password-change",
     component: () => import("../components/profile/PasswordChange.vue"),
   },
+  {
+    path: "/store-detail",
+    component: () => import("../views/StoreDetail.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({

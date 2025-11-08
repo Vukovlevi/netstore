@@ -25,7 +25,7 @@ func HandleUpdateStoreDetail(c echo.Context) error {
     }
 
     if err := storeDetail.ValidateUpdate(); err != nil {
-        return c.JSON(http.StatusBadRequest, CreateMessage(err.Error()))
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage(err.Error()))
     }
 
     if err := storeDetail.UpdateStoreDetail(); err != nil {
