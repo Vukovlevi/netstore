@@ -19,8 +19,7 @@ type Session struct {
 }
 
 func GetSessionByUserId(userId int) (Session, error) {
-    //TODO: deleting expired sessions from db daily
-    row := db.DB.QueryRow("SELECT id, user_id, token, expires_at FROM session WHERE user_id = ? AND expires_at > NOW()", userId)
+    row := db.DB.QueryRow("SELECT id, user_id, token, expires_at FROM session WHERE user_id = ?", userId)
     session := Session{}
     err := row.Scan(&session.Id, &session.UserId, &session.Token, &session.ExpiresAt)
     return session, err
@@ -42,6 +41,12 @@ func (s *Session) UpdateExpiry() error {
 func (s *Session) InsertNewSession() error {
     s.setNewExpiresAt()
     _, err := db.DB.Exec("INSERT INTO session VALUES (NULL, ?, ?, ?)", s.UserId, s.Token, s.ExpiresAt)
+    return err
+}
+
+func (s *Session) ChangeExpiredToNew() error {
+    s.setNewExpiresAt()
+    _, err := db.DB.Exec("UPDATE session SET token = ?, expires_at = ? WHERE id = ?", s.Token, s.ExpiresAt, s.Id)
     return err
 }
 

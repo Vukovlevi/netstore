@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/vukovlevi/netstore/store_administration/model"
 )
@@ -19,8 +20,13 @@ func CreateOrUpdateSessionForUser(userId int, ctx *context.Context) error {
         }
         return err
     }
-
     *ctx = context.WithValue(*ctx, "session", session)
+
+    if session.ExpiresAt.Before(time.Now()) {
+        session.Token = generateToken(TOKEN_LENGTH)
+        return session.ChangeExpiredToNew()
+    }
+
     return session.UpdateExpiry()
 }
 
