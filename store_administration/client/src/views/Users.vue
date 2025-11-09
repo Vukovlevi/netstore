@@ -140,7 +140,7 @@ onMounted(() => {
       <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
         Felhasználók
       </h2>
-      <button
+      <button v-if="mode == 'all'"
         class="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90"
         @click="() => { mode = 'single'; feedback = null; }">
         Felhasználó felvitele
