@@ -2,8 +2,10 @@
 import { onMounted, ref, type Ref } from 'vue';
 import type { FeedbackType, Feedback as TFeedback } from '../types/Feedback';
 import type { ContractType } from '../types/ContractType';
-import ContractTypeTable from '../components/contract_types/ContractTypeTable.vue';
 import ContractTypeData from '../components/contract_types/ContractTypeData.vue';
+import Feedback from '../components/Feedback.vue';
+import SearchBar from '../components/SearchBar.vue';
+import ContractTypeCard from '../components/contract_types/ContractTypeCard.vue';
 
 const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null);
 let contractTypes: ContractType[] = [];
@@ -119,12 +121,12 @@ onMounted(() => {
         <SearchBar search-item="Szerződéstípusok" @search="search" v-if="mode == 'all'" />
         <Feedback v-if="feedback != null" :feedback="feedback" />
 
-        <div class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-            <ContractTypeTable :contractTypes="filteredContractTypes" v-if="mode == 'all'"
+        <div v-if="mode == 'all'" class="flex justify-center flex-wrap gap-6 items-center">
+            <ContractTypeCard v-for="contractType in filteredContractTypes" :contractType="contractType"
                 @modify="(contractType: ContractType) => modifyContractType(contractType)"
                 @delete="deleteContractType" />
-            <ContractTypeData v-else :contractType="currentContractType" @feedback="handleFeedback"
-                @back="() => { mode = 'all'; feedback = null; currentContractType = null; }" />
         </div>
+        <ContractTypeData v-else :contractType="currentContractType" @feedback="handleFeedback"
+            @back="() => { mode = 'all'; feedback = null; currentContractType = null; }" />
     </div>
 </template>

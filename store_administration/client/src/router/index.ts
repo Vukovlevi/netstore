@@ -21,6 +21,11 @@ const routes = [
     component: () => import("../views/StoreDetail.vue"),
     meta: { requiresAuth: true },
   },
+  {
+    path: "/contract-types",
+    component: () => import("../views/ContractType.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({

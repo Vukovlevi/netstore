@@ -32,6 +32,10 @@ import { RouterLink } from "vue-router";
         to="/store-detail">
         Üzlet adatai
       </RouterLink>
+      <RouterLink class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
+        to="/contract-types">
+        Szerződéstípusok kezelése
+      </RouterLink>
     </nav>
 
     <div class="flex items-center gap-4 ml-auto">
