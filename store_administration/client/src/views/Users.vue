@@ -61,11 +61,12 @@ function search(searchValue: string) {
     filteredUsers.value = users;
     return;
   }
+  searchValue = searchValue.toLowerCase();
 
   filteredUsers.value = users.filter((x) =>
     (x.firstname + " " + x.lastname)
       .toLowerCase()
-      .includes(searchValue.toLowerCase())
+      .includes(searchValue) || x.username.toLowerCase().includes(searchValue) || x.email.toLowerCase().includes(searchValue) || x.phoneNumber.includes(searchValue) || x.role.toLowerCase().includes(searchValue)
   );
 }
 
@@ -77,7 +78,6 @@ function modifyUser(user: User) {
 
 function handleFeedback(type: FeedbackType, msg: string, user: User | null, isUpdate: boolean) {
   feedback.value = { type: type, message: msg }
-  console.log(feedback.value)
   if (user == null) return;
 
   if (isUpdate) updateUser(user);
@@ -92,6 +92,7 @@ function createNewUser(user: User) {
 function updateUser(user: User) {
   const idx = users.findIndex(x => x.id == user.id);
   users[idx] = user;
+  filteredUsers.value = users;
 }
 
 async function deleteUser(userId: Number) {
