@@ -52,6 +52,11 @@ func main() {
     apiStoreLeaderOrHRGroup.GET("/role", route.HandleGetAllRole)
     apiAuthGroup.POST("/password-change", route.HandleUpdateUserPassword)
 
+    apiStoreLeaderGroup.GET("/open-hour", route.HandleGetOpenHours)
+    apiStoreLeaderGroup.POST("/open-hour", route.HandlePostOpenHour)
+    apiStoreLeaderGroup.PUT("/open-hour", route.HandleUpdateOpenHour)
+    apiStoreLeaderGroup.DELETE("/open-hour", route.HandleDeleteOpenHour)
+
     apiAuthGroup.GET("/echo", route.HandleGetEcho)
     e.Static("/assets", "public/assets")
     e.GET("/*", func(c echo.Context) error {return c.File("public/index.html")})
