@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/vukovlevi/netstore/store_administration/db"
@@ -156,4 +157,45 @@ func (c *Contract) DeleteContract() error {
 	}
 
 	return tx.Commit()
+}
+
+func (c *Contract) ValidateInsert() error {
+	if c.UserId == 0 || c.ContractTypeId == 0 || c.Salary == 0 || c.StartsAt.Equal(time.Time{}) {
+		return errors.New("A szerződés feltöltéséhez hiányoznak adatok!")
+	}
+	return validateContractDays(c.ContractDays)
+}
+
+func validateContractDays(contractDays []ContractDay) error {
+	if len(contractDays) == 0 {
+		return errors.New("A szerződésnek legalább 1 munkanapot tartalmaznia kell!")
+	}
+
+	existingDays := make(map[int]bool)
+	for _, contractDay := range contractDays {
+		if contractDay.StartingTime == "" || contractDay.EndingTime == "" || contractDay.WeekDayId == 0 {
+			return errors.New("Egy munkanap feltöltéséhez hiányoznak adatok!")
+		}
+
+		if _, ok := existingDays[contractDay.WeekDayId]; ok {
+			return errors.New("Nem lehet két munkanapot a hét ugyanazon napjára rögzíteni!")
+		}
+		existingDays[contractDay.WeekDayId] = true
+	}
+
+	return nil
+}
+
+func (c *Contract) ValidateUpdate() error {
+	if c.Id == 0 {
+		return errors.New("A szerződés módosításához kötelező megadni az azonosítóját!")
+	}
+	return c.ValidateInsert()
+}
+
+func (c *Contract) ValidateDelete() error {
+	if c.Id == 0 {
+		return errors.New("A szerződés törléséhez kötelező megadni az azonosítóját!")
+	}
+	return nil
 }
