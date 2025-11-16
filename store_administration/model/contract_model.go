@@ -9,7 +9,6 @@ import (
 
 type ContractDay struct {
 	Id int `json:"id"`
-	ContractId int `json:"contractId,omitempty,omitzero"`
 	StartingTime string `json:"startingTime"`
 	EndingTime string `json:"endingTime"`
 	WeekDayId int `json:"weekDayId,omitempty,omitzero"`
@@ -74,4 +73,42 @@ func getContractDaysForContract(contractId int) ([]ContractDay, error) {
 	}
 
 	return contractDays, nil
+}
+
+func (c *Contract) InsertNewContract() error {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("INSERT INTO contract (user_id, contract_type_id, salary, starts_at, ends_at) VALUES (?, ?, ?, ?, ?)", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt)
+	if err != nil {
+		return err
+	}
+
+	id := 0
+	row := tx.QueryRow("SELECT id FROM contract ORDER BY id DESC LIMIT 1")
+	err = row.Scan(&id)
+	if err != nil {
+		return err
+	}
+	c.Id = id
+
+	err = insertContractDaysForContract(c.Id, c.ContractDays, tx)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func insertContractDaysForContract(contractId int, contractDays []ContractDay, tx *sql.Tx) error {
+	for _, contractDay := range contractDays {
+		_, err := tx.Exec("INSERT INTO contract_day (starting_time, ending_time, contract_id, week_day_id) VALUES (?, ?, ?, ?)", contractDay.StartingTime, contractDay.EndingTime, contractId, contractDay.WeekDayId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
