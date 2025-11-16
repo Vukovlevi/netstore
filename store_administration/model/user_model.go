@@ -90,6 +90,11 @@ func (u *User) EncryptPassword() error {
     return nil
 }
 
+func (u *User) LogoutUser() error {
+    _, err := db.DB.Exec("UPDATE session SET expires_at = NOW() WHERE user_id = ?", u.Id)
+    return err
+}
+
 //Returns user-readable error
 func (u *User) ValidateInsert() error {
     if u.Firstname == "" || u.Lastname == "" || u.Username == "" || u.Password == "" || u.RoleId == 0 {

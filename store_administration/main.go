@@ -34,6 +34,7 @@ func main() {
     apiStoreLeaderOrHRGroup := apiAuthGroup.Group("", middleware.AuthorizeStoreLeaderOrHR)
 
     apiGroup.POST("/login", route.HandleLogin)
+    apiAuthGroup.GET("/logout", route.HandleLogout)
 
     apiStoreLeaderOrHRGroup.GET("/contract-type", route.HandleGetAllContractType)
     apiStoreLeaderGroup.POST("/contract-type", route.HandlePostContractType)
