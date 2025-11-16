@@ -103,6 +103,31 @@ func (c *Contract) InsertNewContract() error {
 	return tx.Commit()
 }
 
+func (c *Contract) UpdateContract() error {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("UPDATE contract SET user_id = ?, contract_type_id = ?, salary = ?, starts_at = ?, ends_at = ? WHERE id = ?", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt, c.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("DELETE FROM contract_day WHERE contract_id = ?", c.Id)
+	if err != nil {
+		return err
+	}
+
+	err = insertContractDaysForContract(c.Id, c.ContractDays, tx)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 func insertContractDaysForContract(contractId int, contractDays []ContractDay, tx *sql.Tx) error {
 	for _, contractDay := range contractDays {
 		_, err := tx.Exec("INSERT INTO contract_day (starting_time, ending_time, contract_id, week_day_id) VALUES (?, ?, ?, ?)", contractDay.StartingTime, contractDay.EndingTime, contractId, contractDay.WeekDayId)
