@@ -57,6 +57,11 @@ func main() {
     apiStoreLeaderGroup.PUT("/open-hour", route.HandleUpdateOpenHour)
     apiStoreLeaderGroup.DELETE("/open-hour", route.HandleDeleteOpenHour)
 
+    apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContracts)
+    apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)
+    apiStoreLeaderOrHRGroup.PUT("/contract", route.HandleUpdateContract)
+    apiStoreLeaderOrHRGroup.DELETE("/contract", route.HandleDeleteContract)
+
     apiAuthGroup.GET("/echo", route.HandleGetEcho)
     e.Static("/assets", "public/assets")
     e.GET("/*", func(c echo.Context) error {return c.File("public/index.html")})
