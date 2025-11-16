@@ -32,7 +32,7 @@ type Contract struct {
 }
 
 func GetAllContract() ([]Contract, error) {
-	rows, err := db.DB.Query("SELECT contract.id, CONCAT(user.firstname, ' ', 'user.lastname'), contract_type.name, salary, starts_at, ends_at, contract.deleted_at FROM contract INNER JOIN contract_type ON contract.contract_type_id = contract_type.id INNER JOIN user ON contract.user_id = user.id WHERE contract.deleted_at IS NULL")
+	rows, err := db.DB.Query("SELECT contract.id, CONCAT(user.lastname, ' ', user.firstname), contract_type.name, salary, starts_at, ends_at, contract.deleted_at FROM contract INNER JOIN contract_type ON contract.contract_type_id = contract_type.id INNER JOIN user ON contract.user_id = user.id WHERE contract.deleted_at IS NULL")
 	if err != nil {
 		return []Contract{}, err
 	}
@@ -58,7 +58,7 @@ func GetAllContract() ([]Contract, error) {
 }
 
 func getContractDaysForContract(contractId int) ([]ContractDay, error) {
-	rows, err := db.DB.Query("SELECT contract_day.id, starting_time, ending_time, week_day.name, contract_day.deleted_at FROM contract_day INNER JOIN week_day ON contract_day.week_day_id = week_day.id WHERE contract_id = ? AND contract_day.deleted_at IS NULL", contractId)
+	rows, err := db.DB.Query("SELECT contract_day.id, starting_time, ending_time, week_day.name, contract_day.deleted_at FROM contract_day INNER JOIN week_day ON contract_day.week_day_id = week_day.id WHERE contract_id = ?", contractId)
 	if err != nil {
 		return []ContractDay{}, err
 	}

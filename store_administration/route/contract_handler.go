@@ -53,7 +53,7 @@ func HandleUpdateContract(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződés módosítása nem sikerült!"))
 	}
 
-	return c.JSON(http.StatusCreated, CreateMessage("A szerződés módosítása sikeres!"))
+	return c.JSON(http.StatusOK, CreateMessage("A szerződés módosítása sikeres!"))
 }
 
 func HandleDeleteContract(c echo.Context) error {
