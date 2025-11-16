@@ -137,3 +137,23 @@ func insertContractDaysForContract(contractId int, contractDays []ContractDay, t
 	}
 	return nil
 }
+
+func (c *Contract) DeleteContract() error {
+	tx, err := db.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec("UPDATE contract SET deleted_at = NOW() WHERE id = ?", c.Id)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec("UPDATE contract_day SET deleted_at = NOW() WHERE contract_id = ?", c.Id)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
