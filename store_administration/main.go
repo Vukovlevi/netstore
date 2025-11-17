@@ -56,6 +56,7 @@ func main() {
     apiStoreLeaderGroup.POST("/open-hour", route.HandlePostOpenHour)
     apiStoreLeaderGroup.PUT("/open-hour", route.HandleUpdateOpenHour)
     apiStoreLeaderGroup.DELETE("/open-hour", route.HandleDeleteOpenHour)
+    apiStoreLeaderGroup.GET("/weekdays", route.HandleGetWeekDays)
 
     apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContracts)
     apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)

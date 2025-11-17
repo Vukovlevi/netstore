@@ -8,7 +8,7 @@ type WeekDay struct {
 }
 
 func GetAllWeekDay() ([]WeekDay, error) {
-	rows, err := db.DB.Query("SELECT id, name FROM week_day")
+	rows, err := db.DB.Query("SELECT id, name FROM week_day ORDER BY id")
 	if err != nil {
 		return []WeekDay{}, err
 	}

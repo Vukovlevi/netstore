@@ -58,6 +58,12 @@ import { RouterLink } from "vue-router";
       >
         Szerződéstípusok kezelése
       </RouterLink>
+      <RouterLink
+        class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary"
+        to="/open-hour"
+      >
+        Nyitvatartási idő beállítása
+      </RouterLink>
     </nav>
 
     <RouterLink to="/profile" class="flex items-center gap-4 ml-auto">

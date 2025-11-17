@@ -31,6 +31,11 @@ const routes = [
     component: () => import("../views/Profile.vue"),
     meta: { requiresAuth: true },
   },
+  {
+    path: "/open-hour",
+    component: () => import("../views/OpenHour.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
