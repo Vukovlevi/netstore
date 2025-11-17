@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/vukovlevi/netstore/store_administration/auth"
@@ -65,4 +66,26 @@ func SetSessionCookie(c echo.Context, session model.Session) {
         Secure: false, //TODO: read from config
         Expires: session.ExpiresAt,
     })
+}
+
+func HandleLogout(c echo.Context) error {
+    user := c.Get("user").(model.User)
+    if err := user.LogoutUser(); err != nil {
+        slog.Error("could not log out user", "error", err, "user", user)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not log out user")) //TODO: user-readable error message
+    }
+
+
+    c.SetCookie(&http.Cookie{
+        Name: "auth_token",
+        Value: "",
+        Path: "/",
+        SameSite: http.SameSiteStrictMode,
+        HttpOnly: true,
+        Secure: false, //TODO: read from config
+        Expires: time.Now().Add(time.Second * -1),
+        MaxAge: -1,
+    })
+
+    return c.JSON(http.StatusOK, CreateMessage("logout successful")) //TODO: user-readable message
 }
