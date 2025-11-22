@@ -1,4 +1,6 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: *");
 require './sql_functions.php';
 require './read_cookies.php';
 $method = $_SERVER['REQUEST_METHOD'];
