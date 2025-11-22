@@ -34,6 +34,7 @@ func main() {
     apiStoreLeaderOrHRGroup := apiAuthGroup.Group("", middleware.AuthorizeStoreLeaderOrHR)
 
     apiGroup.POST("/login", route.HandleLogin)
+    apiAuthGroup.GET("/logout", route.HandleLogout)
 
     apiStoreLeaderOrHRGroup.GET("/contract-type", route.HandleGetAllContractType)
     apiStoreLeaderGroup.POST("/contract-type", route.HandlePostContractType)
@@ -51,6 +52,17 @@ func main() {
     apiStoreLeaderOrHRGroup.DELETE("/user", route.HandleDeleteUser)
     apiStoreLeaderOrHRGroup.GET("/role", route.HandleGetAllRole)
     apiAuthGroup.POST("/password-change", route.HandleUpdateUserPassword)
+
+    apiStoreLeaderGroup.GET("/open-hour", route.HandleGetOpenHours)
+    apiStoreLeaderGroup.POST("/open-hour", route.HandlePostOpenHour)
+    apiStoreLeaderGroup.PUT("/open-hour", route.HandleUpdateOpenHour)
+    apiStoreLeaderGroup.DELETE("/open-hour", route.HandleDeleteOpenHour)
+    apiStoreLeaderGroup.GET("/weekdays", route.HandleGetWeekDays)
+
+    apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContracts)
+    apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)
+    apiStoreLeaderOrHRGroup.PUT("/contract", route.HandleUpdateContract)
+    apiStoreLeaderOrHRGroup.DELETE("/contract", route.HandleDeleteContract)
 
     apiAuthGroup.GET("/echo", route.HandleGetEcho)
     e.Static("/assets", "public/assets")

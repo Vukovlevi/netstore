@@ -3,4 +3,6 @@ type DeletedAt = {
   Valid: boolean;
 };
 
-export type { DeletedAt };
+type NullTime = DeletedAt;
+
+export type { DeletedAt, NullTime };

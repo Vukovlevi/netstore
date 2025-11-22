@@ -83,7 +83,9 @@ func HandleDeleteUser(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind user")) //TODO: user-readable error message
     }
 
-    if err := user.ValidateDelete(); err != nil {
+    deleteBy := c.Get("user").(model.User)
+
+    if err := user.ValidateDelete(deleteBy, auth.ROLE_STORE_LEADER); err != nil {
         return c.JSON(http.StatusBadRequest, CreateErrorMessage(err.Error()))
     }
 

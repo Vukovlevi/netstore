@@ -90,6 +90,11 @@ func (u *User) EncryptPassword() error {
     return nil
 }
 
+func (u *User) LogoutUser() error {
+    _, err := db.DB.Exec("UPDATE session SET expires_at = NOW() WHERE user_id = ?", u.Id)
+    return err
+}
+
 //Returns user-readable error
 func (u *User) ValidateInsert() error {
     if u.Firstname == "" || u.Lastname == "" || u.Username == "" || u.Password == "" || u.RoleId == 0 {
@@ -107,10 +112,36 @@ func (u *User) ValidateUpdate() error {
 }
 
 //Returns user-readable error
-func (u *User) ValidateDelete() error {
+func (u *User) ValidateDelete(deleteBy User, storeLeaderRole string) error {
     if u.Id == 0 {
         return errors.New("missing id for deleting user") //TODO: hungarian error message
     }
+
+    user, err := GetUserByUserId(u.Id)
+    if err != nil {
+        slog.Error("could not get user to be deleted with given id", "error", err, "id", u.Id)
+        return errors.New("could not get user with given id") //TODO: hungarian error message
+    }
+
+    if user.Role != storeLeaderRole {
+        return nil
+    }
+
+    if deleteBy.Role != storeLeaderRole {
+        return errors.New("an HR person can not delete store leader account") //TODO: hungarian error message
+    }
+
+    numOfStoreLeaders := 0
+    row := db.DB.QueryRow("SELECT COUNT(*) FROM user INNER JOIN role ON user.role_id = role.id WHERE role.name = ? AND user.deleted_at IS NULL", storeLeaderRole)
+    err = row.Scan(&numOfStoreLeaders)
+    if err != nil {
+        slog.Error("could not count store leaders in db", "error", err)
+        return errors.New("could not count store leaders in db") //TODO: hungarian error message
+    }
+    if numOfStoreLeaders < 2 {
+        return errors.New("could not delete store leader, because there has to remain at least 1 store leader in the db") //TODO: hungarian error message
+    }
+
     return nil
 }
 
