@@ -10,6 +10,8 @@ import (
 	"github.com/vukovlevi/netstore/store_administration/db"
 	"github.com/vukovlevi/netstore/store_administration/middleware"
 	"github.com/vukovlevi/netstore/store_administration/route"
+
+	mw "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -28,6 +30,8 @@ func main() {
     defer db.Disconnect()
 
     e := echo.New()
+    e.Use(mw.CORS())
+
     apiGroup := e.Group("/api")
     apiAuthGroup := apiGroup.Group("", middleware.AuthenticateUser)
     apiStoreLeaderGroup := apiAuthGroup.Group("", middleware.AuthorizeStoreLeader)
