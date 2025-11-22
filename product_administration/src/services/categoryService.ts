@@ -1,6 +1,6 @@
 import type { Category, ApiResponse } from '../types/Types';
 
-const API_URL = 'http://localhost/netstore_api/crud_operations.php/category';
+const API_URL = 'http://localhost/api/crud_operations.php/category';
 
 export const categoryService = {
   getAll: async (): Promise<Category[]> => {

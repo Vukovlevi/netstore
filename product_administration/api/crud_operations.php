@@ -1,9 +1,11 @@
 <?php
 require './sql_functions.php';
+require './read_cookies.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $body = json_decode(file_get_contents('php://input'), true);
 
+authentication();
 switch(end($uri)) {
     case "category":
         if ($method == "GET") {
