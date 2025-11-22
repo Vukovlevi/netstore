@@ -19,7 +19,6 @@ export default function CategoryForm({
     categories, selectedId, name, loading, error, successMsg, 
     setName, setSelectedId, handleSubmit, handleDelete 
 }: CategoryFormProps) {
-
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-3xl">
           

@@ -36,7 +36,7 @@ export default function Sidebar() {
                         <UserCircle className="text-orange-500" />
                     </div>
                     <div>
-                        <p className="text-sm font-bold text-slate-900">Admin Felhasználó</p>
+                        <p className="text-sm font-bold text-slate-900">Admin</p>
                         <p className="text-xs text-gray-500 cursor-pointer hover:text-blue-600">Kijelentkezés</p>
                     </div>
                 </div>
