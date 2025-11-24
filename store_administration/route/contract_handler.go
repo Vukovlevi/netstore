@@ -1,21 +1,30 @@
 package route
 
 import (
+	"database/sql"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 	"github.com/vukovlevi/netstore/store_administration/model"
 )
 
-func HandleGetContracts(c echo.Context) error {
-	contracts, err := model.GetAllContract()
+func HandleGetContractByUserId(c echo.Context) error {
+	userId, err := strconv.Atoi(c.QueryParam("userId"))
 	if err != nil {
-		slog.Error("could not get contracts", "error", err)
-		return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződések lekérdezése nem sikerült!"))
+		return c.JSON(http.StatusBadRequest, CreateErrorMessage("Érvénytelen felhasználó azonosító!"))
+	}
+	contract, err := model.GetContractByUserId(userId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.NoContent(http.StatusNoContent)
+		}
+		slog.Error("could not get contract for userId", "error", err, "userId", userId)
+		return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződés lekérdezése nem sikerült!"))
 	}
 
-	return c.JSON(http.StatusOK, contracts)
+	return c.JSON(http.StatusOK, contract)
 }
 
 func HandlePostContract(c echo.Context) error {

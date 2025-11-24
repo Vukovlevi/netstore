@@ -63,7 +63,7 @@ func main() {
     apiStoreLeaderGroup.DELETE("/open-hour", route.HandleDeleteOpenHour)
     apiStoreLeaderGroup.GET("/weekdays", route.HandleGetWeekDays)
 
-    apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContracts)
+    apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContractByUserId)
     apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)
     apiStoreLeaderOrHRGroup.PUT("/contract", route.HandleUpdateContract)
     apiStoreLeaderOrHRGroup.DELETE("/contract", route.HandleDeleteContract)
