@@ -1,28 +1,32 @@
 import React from 'react';
-import type { Category } from '../../types/Types';
+import type { Category, SubCategory } from '../../types/Types';
 import FeedbackMessage from '../ui/FeedbackMessage';
 
-interface CategoryFormProps {
+interface SubCategoryFormProps {
+    subCategories: SubCategory[];
     categories: Category[];
     selectedId: number | null;
     name: string;
+    categoryId: number | '';
     loading: boolean;
     error: string | null;
     successMsg: string | null;
     setName: (name: string) => void;
+    setCategoryId: (id: number | '') => void;
     setSelectedId: (id: number | null) => void;
     handleSubmit: (e: React.FormEvent) => void;
     handleDelete: () => void;
 }
 
-export default function CategoryForm({ 
-    categories, selectedId, name, loading, error, successMsg, 
-    setName, setSelectedId, handleSubmit, handleDelete 
-}: CategoryFormProps) {
+export default function SubCategoryForm({ 
+    subCategories, categories, selectedId, name, categoryId, loading, error, successMsg, 
+    setName, setCategoryId, setSelectedId, handleSubmit, handleDelete 
+}: SubCategoryFormProps) {
 
     const handleReset = () => {
         setSelectedId(null);
         setName("");
+        setCategoryId("");
     };
 
     return (
@@ -31,12 +35,12 @@ export default function CategoryForm({
           <div className="mb-8 flex justify-between items-start">
             <div>
                 <h1 className="text-2xl font-bold text-slate-900">
-                {selectedId ? 'Kategória szerkesztése' : 'Új kategória'}
+                {selectedId ? 'Alkategória szerkesztése' : 'Új alkategória'}
                 </h1>
                 <p className="text-gray-500 mt-1 text-sm">
                 {selectedId 
-                    ? 'Szerkessze a kiválasztott kategóriát vagy törölje.' 
-                    : 'Adja meg az új kategória nevét a létrehozáshoz.'}
+                    ? 'Szerkessze a kiválasztott alkategóriát vagy törölje.' 
+                    : 'Adjon hozzá új alkategóriát egy főkategóriához.'}
                 </p>
             </div>
             {selectedId && (
@@ -63,29 +67,54 @@ export default function CategoryForm({
                     if (id === 0) {
                         handleReset();
                     } else {
-                        const cat = categories.find(c => c.id === id);
-                        setSelectedId(id);
-                        setName(cat ? cat.name : "");
+                        const sub = subCategories.find(s => Number(s.id) === id);
+                        if (sub) {
+                            setSelectedId(id);
+                            setName(sub.name);
+                            setCategoryId(Number(sub.category_id));
+                        }
                     }
                   }}
                   value={selectedId || 0}
                 >
                   <option value={0}>-- Új létrehozása --</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  {subCategories.map(sub => (
+                    <option key={sub.id} value={sub.id}>
+                        {sub.name} {sub.category_name ? `(${sub.category_name})` : ''}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                  Kategória neve
+                  Főkategória
+                </label>
+                <select
+                  className={`w-full border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-all ${
+                      selectedId ? 'bg-gray-200 cursor-not-allowed opacity-75' : 'bg-gray-50'
+                  }`}
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(Number(e.target.value))}
+                  required
+                  disabled={!!selectedId}
+                >
+                    <option value="" disabled>Válasszon kategóriát...</option>
+                    {categories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                  Alkategória neve
                 </label>
                 <input 
                   type="text" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="pl. Prémium alma"
+                  placeholder="pl. Szénsavas üdítő"
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
                 />
               </div>
@@ -109,7 +138,7 @@ export default function CategoryForm({
 
               <button
                 type="submit"
-                disabled={loading || !name.trim()}
+                disabled={loading || !name.trim() || !categoryId}
                 className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Mentés...' : (selectedId ? 'Módosítás' : 'Létrehozás')}

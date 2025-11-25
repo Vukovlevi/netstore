@@ -1,45 +1,57 @@
 import React, { useState, useEffect } from 'react';
-import CategoryForm from '../components/forms/CategoryForm';
+import SubCategoryForm from '../components/forms/SubCategoryForm';
+import { subCategoryService } from '../services/subCategoryService';
 import { categoryService } from '../services/categoryService';
-import type { Category } from '../types/Types';
+import type { Category, SubCategory } from '../types/Types';
 
-export default function CategoryManagement() {
+export default function SubCategoryManagement() {
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [name, setName] = useState('');
+  const [categoryId, setCategoryId] = useState<number | ''>('');
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    loadCategories();
+    loadData();
   }, []);
 
-  const loadCategories = async () => {
+  const loadData = async () => {
     try {
-      const data = await categoryService.getAll();
-      setCategories(data);
+      const [subs, cats] = await Promise.all([
+        subCategoryService.getAll(),
+        categoryService.getAll()
+      ]);
+      setSubCategories(subs);
+      setCategories(cats);
     } catch (err) {
-      console.error("Failed to load categories");
+      console.error("Failed to load data");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!categoryId) return;
+    
     setError(null);
     setSuccessMsg(null);
     setLoading(true);
 
     try {
       if (selectedId) {
-        await categoryService.update(selectedId, name);
-        setSuccessMsg("Kategória sikeresen frissítve!");
+        await subCategoryService.update(selectedId, name, Number(categoryId));
+        setSuccessMsg("Alkategória sikeresen frissítve!");
       } else {
-        await categoryService.create(name);
-        setSuccessMsg("Új kategória létrehozva!");
+        await subCategoryService.create(name, Number(categoryId));
+        setSuccessMsg("Új alkategória létrehozva!");
         setName('');
+        setCategoryId('');
       }
-      loadCategories();
+      loadData();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -49,15 +61,16 @@ export default function CategoryManagement() {
 
   const handleDelete = async () => {
     if (!selectedId) return;
-    if (!window.confirm("Biztosan törölni szeretné ezt a kategóriát?")) return;
+    if (!window.confirm("Biztosan törölni szeretné ezt az alkategóriát?")) return;
 
     setLoading(true);
     try {
-      await categoryService.delete(selectedId);
-      setSuccessMsg("Kategória törölve!");
+      await subCategoryService.delete(selectedId);
+      setSuccessMsg("Alkategória törölve!");
       setName('');
+      setCategoryId('');
       setSelectedId(null);
-      loadCategories();
+      loadData();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -67,14 +80,17 @@ export default function CategoryManagement() {
 
   return (
     <div className="flex justify-center items-start">
-        <CategoryForm
+        <SubCategoryForm
+            subCategories={subCategories}
             categories={categories}
             selectedId={selectedId}
             name={name}
+            categoryId={categoryId}
             loading={loading}
             error={error}
             successMsg={successMsg}
             setName={setName}
+            setCategoryId={setCategoryId}
             setSelectedId={setSelectedId}
             handleSubmit={handleSubmit}
             handleDelete={handleDelete}

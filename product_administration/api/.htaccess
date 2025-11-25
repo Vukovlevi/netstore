@@ -1,7 +1,14 @@
-RewriteEngine On
-RewriteBase /netstore_api/
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ crud_operations.php/$1 [L,QSA]
+</IfModule>
 
-RewriteRule ^(.*)$ crud_operations.php [QSA,L]
+<IfModule mod_negotiation.c>
+    Options -MultiViews
+</IfModule>

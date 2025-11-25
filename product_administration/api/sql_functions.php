@@ -4,25 +4,31 @@ function getData($operation, $types = null, $data = null) {
     if ($db->connect_errno != 0) {
         return $db->connect_error;
     }
+    
+    $db->set_charset("utf8mb4");
 
     if (!is_null($types) && !is_null($data)) {
         $stmt = $db->prepare($operation);
         $stmt->bind_param($types, ...$data);
         $stmt->execute();
-        $eredmeny = $stmt->get_result();
+        $result = $stmt->get_result();
     }
     else {
-        $eredmeny = $db->query($operation);
+        $result = $db->query($operation);
     }
     
     if ($db->errno != 0) {
         return $db->error;
     }
-    if ($eredmeny->num_rows == 0) {
+
+    if ($result === true || $result === false) {
+        return [];
+    }
+    if ($result->num_rows == 0) {
         return [];
     }
 
-    return $eredmeny->fetch_all(MYSQLI_ASSOC);
+    return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 function changeData($operation, $types = null, $data = null) {
@@ -30,19 +36,23 @@ function changeData($operation, $types = null, $data = null) {
     if ($db->connect_errno != 0) {
         return $db->connect_error;
     }
+    
+    $db->set_charset("utf8mb4");
 
     if (!is_null($types) && !is_null($data)) {
         $stmt = $db->prepare($operation);
         $stmt->bind_param($types, ...$data);
-        $stmt->execute();
+        $success = $stmt->execute();
+        $stmt->close();
     }
     else {
-        $db->query($operation);
+        $success = $db->query($operation);
     }
     
     if ($db->errno != 0) {
-        return $db->error;
+        return false;
     }
 
-    return $db->affected_rows > 0 ? true : false;
+    return $success;
 }
+?>

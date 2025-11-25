@@ -1,35 +1,29 @@
-import type { Category, ApiResponse } from '../types/Types';
+import type { SubCategory, ApiResponse } from '../types/Types';
 
-const API_URL = './api/category';
+const API_URL = './api/sub_category';
 
-export const categoryService = {
-  getAll: async (): Promise<Category[]> => {
+export const subCategoryService = {
+  getAll: async (): Promise<SubCategory[]> => {
     const res = await fetch(API_URL);
     return res.json();
   },
 
-  getOne: async (id: number): Promise<Category> => {
-    const res = await fetch(`${API_URL}?id=${id}`);
-    if (!res.ok) throw new Error('Category not found');
-    return res.json();
-  },
-
-  create: async (name: string): Promise<ApiResponse> => {
+  create: async (name: string, category_id: number): Promise<ApiResponse> => {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, category_id }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Hiba a létrehozáskor');
     return data;
   },
 
-  update: async (id: number, name: string): Promise<ApiResponse> => {
+  update: async (id: number, name: string, category_id: number): Promise<ApiResponse> => {
     const res = await fetch(API_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, name }),
+      body: JSON.stringify({ id, name, category_id }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Hiba a frissítéskor');
