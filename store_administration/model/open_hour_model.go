@@ -11,7 +11,7 @@ type OpenHour struct {
 	Id      int `json:"id"`
 	OpensAt string `json:"opensAt"`
 	ClosesAt string `json:"closesAt"`
-	SpecialDate sql.NullTime `json:"specialDate,omitempty,omitzero"`
+	SpecialDate sql.NullTime `json:"specialDate,omitzero"`
 	WeekDayIds []int `json:"weekDayIds,omitempty,omitzero"`
 	WeekDays []string `json:"weekDays,omitempty,omitzero"`
 	DeletedAt sql.NullTime `json:"deletedAt"`
@@ -68,18 +68,16 @@ func (o *OpenHour) InsertNewOpenHour() error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("INSERT INTO open_hour (opens_at, closes_at, special_date) VALUES (?, ?, ?)", o.OpensAt, o.ClosesAt, o.SpecialDate)
+    res, err := tx.Exec("INSERT INTO open_hour (opens_at, closes_at, special_date) VALUES (?, ?, ?)", o.OpensAt, o.ClosesAt, o.SpecialDate)
 	if err != nil {
 		return err
 	}
 
-	id := 0
-	row := tx.QueryRow("SELECT id FROM open_hour ORDER BY id DESC LIMIT 1")
-	err = row.Scan(&id)
-	if err != nil {
-		return err
-	}
-	o.Id = id
+	id, err := res.LastInsertId()
+    if err != nil {
+        return err
+    }
+	o.Id = int(id)
 
 	err = insertWeekDaysForOpenHour(o.Id, o.WeekDayIds, tx)
 	if err != nil {

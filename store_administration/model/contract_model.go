@@ -75,18 +75,16 @@ func (c *Contract) InsertNewContract() error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("INSERT INTO contract (user_id, contract_type_id, salary, starts_at, ends_at) VALUES (?, ?, ?, ?, ?)", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt)
+    res, err := tx.Exec("INSERT INTO contract (user_id, contract_type_id, salary, starts_at, ends_at) VALUES (?, ?, ?, ?, ?)", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt)
 	if err != nil {
 		return err
 	}
 
-	id := 0
-	row := tx.QueryRow("SELECT id FROM contract ORDER BY id DESC LIMIT 1")
-	err = row.Scan(&id)
-	if err != nil {
-		return err
-	}
-	c.Id = id
+    id, err := res.LastInsertId()
+    if err != nil {
+        return err
+    }
+	c.Id = int(id)
 
 	err = insertContractDaysForContract(c.Id, c.ContractDays, tx)
 	if err != nil {
