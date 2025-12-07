@@ -55,7 +55,7 @@ func (m *TcpMessage) ToAuthenticationMessage() *AuthenticationMessage {
 }
 
 func (m *TcpMessage) ToSearchMessage() *SearchMessage {
-    return &SearchMessage{TcpMessage: m, AnswerChan: make(chan []*AnswerMessage, 1)}
+    return &SearchMessage{TcpMessage: m, AnswerChan: make(chan []byte, 1)}
 }
 
 func (m *TcpMessage) ToAnswerMessage() *AnswerMessage {
@@ -79,7 +79,7 @@ func (a *AuthenticationMessage) Authenticate() error {
 
 type SearchMessage struct {
     *TcpMessage
-    AnswerChan chan []*AnswerMessage
+    AnswerChan chan []byte
 }
 
 type AnswerMessage struct {

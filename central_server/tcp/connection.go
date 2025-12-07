@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"github.com/google/uuid"
+	"github.com/vukovlevi/netstore/central_server/queue"
 )
 
 const (
@@ -18,7 +19,7 @@ const (
 type Connection struct {
     Id uuid.UUID
     Conn net.Conn
-    SearchRequestChan chan *SearchMessage
+    SearchRequestChan chan *queue.SearchRequestNode
     AnswerChan chan *AnswerMessage
     CurrentAnswerId string
     IsAuthenticated bool
@@ -26,7 +27,7 @@ type Connection struct {
     ReturnError error
 }
 
-func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage, connChan chan *Connection) *Connection {
+func CreateConnection(conn net.Conn, searchRequestChan chan *queue.SearchRequestNode, connChan chan *Connection) *Connection {
     return &Connection{
         Id: uuid.New(),
         Conn: conn,
@@ -149,7 +150,11 @@ func (c *Connection) Authenticate(message *AuthenticationMessage) {
 }
 
 func (c *Connection) EnqueueSearchRequest(message *SearchMessage) {
-    c.SearchRequestChan <- message
+    node := &queue.SearchRequestNode{
+        SearchParam: message.Content,
+        AnswerChan: message.AnswerChan,
+    }
+    c.SearchRequestChan <- node
 }
 
 func (c *Connection) GiveAnswer(message *AnswerMessage) {
