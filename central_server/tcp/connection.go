@@ -16,12 +16,14 @@ const (
 type Connection struct {
     Id uuid.UUID
     Conn net.Conn
-    SearchRequestChan chan<- SearchMessage
-    AnswerChan chan<- AnswerMessage
+    SearchRequestChan chan *SearchMessage
+    AnswerChan chan *AnswerMessage
     CurrentAnswerId string
+    IsAuthenticated bool
+    NewConnChan chan *Connection
 }
 
-func CreateConnection(conn net.Conn, searchRequestChan chan<- SearchMessage) *Connection {
+func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage) *Connection {
     return &Connection{
         Id: uuid.New(),
         Conn: conn,
@@ -51,6 +53,11 @@ func (c *Connection) ReadLoop() {
         tcpMessage := c.ReadPayload(header.MsgLen)
         if tcpMessage == nil {
             continue
+        }
+
+        if !c.IsAuthenticated && tcpMessage.MessageType != MSG_TYPE_AUTHENTICATION {
+            c.Conn.Close()
+            return
         }
     }
 }
@@ -85,6 +92,42 @@ func (c *Connection) ReadPayload(length uint32) *TcpMessage {
     }
 
     return CreateTcpMessageFromPayload(buffer)
+}
+
+func (c *Connection) HandleMessage(message TcpMessage) {
+    switch message.MessageType {
+    case MSG_TYPE_AUTHENTICATION:
+        c.Authenticate(message.ToAuthenticationMessage())
+    case MSG_TYPE_SEARCH:
+        c.EnqueueSearchRequest(message.ToSearchMessage())
+    case MSG_TYPE_ANSWER:
+        c.GiveAnswer(message.ToAnswerMessage())
+    default:
+        c.SendErrorMessage("not valid msg type") //TODO: hungarian error message
+    }
+}
+
+func (c *Connection) Authenticate(message *AuthenticationMessage) {
+    if err := message.Authenticate(); err != nil {
+        slog.Error("authentication failure for client", "id", c.Id.String(), "address", c.Conn.RemoteAddr().String(), "sent psk", string(message.Content))
+    }
+    c.IsAuthenticated = true
+    c.NewConnChan <- c
+}
+
+func (c *Connection) EnqueueSearchRequest(message *SearchMessage) {
+    c.SearchRequestChan <- message
+}
+
+func (c *Connection) GiveAnswer(message *AnswerMessage) {
+    defer func() {
+        err := recover()
+        if err != nil {
+            slog.Error("there was an error while answering search request", "error", err)
+        }
+    }()
+
+    c.AnswerChan <- message
 }
 
 func (c *Connection) SendErrorMessage(msg string) error {

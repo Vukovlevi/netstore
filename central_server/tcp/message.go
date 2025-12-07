@@ -15,6 +15,8 @@ const (
     MSG_TYPE_ERROR = byte(6)
 
     MSG_EOF = byte(0x4E)
+
+    UUID_LENGTH = 36
 )
 
 var (
@@ -30,9 +32,9 @@ type TcpMessage struct {
     Content []byte
 }
 
-func (t *TcpMessage) ToMessageBytes() []byte {
-    payload := []byte{t.MessageType}
-    payload = append(payload, t.Content...)
+func (m *TcpMessage) ToMessageBytes() []byte {
+    payload := []byte{m.MessageType}
+    payload = append(payload, m.Content...)
     payload = append(payload, MSG_EOF)
 
     header := CreateHeaderForPayload(payload)
@@ -47,25 +49,41 @@ func CreateTcpMessageFromPayload(payload []byte) *TcpMessage {
     return &TcpMessage{MessageType: msgType, Content: content}
 }
 
+func (m *TcpMessage) ToAuthenticationMessage() *AuthenticationMessage {
+    return &AuthenticationMessage{TcpMessage: m, Psk: string(m.Content)}
+}
+
+func (m *TcpMessage) ToSearchMessage() *SearchMessage {
+    return &SearchMessage{TcpMessage: m, AnswerChan: make(chan []*AnswerMessage)}
+}
+
+func (m *TcpMessage) ToAnswerMessage() *AnswerMessage {
+    answerId := string(m.Content[:UUID_LENGTH])
+    m.Content = m.Content[UUID_LENGTH:]
+    return &AnswerMessage{TcpMessage: m, AnswerId: answerId}
+}
+
 type AuthenticationMessage struct {
     *TcpMessage
+    Psk string
 }
 
 func (a *AuthenticationMessage) Authenticate() error {
     psk := os.Getenv("PSK")
-    if psk != string(a.Content) {
+    if psk != a.Psk {
         return AuthenticationError
     }
-
     return nil
 }
 
 type SearchMessage struct {
     *TcpMessage
+    AnswerChan chan []*AnswerMessage
 }
 
 type AnswerMessage struct {
     *TcpMessage
+    AnswerId string
 }
 
 type ClientSearchMessage struct {
