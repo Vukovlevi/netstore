@@ -2,17 +2,62 @@ package tcp_test
 
 import (
 	"crypto/rand"
+	"encoding/binary"
 	"io"
 	"log"
 	"net"
 	"os"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/vukovlevi/netstore/central_server/tcp"
 )
+
+func TestBadMessageLength(t *testing.T) {
+    client, server := net.Pipe()
+    defer client.Close()
+    defer server.Close()
+
+    connection := tcp.Connection{Conn: server}
+    content := []byte{2, 3}
+    message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_SEARCH, Content: content}
+
+    go func() {
+        send := message.ToMessageBytes()
+        binary.BigEndian.PutUint32(send[1:], 0)
+        n, err := client.Write(send)
+        if err != nil {
+            log.Fatalf("error writing to connection bad length, error: %s", err.Error())
+        }
+
+        if n != len(send) {
+            log.Fatalf("could not write full message bad length, expected to write: %d, written: %d", len(send), n)
+        }
+    }()
+
+    header := connection.ReadHeader()
+    if header == nil {
+        log.Fatalf("header should not be nil here")
+    }
+
+    err := header.ValidateHeader()
+    if err != nil {
+        log.Fatalf("header should be valid, error: %s", err.Error())
+    }
+
+    readMessage := connection.ReadPayload(header.MsgLen)
+    if readMessage != nil {
+        log.Fatalf("read message should be nil here")
+    }
+
+    header = connection.ReadHeader()
+    if header != nil {
+        log.Fatalf("header should be nil here")
+    }
+}
 
 func TestReading_ShortSuccess(t *testing.T) {
     client, server := net.Pipe()
@@ -142,6 +187,7 @@ func TestReading_LongSuccess(t *testing.T) {
             log.Fatalf("could not write full message long success, expected to write: %d, written: %d", 3000, n)
         }
 
+        time.Sleep(time.Millisecond * 100)
         n, err = client.Write(send[3000:])
         if err != nil {
             log.Fatalf("error writing to connection, error: %s", err.Error())
