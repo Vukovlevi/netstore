@@ -11,6 +11,8 @@ import (
 
 const (
     VERSION_ERROR_MESSAGE = "not valid version"
+    INVALID_MSG_TYPE_ERROR_MESSAGE = "not valid message type"
+    AUTHENTICATION_ERROR_MESSAGE = "invalid credentials"
 )
 
 type Connection struct {
@@ -59,6 +61,8 @@ func (c *Connection) ReadLoop() {
             c.Conn.Close()
             return
         }
+
+        c.HandleMessage(tcpMessage)
     }
 }
 
@@ -94,7 +98,7 @@ func (c *Connection) ReadPayload(length uint32) *TcpMessage {
     return CreateTcpMessageFromPayload(buffer)
 }
 
-func (c *Connection) HandleMessage(message TcpMessage) {
+func (c *Connection) HandleMessage(message *TcpMessage) {
     switch message.MessageType {
     case MSG_TYPE_AUTHENTICATION:
         c.Authenticate(message.ToAuthenticationMessage())
@@ -103,16 +107,22 @@ func (c *Connection) HandleMessage(message TcpMessage) {
     case MSG_TYPE_ANSWER:
         c.GiveAnswer(message.ToAnswerMessage())
     default:
-        c.SendErrorMessage("not valid msg type") //TODO: hungarian error message
+        c.SendErrorMessage(INVALID_MSG_TYPE_ERROR_MESSAGE) //TODO: hungarian error message
     }
 }
 
 func (c *Connection) Authenticate(message *AuthenticationMessage) {
     if err := message.Authenticate(); err != nil {
         slog.Error("authentication failure for client", "id", c.Id.String(), "address", c.Conn.RemoteAddr().String(), "sent psk", string(message.Content))
+        err = c.SendErrorMessage(AUTHENTICATION_ERROR_MESSAGE) //TODO: hungarian error message
+        if err != nil {
+            slog.Error("could not send error message", "error", err)
+        }
+        return
     }
     c.IsAuthenticated = true
     c.NewConnChan <- c
+    c.SendMessage(CreateAuthenticationSuccessMessage())
 }
 
 func (c *Connection) EnqueueSearchRequest(message *SearchMessage) {

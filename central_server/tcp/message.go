@@ -13,6 +13,7 @@ const (
     MSG_TYPE_CLIENT_SEARCH = byte(3)
     MSG_TYPE_CLIENT_ANSWER = byte(5)
     MSG_TYPE_ERROR = byte(6)
+    MSG_TYPE_AUTHENTICATION_SUCCESS = byte(7)
 
     MSG_EOF = byte(0x4E)
 
@@ -106,4 +107,12 @@ func CreateErrorMessage(msg string) *ErrorMessage {
 func (e *ErrorMessage) ToMessageBytes() []byte {
     e.Content = []byte(e.Msg)
     return e.TcpMessage.ToMessageBytes()
+}
+
+type AuthenticationSuccessMessage struct {
+    *TcpMessage
+}
+
+func CreateAuthenticationSuccessMessage() *AuthenticationSuccessMessage {
+    return &AuthenticationSuccessMessage{TcpMessage: &TcpMessage{MessageType: MSG_TYPE_AUTHENTICATION_SUCCESS}}
 }
