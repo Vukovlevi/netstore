@@ -221,6 +221,11 @@ func TestHandleMessage(t *testing.T) {
     go sendMessageToServer(client, &message)
     testGiveAnswer(&connection)
 
+    message.MessageType = tcp.MSG_TYPE_ANSWER
+    connection.CurrentAnswerId = ""
+    go sendMessageToServer(client, &message)
+    testGiveInvalidAnswer(&connection)
+
     message.MessageType = tcp.MSG_TYPE_CLIENT_ANSWER
     go sendMessageToServer(client, &message)
     testInvalidMsgType(&connection, client)
@@ -310,6 +315,14 @@ func testGiveAnswer(connection *tcp.Connection) {
     }
 
     close(connection.AnswerChan)
+}
+
+func testGiveInvalidAnswer(connection *tcp.Connection) {
+    header := connection.ReadHeader()
+    readMessage := connection.ReadPayload(header.MsgLen)
+    connection.HandleMessage(readMessage)
+    //works as a test, because in case of invalid answer id, it should not send anything on the channel -> no error
+    //if it is trying to send to closed chanel -> test fails
 }
 
 func testInvalidMsgType(connection *tcp.Connection, client net.Conn) {
