@@ -9,9 +9,13 @@ import (
 	"github.com/google/uuid"
 )
 
+const (
+    VERSION_ERROR_MESSAGE = "not valid version"
+)
+
 type Connection struct {
     Id uuid.UUID
-    Conn io.ReadWriteCloser
+    Conn net.Conn
     SearchRequestChan chan<- SearchMessage
     AnswerChan chan<- AnswerMessage
     CurrentAnswerId string
@@ -33,14 +37,18 @@ func (c *Connection) ReadLoop() {
         }
 
         if err := header.ValidateHeader(); err != nil {
+            c.ReadPayload(header.MsgLen)
             slog.Error("header not valid", "err", err)
             if err == ErrVersionMismatch {
-                c.SendErrorMessage("not valid version") //TODO: hungarian error message
+                sendErr := c.SendErrorMessage(VERSION_ERROR_MESSAGE) //TODO: hungarian error message
+                if sendErr != nil {
+                    slog.Error("there was an error sending error message", "error", sendErr)
+                }
             }
             continue
         }
 
-        tcpMessage := c.ReadPayload(header.GetLength())
+        tcpMessage := c.ReadPayload(header.MsgLen)
         if tcpMessage == nil {
             continue
         }
@@ -63,7 +71,7 @@ func (c *Connection) ReadHeader() *TcpHeader {
     return CreateHeaderFromBuffer(headerBuffer)
 }
 
-func (c *Connection) ReadPayload(length int) *TcpMessage {
+func (c *Connection) ReadPayload(length uint32) *TcpMessage {
     buffer := make([]byte, length)
     n, err := io.ReadFull(c.Conn, buffer)
     if err != nil {

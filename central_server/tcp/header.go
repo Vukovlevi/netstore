@@ -36,10 +36,6 @@ func (h *TcpHeader) ValidateHeader() error {
     return nil
 }
 
-func (h *TcpHeader) GetLength() int {
-    return int(h.MsgLen)
-}
-
 func CreateHeaderForPayload(payload []byte) []byte {
     header := make([]byte, HEADER_SIZE)
     header[0] = VERSION

@@ -53,10 +53,6 @@ type AuthenticationMessage struct {
 
 func (a *AuthenticationMessage) Authenticate() error {
     psk := os.Getenv("PSK")
-    if psk == "" {
-        return errors.New("there was no psk found in configuration")
-    }
-
     if psk != string(a.Content) {
         return AuthenticationError
     }
