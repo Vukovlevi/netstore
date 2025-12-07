@@ -322,7 +322,7 @@ func testGiveInvalidAnswer(connection *tcp.Connection) {
     readMessage := connection.ReadPayload(header.MsgLen)
     connection.HandleMessage(readMessage)
     //works as a test, because in case of invalid answer id, it should not send anything on the channel -> no error
-    //if it is trying to send to closed chanel -> test fails
+    //if it is trying to send to closed chanel -> test doesnt fail because of recover, but error message will be shown
 }
 
 func testInvalidMsgType(connection *tcp.Connection, client net.Conn) {
