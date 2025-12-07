@@ -13,10 +13,6 @@ type SearchRequestNode struct {
     AnswerChan chan []byte
 }
 
-func (n *SearchRequestNode) Process(processCallback func(*SearchRequestNode)) {
-    processCallback(n)
-}
-
 type SearchRequestQueue struct {
     Head *SearchRequestNode
     Tail *SearchRequestNode
@@ -72,16 +68,26 @@ func (q *SearchRequestQueue) Dequeue() *SearchRequestNode {
 func (q *SearchRequestQueue) Process() {
     q.mutex.Lock()
     if q.Status != STATUS_CAN_SEARCH {
+        q.mutex.Unlock()
         return
     }
 
     curr := q.Dequeue()
     if curr == nil {
+        q.mutex.Unlock()
         return
     }
 
     q.Status = STATUS_ANSWERING
     q.mutex.Unlock()
 
-    curr.Process(q.ProcessCallback)
+    q.ProcessCallback(curr)
+}
+
+func (q *SearchRequestQueue) FinishProcess() {
+    q.mutex.Lock()
+    q.Status = STATUS_CAN_SEARCH
+    q.mutex.Unlock()
+
+    q.Process()
 }

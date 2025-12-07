@@ -57,4 +57,5 @@ func (s *Server) HandleConnections() {
 
 func (s *Server) ProcessSearchRequest(searchRequest *queue.SearchRequestNode) {
     //TODO: processing logic here (broadcasting search param, collecting data, then sending it back to answerchan -> handleing answerchan in separate goroutine in connection on search request)
+    s.SearchRequestQueue.FinishProcess()
 }
