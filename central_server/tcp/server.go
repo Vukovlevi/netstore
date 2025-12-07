@@ -1,7 +1,6 @@
 package tcp
 
 import (
-	"fmt"
 	"log/slog"
 	"net"
 
@@ -21,17 +20,18 @@ func NewServer() *Server {
 		slog.Error("could not create listener for server", "error", err)
 		panic("missing listener")
 	}
-	return &Server{
+    server := &Server{
 		Listener:    ln,
 		Connections: make(map[string]*Connection),
 		ConnChan:    make(chan *Connection, 1),
-        SearchRequestQueue: queue.NewSearchRequestQueue(),
 	}
+    server.SearchRequestQueue = queue.NewSearchRequestQueue(server.ProcessSearchRequest)
+    return server
 }
 
 func (s *Server) Start() {
     go s.HandleConnections()
-    go s.ProcessSearchRequest()
+    go s.SearchRequestQueue.HandleSearchRequest()
 
     for {
         conn, err := s.Listener.Accept()
@@ -55,9 +55,6 @@ func (s *Server) HandleConnections() {
     }
 }
 
-func (s *Server) ProcessSearchRequest() {
-    for searchRequest := range s.SearchRequestQueue.ProcessChan {
-        fmt.Println(searchRequest) //TODO: processing logic here (sending client search messages the collecting answers)
-        s.SearchRequestQueue.FinishProcess()
-    }
+func (s *Server) ProcessSearchRequest(searchRequest *queue.SearchRequestNode) {
+    //TODO: processing logic here (broadcasting search param, collecting data, then sending it back to answerchan -> handleing answerchan in separate goroutine in connection on search request)
 }
