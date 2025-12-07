@@ -38,12 +38,13 @@ func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage, conn
 func (c *Connection) ReadLoop() {
     defer func() {
         c.Conn.Close()
-        if c.ReturnError == io.EOF {
+        if c.ReturnError == io.EOF && c.IsAuthenticated {
             c.ConnChan <- c
-        } else {
+        } else if c.ReturnError != io.EOF {
             slog.Error("connection forcefully closed by server", "error", c.ReturnError)
         }
     }()
+
     for {
         header, err := c.ReadHeader()
         if err != nil {
