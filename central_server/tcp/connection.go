@@ -23,6 +23,7 @@ type Connection struct {
     CurrentAnswerId string
     IsAuthenticated bool
     ConnChan chan *Connection
+    ReturnError error
 }
 
 func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage, connChan chan *Connection) *Connection {
@@ -35,13 +36,25 @@ func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage, conn
 }
 
 func (c *Connection) ReadLoop() {
+    defer func() {
+        c.Conn.Close()
+        if c.ReturnError == io.EOF {
+            c.ConnChan <- c
+        } else {
+            slog.Error("connection forcefully closed by server", "error", c.ReturnError)
+        }
+    }()
     for {
-        header := c.ReadHeader()
-        if header == nil {
+        header, err := c.ReadHeader()
+        if err != nil {
+            if err == io.EOF {
+                c.ReturnError = err
+                return
+            }
             continue
         }
 
-        if err := header.ValidateHeader(); err != nil {
+        if err = header.ValidateHeader(); err != nil {
             c.ReadPayload(header.MsgLen)
             slog.Error("header not valid", "err", err)
             if err == ErrVersionMismatch {
@@ -59,7 +72,7 @@ func (c *Connection) ReadLoop() {
         }
 
         if !c.IsAuthenticated && tcpMessage.MessageType != MSG_TYPE_AUTHENTICATION {
-            c.Conn.Close()
+            c.ReturnError = errors.New("client tried to send message without authenticating first")
             return
         }
 
@@ -71,23 +84,27 @@ func (c *Connection) ReadLoop() {
     }
 }
 
-func (c *Connection) ReadHeader() *TcpHeader {
+func (c *Connection) ReadHeader() (*TcpHeader, error) {
     headerBuffer := make([]byte, HEADER_SIZE)
     n, err := c.Conn.Read(headerBuffer)
     if err != nil {
         slog.Error("could not read client message", "error", err)
-        return nil
+        return nil, err
     }
 
     if n != HEADER_SIZE {
         slog.Error("message from client is too short for a header", "message", headerBuffer[:n])
-        return nil
+        return nil, errors.New("header size mismatch")
     }
 
-    return CreateHeaderFromBuffer(headerBuffer)
+    return CreateHeaderFromBuffer(headerBuffer), nil
 }
 
 func (c *Connection) ReadPayload(length uint32) *TcpMessage {
+    if length < 2 {
+        return nil
+    }
+
     buffer := make([]byte, length)
     n, err := io.ReadFull(c.Conn, buffer)
     if err != nil {
