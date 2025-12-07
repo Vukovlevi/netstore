@@ -127,6 +127,9 @@ func (c *Connection) GiveAnswer(message *AnswerMessage) {
         }
     }()
 
+    if message.AnswerId != c.CurrentAnswerId {
+        return
+    }
     c.AnswerChan <- message
 }
 
