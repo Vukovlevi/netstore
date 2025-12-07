@@ -260,7 +260,7 @@ func testAuthenticationFailure(connection *tcp.Connection, client net.Conn) {
 }
 
 func testAuthenticationSuccess(connection *tcp.Connection, client net.Conn) {
-    connection.NewConnChan = make(chan *tcp.Connection, 1)
+    connection.ConnChan = make(chan *tcp.Connection, 1)
     header := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     go connection.HandleMessage(readMessage)
@@ -279,12 +279,12 @@ func testAuthenticationSuccess(connection *tcp.Connection, client net.Conn) {
         log.Fatalf("authentication message type mismatch, expected: %d, got: %d", tcp.MSG_TYPE_AUTHENTICATION_SUCCESS, buffer[tcp.HEADER_SIZE])
     }
 
-    c := <- connection.NewConnChan
+    c := <- connection.ConnChan
     if c != connection {
         log.Fatalf("did not get connection on new con chang")
     }
 
-    close(connection.NewConnChan)
+    close(connection.ConnChan)
 }
 
 func testEnqueueSearchRequest(connection *tcp.Connection) {

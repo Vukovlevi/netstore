@@ -22,14 +22,15 @@ type Connection struct {
     AnswerChan chan *AnswerMessage
     CurrentAnswerId string
     IsAuthenticated bool
-    NewConnChan chan *Connection
+    ConnChan chan *Connection
 }
 
-func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage) *Connection {
+func CreateConnection(conn net.Conn, searchRequestChan chan *SearchMessage, connChan chan *Connection) *Connection {
     return &Connection{
         Id: uuid.New(),
         Conn: conn,
         SearchRequestChan: searchRequestChan,
+        ConnChan: connChan,
     }
 }
 
@@ -60,6 +61,10 @@ func (c *Connection) ReadLoop() {
         if !c.IsAuthenticated && tcpMessage.MessageType != MSG_TYPE_AUTHENTICATION {
             c.Conn.Close()
             return
+        }
+
+        if c.IsAuthenticated && tcpMessage.MessageType == MSG_TYPE_AUTHENTICATION {
+            continue
         }
 
         c.HandleMessage(tcpMessage)
@@ -121,7 +126,7 @@ func (c *Connection) Authenticate(message *AuthenticationMessage) {
         return
     }
     c.IsAuthenticated = true
-    c.NewConnChan <- c
+    c.ConnChan <- c
     c.SendMessage(CreateAuthenticationSuccessMessage())
 }
 
