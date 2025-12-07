@@ -54,7 +54,7 @@ func (m *TcpMessage) ToAuthenticationMessage() *AuthenticationMessage {
 }
 
 func (m *TcpMessage) ToSearchMessage() *SearchMessage {
-    return &SearchMessage{TcpMessage: m, AnswerChan: make(chan []*AnswerMessage)}
+    return &SearchMessage{TcpMessage: m, AnswerChan: make(chan []*AnswerMessage, 1)}
 }
 
 func (m *TcpMessage) ToAnswerMessage() *AnswerMessage {
