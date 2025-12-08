@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/vukovlevi/netstore/central_server/queue"
@@ -25,6 +26,7 @@ type Connection struct {
     IsAuthenticated bool
     ConnChan chan *Connection
     ReturnError error
+    mutex *sync.RWMutex
 }
 
 func CreateConnection(conn net.Conn, searchRequestChan chan *queue.SearchRequestNode, connChan chan *Connection) *Connection {
@@ -152,9 +154,19 @@ func (c *Connection) Authenticate(message *AuthenticationMessage) {
 func (c *Connection) EnqueueSearchRequest(message *SearchMessage) {
     node := &queue.SearchRequestNode{
         SearchParam: message.Content,
-        AnswerChan: message.AnswerChan,
+        FullAnswerChan: message.FullAnswerChan,
+        ClientId: c.Id.String(),
     }
     c.SearchRequestChan <- node
+    go c.WaitForAnswer(message.FullAnswerChan)
+}
+
+func (c *Connection) WaitForAnswer(answerChan chan []byte) {
+    answer := <- answerChan
+    if err := c.write(answer); err != nil {
+        slog.Error("could not send client answer message", "error", err, "client id", c.Id.String(), "content", answer)
+    }
+    close(answerChan)
 }
 
 func (c *Connection) GiveAnswer(message *AnswerMessage) {
@@ -165,6 +177,8 @@ func (c *Connection) GiveAnswer(message *AnswerMessage) {
         }
     }()
 
+    c.mutex.RLock()
+    defer c.mutex.RUnlock()
     if message.AnswerId != c.CurrentAnswerId {
         return
     }
@@ -176,17 +190,29 @@ func (c *Connection) SendErrorMessage(msg string) error {
     return c.SendMessage(message)
 }
 
-func (c *Connection) SendMessage(message Message) error {
-    send := message.ToMessageBytes()
-    n, err := c.Conn.Write(send)
+func (c *Connection) write(msg []byte) error {
+    n, err := c.Conn.Write(msg)
     if err != nil {
         return err
     }
 
-    if n != len(send) {
-        slog.Error("could not send whole message", "expected to send", len(send), "actually sent", n)
+    if n != len(msg) {
+        slog.Error("could not send whole message", "expected to send", len(msg), "actually sent", n)
         return errors.New("failed to send whole message")
     }
 
     return nil
+}
+
+func (c *Connection) SendMessage(message Message) error {
+    send := message.ToMessageBytes()
+    return c.write(send)
+}
+
+func (c *Connection) SendClientSearch(message *ClientSearchMessage) error {
+    c.mutex.Lock()
+    c.AnswerChan = message.SingleAnswerChan
+    c.CurrentAnswerId = message.AnswerId
+    c.mutex.Unlock()
+    return c.SendMessage(message)
 }

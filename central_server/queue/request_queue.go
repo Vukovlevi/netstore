@@ -10,7 +10,8 @@ const (
 type SearchRequestNode struct {
     Next *SearchRequestNode
     SearchParam []byte
-    AnswerChan chan []byte
+    FullAnswerChan chan []byte
+    ClientId string
 }
 
 type SearchRequestQueue struct {

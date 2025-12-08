@@ -55,7 +55,7 @@ func (m *TcpMessage) ToAuthenticationMessage() *AuthenticationMessage {
 }
 
 func (m *TcpMessage) ToSearchMessage() *SearchMessage {
-    return &SearchMessage{TcpMessage: m, AnswerChan: make(chan []byte, 1)}
+    return &SearchMessage{TcpMessage: m, FullAnswerChan: make(chan []byte, 1)}
 }
 
 func (m *TcpMessage) ToAnswerMessage() *AnswerMessage {
@@ -79,20 +79,45 @@ func (a *AuthenticationMessage) Authenticate() error {
 
 type SearchMessage struct {
     *TcpMessage
-    AnswerChan chan []byte
+    FullAnswerChan chan []byte
 }
+
 
 type AnswerMessage struct {
     *TcpMessage
     AnswerId string
 }
 
+
 type ClientSearchMessage struct {
     *TcpMessage
+    ClientId string
+    AnswerId string
+    SingleAnswerChan chan *AnswerMessage
+    SearchParam []byte
+}
+
+func CreateClientSearchMessage(clientId, answerId string, searchParam []byte) *ClientSearchMessage {
+    return &ClientSearchMessage{
+        TcpMessage: &TcpMessage{MessageType: MSG_TYPE_CLIENT_SEARCH},
+        ClientId: clientId,
+        AnswerId: answerId,
+        SearchParam: searchParam,
+        SingleAnswerChan: make(chan *AnswerMessage, 1),
+    }
+}
+
+func (cs *ClientSearchMessage) ToMessageBytes() []byte {
+    cs.Content = slices.Concat([]byte(cs.AnswerId), cs.SearchParam)
+    return cs.TcpMessage.ToMessageBytes()
 }
 
 type ClientAnswerMessage struct {
     *TcpMessage
+}
+
+func CreateClientAnswerMessage(content []byte) *ClientAnswerMessage {
+    return &ClientAnswerMessage{TcpMessage: &TcpMessage{MessageType: MSG_TYPE_CLIENT_ANSWER, Content: content}}
 }
 
 type ErrorMessage struct {

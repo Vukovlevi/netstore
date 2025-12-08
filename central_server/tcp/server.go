@@ -1,10 +1,19 @@
 package tcp
 
 import (
+	"context"
+	"encoding/json"
 	"log/slog"
 	"net"
+	"sync"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/vukovlevi/netstore/central_server/queue"
+)
+
+const (
+    TIMEOUT_IN_SECONDS = 3
 )
 
 type Server struct {
@@ -12,6 +21,7 @@ type Server struct {
     Connections map[string]*Connection
     ConnChan    chan *Connection
     SearchRequestQueue *queue.SearchRequestQueue
+    mutex *sync.RWMutex
 }
 
 func NewServer() *Server {
@@ -47,15 +57,85 @@ func (s *Server) Start() {
 
 func (s *Server) HandleConnections() {
     for c := range s.ConnChan {
+        s.mutex.Lock()
         if _, ok := s.Connections[c.Id.String()]; !ok {
             s.Connections[c.Id.String()] = c
         } else {
             delete(s.Connections, c.Id.String())
         }
+        s.mutex.Unlock()
     }
 }
 
 func (s *Server) ProcessSearchRequest(searchRequest *queue.SearchRequestNode) {
-    //TODO: processing logic here (broadcasting search param, collecting data, then sending it back to answerchan -> handleing answerchan in separate goroutine in connection on search request)
+    searchMessage := CreateClientSearchMessage(searchRequest.ClientId, uuid.New().String(), searchRequest.SearchParam)
+    s.BroadCastSearchMessage(searchMessage, searchRequest.FullAnswerChan)
     s.SearchRequestQueue.FinishProcess()
+}
+
+func (s *Server) BroadCastSearchMessage(searchMessage *ClientSearchMessage, fullAnswerChan chan []byte) {
+    s.mutex.RLock()
+    wg := new(sync.WaitGroup)
+    for id, connection := range s.Connections {
+        if id == searchMessage.ClientId {
+            continue
+        }
+
+        if err := connection.SendClientSearch(searchMessage); err != nil {
+            slog.Error("could not send client search message", "error", err)
+            continue
+        }
+
+        wg.Add(1)
+    }
+    s.mutex.RUnlock()
+
+    s.ListenForAnswers(searchMessage.SingleAnswerChan, fullAnswerChan, wg)
+}
+
+func (s *Server) ListenForAnswers(singleAnswerChan chan *AnswerMessage, fullAnswerChan chan []byte, wg *sync.WaitGroup) {
+    ctx, done := context.WithTimeout(context.Background(), time.Second * TIMEOUT_IN_SECONDS)
+    answers := make([]*AnswerMessage, 0)
+
+    wgDoneChan := make(chan struct{})
+    go func(wgDoneChan chan struct{}, wg *sync.WaitGroup) {
+        wg.Wait()
+        wgDoneChan <- struct{}{}
+    }(wgDoneChan, wg)
+
+    for {
+        select {
+        case singleAnswer := <- singleAnswerChan:
+            answers = append(answers, singleAnswer)
+            wg.Done()
+        case <- wgDoneChan:
+        case <- ctx.Done():
+            done()
+            close(singleAnswerChan)
+            s.CreateAndSendClientAnswer(answers, fullAnswerChan)
+        }
+    }
+}
+
+func (s *Server) CreateAndSendClientAnswer(singleAnswers []*AnswerMessage, fullAnswerChan chan []byte) {
+    fullAnswer := make([]map[string]any, 0)
+    for _, singleAnswer := range singleAnswers {
+        answer := make(map[string]any)
+        if err := json.Unmarshal(singleAnswer.Content, &answer); err != nil {
+            slog.Error("could not unmarshal single answer", "error", err)
+            continue
+        }
+        fullAnswer = append(fullAnswer, answer)
+    }
+
+    clientAnswerContent, err := json.Marshal(fullAnswer)
+    if err != nil {
+        slog.Error("could not marshal client answer content", "error", err)
+        errMsg := CreateErrorMessage("error while encoding answer") //TODO: hungarian error message
+        fullAnswerChan <- errMsg.ToMessageBytes()
+        return
+    }
+
+    clientAnswerMessage := CreateClientAnswerMessage(clientAnswerContent)
+    fullAnswerChan <- clientAnswerMessage.ToMessageBytes()
 }
