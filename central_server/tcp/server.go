@@ -68,8 +68,8 @@ func (s *Server) HandleConnections() {
 }
 
 func (s *Server) ProcessSearchRequest(searchRequest *queue.SearchRequestNode) {
-    searchMessage := CreateClientSearchMessage(searchRequest.ClientId, uuid.New().String(), searchRequest.SearchParam)
-    s.BroadCastSearchMessage(searchMessage, searchRequest.FullAnswerChan)
+    clientSearchMessage := CreateClientSearchMessage(searchRequest.ClientId, uuid.New().String(), searchRequest.SearchParam)
+    s.BroadCastSearchMessage(clientSearchMessage, searchRequest.FullAnswerChan)
     s.SearchRequestQueue.FinishProcess()
 }
 
