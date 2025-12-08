@@ -19,6 +19,7 @@ type SearchRequestQueue struct {
     Status int
     SearchRequestChan chan *SearchRequestNode
     ProcessCallback func(*SearchRequestNode)
+    IsTesting bool
     mutex *sync.Mutex
 }
 
@@ -48,6 +49,9 @@ func (q *SearchRequestQueue) Enqueue(node *SearchRequestNode) {
     }
     q.mutex.Unlock()
 
+    if q.IsTesting {
+        return
+    }
     go q.Process()
 }
 
