@@ -62,6 +62,7 @@ func (q *SearchRequestQueue) Dequeue() *SearchRequestNode {
         q.Tail = nil
     }
 
+    curr.Next = nil
     return curr
 }
 
