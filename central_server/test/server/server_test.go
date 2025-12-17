@@ -23,7 +23,7 @@ func TestServer(t *testing.T) {
 }
 
 func testClientActions() {
-	client1 := client_test.TestClient{}
+	client1 := client_test.NewTestClient("client1", "auth tester then bad message sender", 0)
 	client1.ConnectToServer()
 	client1.TestUnauthenticated()
 	client1.ConnectToServer()

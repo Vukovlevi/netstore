@@ -2,6 +2,7 @@ package client_test
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"io"
 	"log"
 	"net"
@@ -11,11 +12,30 @@ import (
 )
 
 type TestAnswer struct {
+	Username string `json:"username"`
+	Role string `json:"role"`
+	Num int `json:"num"`
+}
 
+func (a *TestAnswer) ToMessageBytes() []byte {
+	content, err := json.Marshal(a)
+	if err != nil {
+		log.Fatalf("could not marshal test answer, error: %s", err.Error())
+	}
+
+	message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_ANSWER, Content: content}
+	return message.ToMessageBytes()
 }
 
 type TestClient struct {
 	Conn net.Conn
+	Answer *TestAnswer
+}
+
+func NewTestClient(username, role string, num int) *TestClient {
+	return &TestClient{
+		Answer: &TestAnswer{Username: username, Role: role, Num: num},
+	}
 }
 
 func (c *TestClient) ConnectToServer() {
