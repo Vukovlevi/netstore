@@ -39,20 +39,7 @@ func (c *TestClient) TestUnauthenticated() {
 func (c *TestClient) TestAuthenticationFailure() {
 	message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_AUTHENTICATION, Content: []byte(os.Getenv("PSK") + "-")}
 	c.SendMessage(&message)
-	headerBuffer := make([]byte, tcp.HEADER_SIZE)
-	n, err := c.Conn.Read(headerBuffer)
-	if err != nil {
-		log.Fatalf("error reading authentication response header on auth fail, error: %s", err.Error())
-	}
-	if n != 5 {
-		log.Fatalf("expected header length to be 5 on auth fail, got: %d", n)
-	}
-	length := binary.BigEndian.Uint32(headerBuffer[1:])
-	buffer := make([]byte, length)
-	_, err = io.ReadFull(c.Conn, buffer)
-	if err != nil {
-		log.Fatalf("error while reading authentication response payload on auth fail, error: %s", err.Error())
-	}
+	buffer := c.Read()
 	if buffer[0] != tcp.MSG_TYPE_ERROR {
 		log.Fatalf("expected error message (%d) on auth fail, got: %d", tcp.MSG_TYPE_AUTHENTICATION_SUCCESS, buffer[0])
 	}
@@ -67,13 +54,23 @@ func (c *TestClient) TestAuthenticationFailure() {
 func (c *TestClient) TestAuthenticationSuccess() {
 	message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_AUTHENTICATION, Content: []byte(os.Getenv("PSK"))}
 	c.SendMessage(&message)
+	buffer := c.Read()
+	if buffer[0] != tcp.MSG_TYPE_AUTHENTICATION_SUCCESS {
+		log.Fatalf("expected authentication success message (%d) on auth success, got: %d", tcp.MSG_TYPE_AUTHENTICATION_SUCCESS, buffer[0])
+	}
+	if buffer[len(buffer) - 1] != tcp.MSG_EOF {
+		log.Fatalf("expected last byte to be EOF (%d) on auth success, got: %d", tcp.MSG_EOF, buffer[len(buffer) - 1])
+	}
+}
+
+func (c *TestClient) Read() []byte {
 	headerBuffer := make([]byte, tcp.HEADER_SIZE)
 	n, err := c.Conn.Read(headerBuffer)
-	if err != nil {
-		log.Fatalf("error reading authentication response header on auth successs, error: %s", err.Error())
+	if err != nil && err != io.EOF {
+		log.Fatalf("error while reading connection, error: %s", err.Error())
 	}
-	if n != 5 {
-		log.Fatalf("expected header length to be 5 on auth success, got: %d", n)
+	if n != tcp.HEADER_SIZE {
+		log.Fatalf("could not read a header from message from server, expected: %d, got: %d", tcp.HEADER_SIZE, n)
 	}
 	length := binary.BigEndian.Uint32(headerBuffer[1:])
 	buffer := make([]byte, length)
@@ -81,12 +78,7 @@ func (c *TestClient) TestAuthenticationSuccess() {
 	if err != nil {
 		log.Fatalf("error while reading authentication response payload on auth success, error: %s", err.Error())
 	}
-	if buffer[0] != tcp.MSG_TYPE_AUTHENTICATION_SUCCESS {
-		log.Fatalf("expected authentication success message (%d) on auth success, got: %d", tcp.MSG_TYPE_AUTHENTICATION_SUCCESS, buffer[0])
-	}
-	if buffer[len(buffer) - 1] != tcp.MSG_EOF {
-		log.Fatalf("expected last byte to be EOF (%d) on auth success, got: %d", tcp.MSG_EOF, buffer[len(buffer) - 1])
-	}
+	return buffer
 }
 
 func (c *TestClient) SendMessage(message tcp.Message) {
