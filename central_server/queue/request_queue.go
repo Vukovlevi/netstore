@@ -1,6 +1,9 @@
 package queue
 
-import "sync"
+import (
+	"log/slog"
+	"sync"
+)
 
 const (
     STATUS_CAN_SEARCH = 1
@@ -36,6 +39,7 @@ func NewSearchRequestQueue(processCallback func(*SearchRequestNode)) *SearchRequ
 func (q *SearchRequestQueue) HandleSearchRequest() {
     for searchRequest := range q.SearchRequestChan {
         q.Enqueue(searchRequest)
+        slog.Debug("got search request into queue", "client id", searchRequest.ClientId, "search param", string(searchRequest.SearchParam))
     }
 }
 
@@ -95,5 +99,6 @@ func (q *SearchRequestQueue) FinishProcess() {
     q.Status = STATUS_CAN_SEARCH
     q.mutex.Unlock()
 
+    slog.Debug("finished processing of search request")
     q.Process()
 }

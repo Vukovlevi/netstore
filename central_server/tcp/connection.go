@@ -150,6 +150,7 @@ func (c *Connection) Authenticate(message *AuthenticationMessage) {
         }
         return
     }
+    slog.Debug("authentication done", "client", c.Id)
     c.IsAuthenticated = true
     c.ConnChan <- c
     c.SendMessage(CreateAuthenticationSuccessMessage())
@@ -167,6 +168,7 @@ func (c *Connection) EnqueueSearchRequest(message *SearchMessage) {
 
 func (c *Connection) WaitForAnswer(answerChan chan []byte) {
     answer := <- answerChan
+    slog.Debug("got client answer from chanel", "answer", answer)
     if err := c.write(answer); err != nil {
         slog.Error("could not send client answer message", "error", err, "client id", c.Id.String(), "content", answer)
     }
@@ -185,6 +187,7 @@ func (c *Connection) GiveAnswer(message *AnswerMessage) {
     c.mutex.RLock()
     defer c.mutex.RUnlock()
     if message.AnswerId != c.CurrentAnswerId {
+        slog.Debug("got an answer for the wrong search request", "current answer id", c.CurrentAnswerId, "got answer id", message.AnswerId)
         return
     }
     c.AnswerChan <- message

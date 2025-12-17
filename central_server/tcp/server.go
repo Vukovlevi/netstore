@@ -73,6 +73,7 @@ func (s *Server) HandleConnections() {
 
 func (s *Server) ProcessSearchRequest(searchRequest *queue.SearchRequestNode) {
     clientSearchMessage := CreateClientSearchMessage(searchRequest.ClientId, uuid.New().String(), searchRequest.SearchParam)
+    slog.Debug("begin processing of search request", "client id", searchRequest.ClientId, "search param", searchRequest.SearchParam, "answer id", clientSearchMessage.AnswerId)
     s.BroadCastSearchMessage(clientSearchMessage, searchRequest.FullAnswerChan)
     s.SearchRequestQueue.FinishProcess()
 }
@@ -89,7 +90,7 @@ func (s *Server) BroadCastSearchMessage(searchMessage *ClientSearchMessage, full
             slog.Error("could not send client search message", "error", err)
             continue
         }
-        slog.Debug("send search message to connection", "message", searchMessage, "connection", connection.Id)
+        slog.Debug("send search message to connection", "answer id", searchMessage.AnswerId, "connection", connection.Id)
 
         wg.Add(1)
     }
@@ -106,6 +107,7 @@ func (s *Server) ListenForAnswers(singleAnswerChan chan *AnswerMessage, fullAnsw
     go func(wgDoneChan chan struct{}, wg *sync.WaitGroup) {
         wg.Wait()
         wgDoneChan <- struct{}{}
+        slog.Debug("waitgroup finished answering search request")
     }(wgDoneChan, wg)
 
     for {
@@ -144,6 +146,6 @@ func (s *Server) CreateAndSendClientAnswer(singleAnswers []*AnswerMessage, fullA
     }
 
     clientAnswerMessage := CreateClientAnswerMessage(clientAnswerContent)
-    slog.Debug("created client answer", "message", clientAnswerMessage)
+    slog.Debug("created client answer", "content", clientAnswerMessage.Content)
     fullAnswerChan <- clientAnswerMessage.ToMessageBytes()
 }
