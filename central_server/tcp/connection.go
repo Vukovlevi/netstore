@@ -57,6 +57,7 @@ func (c *Connection) ReadLoop() {
             }
             continue
         }
+        slog.Debug("header reading complete", "header", header)
 
         if err = header.ValidateHeader(); err != nil {
             c.ReadPayload(header.MsgLen)
@@ -76,11 +77,13 @@ func (c *Connection) ReadLoop() {
         }
 
         if !c.IsAuthenticated && tcpMessage.MessageType != MSG_TYPE_AUTHENTICATION {
+            slog.Debug("client tried to send messages without authentication")
             c.ReturnError = errors.New("client tried to send message without authenticating first")
             return
         }
 
         if c.IsAuthenticated && tcpMessage.MessageType == MSG_TYPE_AUTHENTICATION {
+            slog.Debug("authenticated client tried to authenticate again")
             continue
         }
 
@@ -125,6 +128,7 @@ func (c *Connection) ReadPayload(length uint32) *TcpMessage {
 }
 
 func (c *Connection) HandleMessage(message *TcpMessage) {
+    slog.Debug("handling message", "type", message.MessageType, "content", message.Content)
     switch message.MessageType {
     case MSG_TYPE_AUTHENTICATION:
         c.Authenticate(message.ToAuthenticationMessage())
@@ -167,6 +171,7 @@ func (c *Connection) WaitForAnswer(answerChan chan []byte) {
         slog.Error("could not send client answer message", "error", err, "client id", c.Id.String(), "content", answer)
     }
     close(answerChan)
+    slog.Debug("client answer sent successfully")
 }
 
 func (c *Connection) GiveAnswer(message *AnswerMessage) {

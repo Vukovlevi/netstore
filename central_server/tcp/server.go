@@ -50,6 +50,7 @@ func (s *Server) Start() {
             continue
         }
 
+        slog.Debug("new connection accepted", "connection", conn)
         connection := CreateConnection(conn, s.SearchRequestQueue.SearchRequestChan, s.ConnChan) //TODO: searchRequestChan
         go connection.ReadLoop()
     }
@@ -59,8 +60,10 @@ func (s *Server) HandleConnections() {
     for c := range s.ConnChan {
         s.mutex.Lock()
         if _, ok := s.Connections[c.Id.String()]; !ok {
+            slog.Debug("new connection added to connection list", "connection", c)
             s.Connections[c.Id.String()] = c
         } else {
+            slog.Debug("deleting connection from connection list", "connection", c)
             delete(s.Connections, c.Id.String())
         }
         s.mutex.Unlock()
@@ -85,6 +88,7 @@ func (s *Server) BroadCastSearchMessage(searchMessage *ClientSearchMessage, full
             slog.Error("could not send client search message", "error", err)
             continue
         }
+        slog.Debug("send search message to connection", "message", searchMessage, "connection", connection)
 
         wg.Add(1)
     }
@@ -106,10 +110,12 @@ func (s *Server) ListenForAnswers(singleAnswerChan chan *AnswerMessage, fullAnsw
     for {
         select {
         case singleAnswer := <- singleAnswerChan:
+            slog.Debug("got single answer", "answer", singleAnswer)
             answers = append(answers, singleAnswer)
             wg.Done()
         case <- wgDoneChan:
         case <- ctx.Done():
+            slog.Debug("waiting for clients to answer is done", "len of answers", len(answers))
             done()
             close(singleAnswerChan)
             s.CreateAndSendClientAnswer(answers, fullAnswerChan)
@@ -137,5 +143,6 @@ func (s *Server) CreateAndSendClientAnswer(singleAnswers []*AnswerMessage, fullA
     }
 
     clientAnswerMessage := CreateClientAnswerMessage(clientAnswerContent)
+    slog.Debug("created client answer", "message", clientAnswerMessage)
     fullAnswerChan <- clientAnswerMessage.ToMessageBytes()
 }
