@@ -95,3 +95,7 @@ func (c *TestClient) SendMessage(message tcp.Message) {
 		log.Fatalf("could not write test message to connection, error: %s", err.Error())
 	}
 }
+
+func (c *TestClient) Close() {
+	c.Conn.Close()
+}

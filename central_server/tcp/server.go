@@ -34,6 +34,7 @@ func NewServer() *Server {
 		Listener:    ln,
 		Connections: make(map[string]*Connection),
 		ConnChan:    make(chan *Connection, 1),
+        mutex: new(sync.RWMutex),
 	}
     server.SearchRequestQueue = queue.NewSearchRequestQueue(server.ProcessSearchRequest)
     return server
@@ -50,7 +51,7 @@ func (s *Server) Start() {
             continue
         }
 
-        slog.Debug("new connection accepted", "connection", conn)
+        slog.Debug("new connection accepted", "connection", conn.RemoteAddr().String())
         connection := CreateConnection(conn, s.SearchRequestQueue.SearchRequestChan, s.ConnChan) //TODO: searchRequestChan
         go connection.ReadLoop()
     }
@@ -60,10 +61,10 @@ func (s *Server) HandleConnections() {
     for c := range s.ConnChan {
         s.mutex.Lock()
         if _, ok := s.Connections[c.Id.String()]; !ok {
-            slog.Debug("new connection added to connection list", "connection", c)
+            slog.Debug("new connection added to connection list", "connection", c.Id)
             s.Connections[c.Id.String()] = c
         } else {
-            slog.Debug("deleting connection from connection list", "connection", c)
+            slog.Debug("deleting connection from connection list", "connection", c.Id)
             delete(s.Connections, c.Id.String())
         }
         s.mutex.Unlock()
@@ -88,7 +89,7 @@ func (s *Server) BroadCastSearchMessage(searchMessage *ClientSearchMessage, full
             slog.Error("could not send client search message", "error", err)
             continue
         }
-        slog.Debug("send search message to connection", "message", searchMessage, "connection", connection)
+        slog.Debug("send search message to connection", "message", searchMessage, "connection", connection.Id)
 
         wg.Add(1)
     }
