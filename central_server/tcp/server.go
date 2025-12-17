@@ -61,11 +61,11 @@ func (s *Server) HandleConnections() {
     for c := range s.ConnChan {
         s.mutex.Lock()
         if _, ok := s.Connections[c.Id.String()]; !ok {
-            slog.Debug("new connection added to connection list", "connection", c.Id)
             s.Connections[c.Id.String()] = c
+            slog.Debug("new connection added to connection list", "connection", c.Id, "num of connections", len(s.Connections))
         } else {
-            slog.Debug("deleting connection from connection list", "connection", c.Id)
             delete(s.Connections, c.Id.String())
+            slog.Debug("deleting connection from connection list", "connection", c.Id, "num of connections", len(s.Connections))
         }
         s.mutex.Unlock()
     }
