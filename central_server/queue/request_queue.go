@@ -78,12 +78,14 @@ func (q *SearchRequestQueue) Dequeue() *SearchRequestNode {
 func (q *SearchRequestQueue) Process() {
     q.mutex.Lock()
     if q.Status != STATUS_CAN_SEARCH {
+        slog.Debug("not starting processing of search request, because there is one already processing")
         q.mutex.Unlock()
         return
     }
 
     curr := q.Dequeue()
     if curr == nil {
+        slog.Debug("not starting processing of search request, because the queue is empty")
         q.mutex.Unlock()
         return
     }
