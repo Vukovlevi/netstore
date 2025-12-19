@@ -17,6 +17,15 @@ type TestAnswer struct {
 	Num int `json:"num"`
 }
 
+const (
+    TEST_KEY = "test"
+    TEST_VALUE = "search"
+)
+
+var (
+    TEST_SEARCH = map[string]string{TEST_KEY: TEST_VALUE}
+)
+
 func (a *TestAnswer) ToMessageBytes() []byte {
 	content, err := json.Marshal(a)
 	if err != nil {
@@ -81,6 +90,70 @@ func (c *TestClient) TestAuthenticationSuccess() {
 	if buffer[len(buffer) - 1] != tcp.MSG_EOF {
 		log.Fatalf("expected last byte to be EOF (%d) on auth success, got: %d", tcp.MSG_EOF, buffer[len(buffer) - 1])
 	}
+}
+
+func (c *TestClient) SendMalformedMessage() {
+    message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_AUTHENTICATION, Content: []byte{1, 2, 3}}
+    data := message.ToMessageBytes()
+    binary.BigEndian.PutUint32(data[1:], 3)
+    _, err := c.Conn.Write(data)
+    if err != nil {
+        log.Fatalf("error while sending malformed message, error: %s", err.Error())
+    }
+}
+
+func (c *TestClient) SendSearchRequest() {
+    data, _ := json.Marshal(TEST_SEARCH)
+    searchRequest := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_SEARCH, Content: data}
+    c.SendMessage(&searchRequest)
+}
+
+func (c *TestClient) SendAnswer() {
+    c.Answer.Num++
+    data, _ := json.Marshal(c.Answer)
+    answer := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_ANSWER, Content: data}
+    c.SendMessage(&answer)
+}
+
+func (c *TestClient) ReadClientSearch() {
+    clientSearch := c.Read()
+    if clientSearch[0] != tcp.MSG_TYPE_CLIENT_SEARCH {
+        log.Fatalf("expected a client search message (%d), got: %d", tcp.MSG_TYPE_CLIENT_SEARCH, clientSearch[0])
+    }
+	if clientSearch[len(clientSearch) - 1] != tcp.MSG_EOF {
+		log.Fatalf("expected last byte to be EOF (%d) on client search, got: %d", tcp.MSG_EOF, clientSearch[len(clientSearch) - 1])
+	}
+    clientSearch = clientSearch[1:len(clientSearch) - 1]
+    data := make(map[string]string)
+    if err := json.Unmarshal(clientSearch, &data); err != nil {
+        log.Fatalf("error while unmarshalling client search, error: %s", err.Error())
+    }
+    test, ok := data[TEST_KEY]
+    if !ok {
+        log.Fatalf("expected %s to be present in client search as key, but it was not", TEST_KEY)
+    }
+    if test != TEST_VALUE {
+        log.Fatalf("expected %s to be value of %s in client search", test, TEST_VALUE)
+    }
+}
+
+func (c *TestClient) ReadClientAnswer(username, role string, num int) {
+    clientAnswer := c.Read()
+    if clientAnswer[0] != tcp.MSG_TYPE_CLIENT_ANSWER {
+        log.Fatalf("expected a client answer message (%d), got: %d", tcp.MSG_TYPE_CLIENT_ANSWER, clientAnswer[0])
+    }
+	if clientAnswer[len(clientAnswer) - 1] != tcp.MSG_EOF {
+		log.Fatalf("expected last byte to be EOF (%d) on client answer, got: %d", tcp.MSG_EOF, clientAnswer[len(clientAnswer) - 1])
+	}
+    clientAnswer = clientAnswer[1:len(clientAnswer) - 1]
+    data := new(TestAnswer)
+    if err := json.Unmarshal(clientAnswer, &data); err != nil {
+        log.Fatalf("error while unmarshalling client answer, error: %s", err.Error())
+    }
+
+    if username != data.Username || role != data.Role || num != data.Num {
+        log.Fatalf("client answer is not what is expected: username (%s->%s), role (%s->%s), num (%d->%d)", username, data.Username, role, data.Role, num ,data.Num)
+    }
 }
 
 func (c *TestClient) Read() []byte {
