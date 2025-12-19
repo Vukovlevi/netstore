@@ -67,4 +67,6 @@ func testClientActions() {
     client1.Close()
     client2.Close()
     client3.Close()
+
+    time.Sleep(time.Millisecond * 150)
 }
