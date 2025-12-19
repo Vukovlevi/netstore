@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"time"
 
 	"github.com/vukovlevi/netstore/central_server/tcp"
 )
@@ -108,7 +109,8 @@ func (c *TestClient) SendSearchRequest() {
     c.SendMessage(&searchRequest)
 }
 
-func (c *TestClient) SendAnswer() {
+func (c *TestClient) SendAnswer(delay time.Duration) {
+    time.Sleep(delay)
     c.Answer.Num++
     data, _ := json.Marshal(c.Answer)
     answer := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_ANSWER, Content: data}
@@ -137,7 +139,7 @@ func (c *TestClient) ReadClientSearch() {
     }
 }
 
-func (c *TestClient) ReadClientAnswer(username, role string, num int) {
+func (c *TestClient) ReadClientAnswer(isEmpty bool, username, role string, num int) {
     clientAnswer := c.Read()
     if clientAnswer[0] != tcp.MSG_TYPE_CLIENT_ANSWER {
         log.Fatalf("expected a client answer message (%d), got: %d", tcp.MSG_TYPE_CLIENT_ANSWER, clientAnswer[0])
@@ -146,11 +148,21 @@ func (c *TestClient) ReadClientAnswer(username, role string, num int) {
 		log.Fatalf("expected last byte to be EOF (%d) on client answer, got: %d", tcp.MSG_EOF, clientAnswer[len(clientAnswer) - 1])
 	}
     clientAnswer = clientAnswer[1:len(clientAnswer) - 1]
-    data := new(TestAnswer)
-    if err := json.Unmarshal(clientAnswer, &data); err != nil {
+    array := make([]TestAnswer, 0)
+    if err := json.Unmarshal(clientAnswer, &array); err != nil {
         log.Fatalf("error while unmarshalling client answer, error: %s", err.Error())
     }
 
+    if !isEmpty && len(array) == 0 {
+        log.Fatalf("not expected client answer to be empty, but it is")
+    } else if isEmpty {
+        if len(array) == 0 {
+            return
+        }
+        log.Fatalf("expected client answer to be empty, instead it is: %v", array)
+    }
+
+    data := array[0]
     if username != data.Username || role != data.Role || num != data.Num {
         log.Fatalf("client answer is not what is expected: username (%s->%s), role (%s->%s), num (%d->%d)", username, data.Username, role, data.Role, num ,data.Num)
     }
