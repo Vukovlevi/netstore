@@ -22,7 +22,7 @@ func TestBadMessageLength(t *testing.T) {
     defer client.Close()
     defer server.Close()
 
-    connection := tcp.Connection{Conn: server}
+    connection := tcp.CreateConnection(server, make(chan *queue.SearchRequestNode, 1), make(chan *tcp.Connection, 1))
     content := []byte{2, 3}
     message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_SEARCH, Content: content}
 
@@ -65,7 +65,7 @@ func TestReading_ShortSuccess(t *testing.T) {
     defer client.Close()
     defer server.Close()
 
-    connection := tcp.Connection{Conn: server}
+    connection := tcp.CreateConnection(server, make(chan *queue.SearchRequestNode, 1), make(chan *tcp.Connection, 1))
     content := []byte{2, 3, 8, 97}
     message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_SEARCH, Content: content}
 
@@ -112,7 +112,7 @@ func TestReading_VersionMismatch(t *testing.T) {
     defer client.Close()
     defer server.Close()
 
-    connection := tcp.Connection{Conn: server}
+    connection := tcp.CreateConnection(server, make(chan *queue.SearchRequestNode, 1), make(chan *tcp.Connection, 1))
     content := []byte{2, 3, 8, 97}
     message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_SEARCH, Content: content}
 
@@ -169,7 +169,7 @@ func TestReading_LongSuccess(t *testing.T) {
     defer client.Close()
     defer server.Close()
 
-    connection := tcp.Connection{Conn: server}
+    connection := tcp.CreateConnection(server, make(chan *queue.SearchRequestNode, 1), make(chan *tcp.Connection, 1))
     content := make([]byte, 4000)
     io.ReadFull(rand.Reader, content)
     message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_SEARCH, Content: content}
@@ -245,20 +245,20 @@ func TestHandleMessage(t *testing.T) {
     defer client.Close()
     defer server.Close()
 
-    connection := tcp.Connection{Conn: server}
+    connection := tcp.CreateConnection(server, make(chan *queue.SearchRequestNode, 1), make(chan *tcp.Connection, 1))
     content := []byte{2, 3, 8, 97}
     message := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_AUTHENTICATION, Content: content}
 
     go sendMessageToServer(client, &message)
-    testAuthenticationFailure(&connection, client)
+    testAuthenticationFailure(connection, client)
 
     message.Content = []byte(os.Getenv("PSK"))
     go sendMessageToServer(client, &message)
-    testAuthenticationSuccess(&connection, client)
+    testAuthenticationSuccess(connection, client)
 
     message.MessageType = tcp.MSG_TYPE_SEARCH
     go sendMessageToServer(client, &message)
-    testEnqueueSearchRequest(&connection)
+    testEnqueueSearchRequest(connection)
 
     message.MessageType = tcp.MSG_TYPE_ANSWER
     id := uuid.New().String()
@@ -266,16 +266,16 @@ func TestHandleMessage(t *testing.T) {
     message.Content = []byte(id)
     message.Content = append(message.Content, []byte{2, 48, 29, 179}...)
     go sendMessageToServer(client, &message)
-    testGiveAnswer(&connection)
+    testGiveAnswer(connection)
 
     message.MessageType = tcp.MSG_TYPE_ANSWER
     connection.CurrentAnswerId = ""
     go sendMessageToServer(client, &message)
-    testGiveInvalidAnswer(&connection)
+    testGiveInvalidAnswer(connection)
 
     message.MessageType = tcp.MSG_TYPE_CLIENT_ANSWER
     go sendMessageToServer(client, &message)
-    testInvalidMsgType(&connection, client)
+    testInvalidMsgType(connection, client)
 }
 
 func sendMessageToServer(client net.Conn, message tcp.Message) {
