@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/vukovlevi/netstore/central_server/tcp"
@@ -40,6 +41,7 @@ func (a *TestAnswer) ToMessageBytes() []byte {
 type TestClient struct {
 	Conn net.Conn
 	Answer *TestAnswer
+    AnswerId string
 }
 
 func NewTestClient(username, role string, num int) *TestClient {
@@ -113,6 +115,7 @@ func (c *TestClient) SendAnswer(delay time.Duration) {
     time.Sleep(delay)
     c.Answer.Num++
     data, _ := json.Marshal(c.Answer)
+    data = slices.Concat([]byte(c.AnswerId), data)
     answer := tcp.TcpMessage{MessageType: tcp.MSG_TYPE_ANSWER, Content: data}
     c.SendMessage(&answer)
 }
@@ -126,9 +129,12 @@ func (c *TestClient) ReadClientSearch() {
 		log.Fatalf("expected last byte to be EOF (%d) on client search, got: %d", tcp.MSG_EOF, clientSearch[len(clientSearch) - 1])
 	}
     clientSearch = clientSearch[1:len(clientSearch) - 1]
+    answerId := clientSearch[:tcp.UUID_LENGTH]
+    c.AnswerId = string(answerId)
+    clientSearch = clientSearch[tcp.UUID_LENGTH:]
     data := make(map[string]string)
     if err := json.Unmarshal(clientSearch, &data); err != nil {
-        log.Fatalf("error while unmarshalling client search, error: %s", err.Error())
+        log.Fatalf("error while unmarshalling client search, error: %s, search data: %s", err.Error(), string(clientSearch))
     }
     test, ok := data[TEST_KEY]
     if !ok {
