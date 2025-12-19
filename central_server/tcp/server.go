@@ -122,6 +122,7 @@ func (s *Server) ListenForAnswers(singleAnswerChan chan *AnswerMessage, fullAnsw
             done()
             close(singleAnswerChan)
             s.CreateAndSendClientAnswer(answers, fullAnswerChan)
+            return
         }
     }
 }
