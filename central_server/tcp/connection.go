@@ -35,6 +35,7 @@ func CreateConnection(conn net.Conn, searchRequestChan chan *queue.SearchRequest
         Conn: conn,
         SearchRequestChan: searchRequestChan,
         ConnChan: connChan,
+        mutex: new(sync.RWMutex),
     }
 }
 
