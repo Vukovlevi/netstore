@@ -44,7 +44,7 @@ func (c *Connection) ReadLoop() {
         if c.ReturnError == io.EOF && c.IsAuthenticated {
             c.ConnChan <- c
         } else if c.ReturnError != io.EOF {
-            slog.Error("connection forcefully closed by server", "error", c.ReturnError)
+            slog.Error("connection forcefully closed by server", "client id", c.Id.String(), "error", c.ReturnError)
         }
     }()
 
@@ -57,15 +57,15 @@ func (c *Connection) ReadLoop() {
             }
             continue
         }
-        slog.Debug("header reading complete", "header", header)
+        slog.Debug("header reading complete", "client id", c.Id.String(), "header", header)
 
         if err = header.ValidateHeader(); err != nil {
             c.ReadPayload(header.MsgLen)
-            slog.Error("header not valid", "err", err)
+            slog.Error("header not valid", "client id", c.Id.String(), "err", err)
             if err == ErrVersionMismatch {
                 sendErr := c.SendErrorMessage(VERSION_ERROR_MESSAGE) //TODO: hungarian error message
                 if sendErr != nil {
-                    slog.Error("there was an error sending error message", "error", sendErr)
+                    slog.Error("there was an error sending error message", "client id", c.Id, "error", sendErr)
                 }
             }
             continue
@@ -77,13 +77,13 @@ func (c *Connection) ReadLoop() {
         }
 
         if !c.IsAuthenticated && tcpMessage.MessageType != MSG_TYPE_AUTHENTICATION {
-            slog.Debug("client tried to send messages without authentication")
+            slog.Debug("client tried to send messages without authentication", "client id", c.Id.String())
             c.ReturnError = errors.New("client tried to send message without authenticating first")
             return
         }
 
         if c.IsAuthenticated && tcpMessage.MessageType == MSG_TYPE_AUTHENTICATION {
-            slog.Debug("authenticated client tried to authenticate again")
+            slog.Debug("authenticated client tried to authenticate again", "client id", c.Id.String())
             continue
         }
 
@@ -95,12 +95,12 @@ func (c *Connection) ReadHeader() (*TcpHeader, error) {
     headerBuffer := make([]byte, HEADER_SIZE)
     n, err := c.Conn.Read(headerBuffer)
     if err != nil {
-        slog.Error("could not read client message", "error", err)
+        slog.Error("could not read client message", "client id", c.Id.String(), "error", err)
         return nil, err
     }
 
     if n != HEADER_SIZE {
-        slog.Error("message from client is too short for a header", "message", headerBuffer[:n])
+        slog.Error("message from client is too short for a header", "client id", c.Id.String(), "message", headerBuffer[:n])
         return nil, errors.New("header size mismatch")
     }
 
@@ -115,12 +115,12 @@ func (c *Connection) ReadPayload(length uint32) *TcpMessage {
     buffer := make([]byte, length)
     n, err := io.ReadFull(c.Conn, buffer)
     if err != nil {
-        slog.Error("error reading message", "error", err)
+        slog.Error("error reading message", "client id", c.Id.String(), "error", err)
         return nil
     }
 
     if n != len(buffer) || buffer[len(buffer) - 1] != MSG_EOF {
-        slog.Error("the read message did not match the length it said would have")
+        slog.Error("the read message did not match the length it said would have", "client id", c.Id.String())
         return nil
     }
 
@@ -128,7 +128,7 @@ func (c *Connection) ReadPayload(length uint32) *TcpMessage {
 }
 
 func (c *Connection) HandleMessage(message *TcpMessage) {
-    slog.Debug("handling message", "type", message.MessageType, "content", message.Content)
+    slog.Debug("handling message", "client id", c.Id.String(), "type", message.MessageType, "content", message.Content)
     switch message.MessageType {
     case MSG_TYPE_AUTHENTICATION:
         c.Authenticate(message.ToAuthenticationMessage())
@@ -150,7 +150,7 @@ func (c *Connection) Authenticate(message *AuthenticationMessage) {
         }
         return
     }
-    slog.Debug("authentication done", "client", c.Id)
+    slog.Debug("authentication done", "client", c.Id.String())
     c.IsAuthenticated = true
     c.ConnChan <- c
     c.SendMessage(CreateAuthenticationSuccessMessage())
@@ -168,26 +168,26 @@ func (c *Connection) EnqueueSearchRequest(message *SearchMessage) {
 
 func (c *Connection) WaitForAnswer(answerChan chan []byte) {
     answer := <- answerChan
-    slog.Debug("got client answer from chanel", "answer", answer)
+    slog.Debug("got client answer from chanel", "client id", c.Id.String(), "answer", answer)
     if err := c.write(answer); err != nil {
         slog.Error("could not send client answer message", "error", err, "client id", c.Id.String(), "content", answer)
     }
     close(answerChan)
-    slog.Debug("client answer sent successfully")
+    slog.Debug("client answer sent successfully", "client id", c.Id.String())
 }
 
 func (c *Connection) GiveAnswer(message *AnswerMessage) {
     defer func() {
         err := recover()
         if err != nil {
-            slog.Error("there was an error while answering search request", "error", err)
+            slog.Error("there was an error while answering search request", "client id", c.Id.String(), "error", err)
         }
     }()
 
     c.mutex.RLock()
     defer c.mutex.RUnlock()
     if message.AnswerId != c.CurrentAnswerId {
-        slog.Debug("got an answer for the wrong search request", "current answer id", c.CurrentAnswerId, "got answer id", message.AnswerId)
+        slog.Debug("got an answer for the wrong search request", "client id", c.Id.String(), "current answer id", c.CurrentAnswerId, "got answer id", message.AnswerId)
         return
     }
     c.AnswerChan <- message
@@ -205,7 +205,7 @@ func (c *Connection) write(msg []byte) error {
     }
 
     if n != len(msg) {
-        slog.Error("could not send whole message", "expected to send", len(msg), "actually sent", n)
+        slog.Error("could not send whole message", "client id", c.Id.String(), "expected to send", len(msg), "actually sent", n)
         return errors.New("failed to send whole message")
     }
 
