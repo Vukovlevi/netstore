@@ -1,4 +1,4 @@
-package tcp
+package network
 
 import (
 	"os"
@@ -9,7 +9,7 @@ const (
     MSG_TYPE_AUTHENTICATION = byte(1)
     MSG_TYPE_SEARCH = byte(2)
     MSG_TYPE_ANSWER = byte(3)
-    MSG_TYPE_CLIENT_SEARCH = byte(3)
+    MSG_TYPE_CLIENT_SEARCH = byte(4)
     MSG_TYPE_CLIENT_ANSWER = byte(5)
     MSG_TYPE_ERROR = byte(6)
     MSG_TYPE_AUTHENTICATION_SUCCESS = byte(7)
