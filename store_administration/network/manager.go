@@ -25,7 +25,7 @@ var Manager *NetworkManager
 
 // Returns human-readable error
 func NewNetworkManager(ip, port, psk string) error {
-	Manager = &NetworkManager{Status: STATUS_NOT_CONNECTED}
+	Manager = &NetworkManager{Status: STATUS_NOT_CONNECTED, mutex: new(sync.RWMutex)}
 	conn, err := ConnectToCentralServer(ip, port)
 	if err != nil {
 		slog.Error("could not connect to central server", "error", err)
@@ -45,7 +45,7 @@ func (n *NetworkManager) StartReadLoop() {
 	n.Connection.ReadLoop()
 }
 
-func (n *NetworkManager) CanSearch() bool {
+func (n *NetworkManager) IsConnected() bool {
 	n.mutex.RLock()
 	defer n.mutex.RUnlock()
 	return n.Status != STATUS_NOT_CONNECTED
