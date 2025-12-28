@@ -13,6 +13,7 @@ var (
 
 type Connection struct {
 	Conn net.Conn
+	ServerAnswerChan chan Message
 }
 
 func ConnectToCentralServer() (*Connection, error) {
@@ -123,13 +124,30 @@ func (c *Connection) HandleMessage(message *TcpMessage) {
     slog.Debug("handling message", "type", message.MessageType, "content", message.Content)
     switch message.MessageType {
     case MSG_TYPE_CLIENT_SEARCH:
-        //TODO
+        go c.GetSearchResults(message.ToClientSearchMessage())
     case MSG_TYPE_CLIENT_ANSWER:
-        //TODO
+        c.GiveServerAnswer(message)
     case MSG_TYPE_ERROR:
-        //TODO
+		c.Conn.Close()
+        errorMessage := message.ToErrorMessage()
+		c.GiveServerAnswer(errorMessage)
     default:
     }
+}
+
+func (c *Connection) GetSearchResults(message *ClientSearchMessage) {
+	//TODO
+}
+
+func (c *Connection) GiveServerAnswer(message Message) {
+	defer func() {
+		err := recover()
+		if err != nil {
+			slog.Error("could not send full answer back to api", "error", err)
+		}
+	}()
+
+	c.ServerAnswerChan <- message
 }
 
 func (c *Connection) write(msg []byte) error {
