@@ -147,7 +147,9 @@ func (c *Connection) HandleMessage(message *TcpMessage) {
 }
 
 func (c *Connection) GetSearchResults(message *ClientSearchMessage) {
-	//TODO
+	searchResult := Manager.GetSearchResults(message.SearchParam)
+	answerMessage := CreateAnswerMessage(message.AnswerId, searchResult)
+	c.SendMessage(answerMessage)
 }
 
 func (c *Connection) GiveServerAnswer(message Message) {

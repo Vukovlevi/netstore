@@ -83,3 +83,8 @@ func (n *NetworkManager) SearchNetwork(searchParam []byte) ([]byte, error) {
 	n.Status = STATUS_CAN_SEARCH
 	return answer, err
 }
+
+func (n *NetworkManager) GetSearchResults(searchParam []byte) []byte {
+	//TODO: get products from dave api, get store details and open hours from DB, bundle into a JSON object, marshal it then return that as a result
+	return []byte{}
+}
