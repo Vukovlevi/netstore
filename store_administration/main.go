@@ -9,6 +9,7 @@ import (
 	"github.com/vukovlevi/netstore/store_administration/config"
 	"github.com/vukovlevi/netstore/store_administration/db"
 	"github.com/vukovlevi/netstore/store_administration/middleware"
+	"github.com/vukovlevi/netstore/store_administration/network"
 	"github.com/vukovlevi/netstore/store_administration/route"
 
 	mw "github.com/labstack/echo/v4/middleware"
@@ -28,6 +29,11 @@ func main() {
         panic("unable to apply application config")
     }
     defer db.Disconnect()
+
+    err = network.NewNetworkManager("", "", "")
+    if err != nil {
+        slog.Error("could not create network manager", "error", err)
+    }
 
     e := echo.New()
     e.Use(mw.CORS())

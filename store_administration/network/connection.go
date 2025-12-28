@@ -2,9 +2,12 @@ package network
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net"
+	"os"
+	"sync"
 )
 
 var (
@@ -14,23 +17,31 @@ var (
 type Connection struct {
 	Conn net.Conn
 	ServerAnswerChan chan Message
+	mutex *sync.Mutex
 }
 
-func ConnectToCentralServer() (*Connection, error) {
-	conn, err := net.Dial("tcp", "localhost:42069") //TODO: read from config
+func ConnectToCentralServer(ip, port string) (*Connection, error) {
+	if ip == "" {
+		ip = os.Getenv("CENTRAL_SERVER_IP")
+	}
+	if port == "" {
+		os.Getenv("CENTRAL_SERVER_PORT")
+	}
+	address := fmt.Sprintf("%s:%s", ip, port)
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
 		return nil, err
 	}
-	return &Connection{Conn: conn}, nil
+	return &Connection{Conn: conn, mutex: new(sync.Mutex)}, nil
 }
 
 //Returns human-readable error
-func (c *Connection) Authenticate() error {
+func (c *Connection) Authenticate(psk string) error {
 	defer func() {
 		c.Conn.Close()
 	}()
 
-	err := c.SendMessage(CreateAuthenticationMessage())
+	err := c.SendMessage(CreateAuthenticationMessage(psk))
 	if err != nil {
 		slog.Error("could not send authentication message to server", "error", err)
 		return AuthenticationError
@@ -126,7 +137,7 @@ func (c *Connection) HandleMessage(message *TcpMessage) {
     case MSG_TYPE_CLIENT_SEARCH:
         go c.GetSearchResults(message.ToClientSearchMessage())
     case MSG_TYPE_CLIENT_ANSWER:
-        c.GiveServerAnswer(message)
+        c.GiveServerAnswer(message.ToClientAnswerMessage())
     case MSG_TYPE_ERROR:
 		c.Conn.Close()
         errorMessage := message.ToErrorMessage()
@@ -148,6 +159,14 @@ func (c *Connection) GiveServerAnswer(message Message) {
 	}()
 
 	c.ServerAnswerChan <- message
+}
+
+func (c *Connection) SendSearchRequest(message *SearchMessage, answerChan chan Message) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	c.ServerAnswerChan = answerChan
+	c.SendMessage(message)
 }
 
 func (c *Connection) write(msg []byte) error {

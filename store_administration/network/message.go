@@ -55,6 +55,10 @@ func (m *TcpMessage) ToClientSearchMessage() *ClientSearchMessage {
     }
 }
 
+func (m *TcpMessage) ToClientAnswerMessage() *ClientAnswerMessage {
+    return &ClientAnswerMessage{TcpMessage: &TcpMessage{MessageType: MSG_TYPE_CLIENT_ANSWER, Content: m.Content}}
+}
+
 func (m *TcpMessage) ToErrorMessage() *ErrorMessage {
     return &ErrorMessage{TcpMessage: &TcpMessage{MessageType: MSG_TYPE_ERROR}, Msg: string(m.Content)}
 }
@@ -69,11 +73,18 @@ func (a *AuthenticationMessage) ToMessageBytes() []byte {
     return a.TcpMessage.ToMessageBytes()
 }
 
-func CreateAuthenticationMessage() *AuthenticationMessage {
-    return &AuthenticationMessage{TcpMessage: &TcpMessage{MessageType: MSG_TYPE_AUTHENTICATION}, Psk: os.Getenv("PSK")}
+func CreateAuthenticationMessage(psk string) *AuthenticationMessage {
+    if psk == "" {
+        psk = os.Getenv("PSK")
+    }
+    return &AuthenticationMessage{TcpMessage: &TcpMessage{MessageType: MSG_TYPE_AUTHENTICATION}, Psk: psk}
 }
 
 type SearchMessage struct {
+    *TcpMessage
+}
+
+type ClientAnswerMessage struct {
     *TcpMessage
 }
 
