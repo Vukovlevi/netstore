@@ -27,6 +27,7 @@ func ConnectToCentralServer(ip, port string) (*Connection, error) {
 	if port == "" {
 		os.Getenv("CENTRAL_SERVER_PORT")
 	}
+	slog.Debug("connection to central server", "ip", ip, "port", port)
 	address := fmt.Sprintf("%s:%s", ip, port)
 	conn, err := net.Dial("tcp", address)
 	if err != nil {

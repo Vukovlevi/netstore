@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -87,5 +88,5 @@ func main() {
 
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
-    e.Logger.Fatal(e.Start(":8000")) //TODO: read address from config
+    e.Logger.Fatal(e.Start(fmt.Sprintf(":%s", os.Getenv("PORT")))) //TODO: read address from config (with ip)
 }
