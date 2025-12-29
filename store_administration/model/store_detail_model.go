@@ -8,8 +8,8 @@ import (
 
 type StoreDetail struct {
     Address string `json:"address"`
-    CentralServerAddress string `json:"centralServerAddress"`
-    CentralServerPort uint16 `json:"centralServerPort"`
+    CentralServerAddress string `json:"centralServerAddress,omitzero,omitempty"`
+    CentralServerPort uint16 `json:"centralServerPort,omitzero,omitempty"`
     StoreTypeId int `json:"storeTypeId"`
 }
 
