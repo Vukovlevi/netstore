@@ -117,7 +117,11 @@ func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
 	}
 	searchResult.StoreDetail = storeDetail
 
-	searchResult.Products = map[string]any{"name": "test", "price": 1500} //TODO: external api call here
+	//TODO: external api call here
+	if err = json.Unmarshal(searchParam, &searchResult.Products); err != nil {
+		return errBytes, err
+	}
+
 	searchResultBytes, err := json.Marshal(searchResult)
 	if err != nil {
 		return errBytes, err
