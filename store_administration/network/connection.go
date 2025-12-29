@@ -42,8 +42,8 @@ func (c *Connection) Authenticate(psk string) error {
 		slog.Error("could not send authentication message to server", "error", err)
 		return AuthenticationError
 	}
-	header, err := c.ReadHeader()
-	if err != nil {
+	header, customErr, networkErr := c.ReadHeader()
+	if networkErr != nil || customErr != nil {
 		slog.Error("could not read header from server after authentication", "error", err)
 		return AuthenticationError
 	}
@@ -73,13 +73,16 @@ func (c *Connection) ReadLoop() {
     }()
 
     for {
-        header, err := c.ReadHeader()
-        if err != nil {
-            if err == io.EOF {
-                return
-            }
-            continue
-        }
+        header, customErr, networkErr := c.ReadHeader()
+		if networkErr != nil {
+			slog.Error("there was an error reading from connection", "error", networkErr)
+			return
+		}
+
+		if customErr != nil {
+			continue
+		}
+
         slog.Debug("header reading complete", "header", header)
 
         tcpMessage := c.ReadPayload(header.MsgLen)
@@ -91,20 +94,20 @@ func (c *Connection) ReadLoop() {
     }
 }
 
-func (c *Connection) ReadHeader() (*TcpHeader, error) {
+func (c *Connection) ReadHeader() (*TcpHeader, error, error) {
     headerBuffer := make([]byte, HEADER_SIZE)
     n, err := c.Conn.Read(headerBuffer)
     if err != nil {
         slog.Error("could not read server message", "error", err)
-        return nil, err
+        return nil, nil, err
     }
 
     if n != HEADER_SIZE {
         slog.Error("message from server does not have enough bytes for a header", "message", headerBuffer[:n])
-        return nil, errors.New("header size mismatch")
+        return nil, errors.New("header size mismatch"), nil
     }
 
-    return CreateHeaderFromBuffer(headerBuffer), nil
+    return CreateHeaderFromBuffer(headerBuffer), nil, nil
 }
 
 func (c *Connection) ReadPayload(length uint32) *TcpMessage {
