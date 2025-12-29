@@ -37,10 +37,6 @@ func ConnectToCentralServer(ip, port string) (*Connection, error) {
 
 //Returns human-readable error
 func (c *Connection) Authenticate(psk string) error {
-	defer func() {
-		c.Conn.Close()
-	}()
-
 	err := c.SendMessage(CreateAuthenticationMessage(psk))
 	if err != nil {
 		slog.Error("could not send authentication message to server", "error", err)
