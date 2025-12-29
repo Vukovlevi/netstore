@@ -147,7 +147,10 @@ func (c *Connection) HandleMessage(message *TcpMessage) {
 }
 
 func (c *Connection) GetSearchResults(message *ClientSearchMessage) {
-	searchResult := Manager.GetSearchResults(message.SearchParam)
+	searchResult, err := Manager.GetSearchResults(message.SearchParam)
+	if err != nil && err != ErrNoErrorMessage {
+		slog.Error("could not get search result for client search", "error", err)
+	}
 	answerMessage := CreateAnswerMessage(message.AnswerId, searchResult)
 	c.SendMessage(answerMessage)
 }

@@ -2,10 +2,13 @@ package network
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/vukovlevi/netstore/store_administration/model"
 )
 
 const (
@@ -22,6 +25,16 @@ type NetworkManager struct {
 }
 
 var Manager *NetworkManager
+
+type SearchResult struct {
+	OpenHours []model.OpenHour `json:"open_hours"`
+	StoreDetail model.StoreDetail `json:"store_detail"`
+	Products any `json:"products"`
+}
+
+var (
+	ErrNoErrorMessage = errors.New("could not marshal error message")
+)
 
 // Returns human-readable error
 func NewNetworkManager(ip, port, psk string) error {
@@ -84,7 +97,30 @@ func (n *NetworkManager) SearchNetwork(searchParam []byte) ([]byte, error) {
 	return answer, err
 }
 
-func (n *NetworkManager) GetSearchResults(searchParam []byte) []byte {
-	//TODO: get products from dave api, get store details and open hours from DB, bundle into a JSON object, marshal it then return that as a result
-	return []byte{}
+func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
+	errBytes, err := json.Marshal(map[string]string{"error": "A keresés sikertelen!"})
+	if err != nil {
+		slog.Error("could not marshal error message on search result error", "error", err)
+		return []byte{}, ErrNoErrorMessage
+	}
+
+	searchResult := SearchResult{}
+	openHours, err := model.GetOpenHours(true)
+	if err != nil {
+		return errBytes, err
+	}
+	searchResult.OpenHours = openHours
+
+	storeDetail, err := model.GetStoreDetail()
+	if err != nil {
+		return errBytes, err
+	}
+	searchResult.StoreDetail = storeDetail
+
+	searchResult.Products = map[string]any{"name": "test", "price": 1500} //TODO: external api call here
+	searchResultBytes, err := json.Marshal(searchResult)
+	if err != nil {
+		return errBytes, err
+	}
+	return searchResultBytes, nil
 }
