@@ -11,12 +11,13 @@ type StoreDetail struct {
     CentralServerAddress string `json:"centralServerAddress,omitzero,omitempty"`
     CentralServerPort uint16 `json:"centralServerPort,omitzero,omitempty"`
     StoreTypeId int `json:"storeTypeId"`
+    StoreTypeName string `json:"storeTypeName,omitempty,omitzero"`
 }
 
 func GetStoreDetail() (StoreDetail, error) {
-    row := db.DB.QueryRow("SELECT address, central_server_address, central_server_port, store_type_id FROM store_detail")
+    row := db.DB.QueryRow("SELECT address, central_server_address, central_server_port, store_type_id, name FROM store_detail INNER JOIN store_type ON store_detail.store_type_id = store_type.id")
     storeDetail := StoreDetail{}
-    err := row.Scan(&storeDetail.Address, &storeDetail.CentralServerAddress, &storeDetail.CentralServerPort, &storeDetail.StoreTypeId)
+    err := row.Scan(&storeDetail.Address, &storeDetail.CentralServerAddress, &storeDetail.CentralServerPort, &storeDetail.StoreTypeId, &storeDetail.StoreTypeName)
     return storeDetail, err
 }
 

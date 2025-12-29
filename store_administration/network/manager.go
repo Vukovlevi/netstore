@@ -115,6 +115,9 @@ func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
 	if err != nil {
 		return errBytes, err
 	}
+	storeDetail.CentralServerAddress = ""
+	storeDetail.CentralServerPort = 0
+	storeDetail.StoreTypeId = 0
 	searchResult.StoreDetail = storeDetail
 
 	//TODO: external api call here
