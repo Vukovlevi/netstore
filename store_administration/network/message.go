@@ -103,7 +103,7 @@ func CreateAnswerMessage(answerId string, answer []byte) *AnswerMessage {
 }
 
 func (a *AnswerMessage) ToMessageBytes() []byte {
-    a.Content = slices.Concat([]byte(a.Answer), a.Answer)
+    a.Content = slices.Concat([]byte(a.AnswerId), a.Answer)
     return a.TcpMessage.ToMessageBytes()
 }
 

@@ -151,6 +151,7 @@ func (c *Connection) GetSearchResults(message *ClientSearchMessage) {
 	if err != nil && err != ErrNoErrorMessage {
 		slog.Error("could not get search result for client search", "error", err)
 	}
+	slog.Debug("got results for search request", "answer id", message.AnswerId, "result", searchResult)
 	answerMessage := CreateAnswerMessage(message.AnswerId, searchResult)
 	c.SendMessage(answerMessage)
 }
