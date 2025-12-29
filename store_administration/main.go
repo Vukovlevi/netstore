@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -16,6 +17,8 @@ import (
 )
 
 func main() {
+    slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
+
     err := godotenv.Load()
     if err != nil {
         slog.Error("could not load environment variables", "error", err)
