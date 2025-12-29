@@ -9,7 +9,7 @@ import (
 )
 
 func HandleGetOpenHours(c echo.Context) error {
-	openHours, err := model.GetOpenHours()
+	openHours, err := model.GetOpenHours(false)
 	if err != nil {
 		slog.Error("could not get open hours", "error", err)
 		return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A nyitvatartási idők lekérdezése sikertelen!"))

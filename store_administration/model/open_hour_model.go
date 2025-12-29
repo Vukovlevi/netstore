@@ -17,8 +17,12 @@ type OpenHour struct {
 	DeletedAt sql.NullTime `json:"deletedAt"`
 }
 
-func GetOpenHours() ([]OpenHour, error) {
-	rows, err := db.DB.Query("SELECT id, opens_at, closes_at, special_date, deleted_at FROM open_hour WHERE deleted_at IS NULL")
+func GetOpenHours(onlyThisAndNextYear bool) ([]OpenHour, error) {
+	query := "SELECT id, opens_at, closes_at, special_date, deleted_at FROM open_hour WHERE deleted_at IS NULL"
+	if onlyThisAndNextYear {
+		query += " AND (special_date IS NULL OR YEAR(special_date) = YEAR(NOW()) OR YEAR(special_date) = YEAR(NOW()) + 1)"
+	}
+	rows, err := db.DB.Query(query)
 	if err != nil {
 		return []OpenHour{}, err
 	}
