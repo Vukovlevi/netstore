@@ -56,11 +56,11 @@ func (c *ContractType) DeleteContractType() error {
 //Returns user-readable error
 func (c *ContractType) ValidateInsert() error {
     if c.Name == "" || c.WeeklyHours == 0 {
-        return errors.New("missing name or weekly hours in contract type") //TODO: user-readable error message
+        return errors.New("A szerződéstípus neve, vagy a heti munkaórák száma hiányzik!")
     }
 
     if c.WeeklyHours > MAX_WEEKLY_HOURS || c.WeeklyHours < 0 {
-        return errors.New("invalid weekly hours value in contract type") //TODO: user-readable error message
+        return errors.New("A heti munkaórák száma nem a megadott intervallumban van!")
     }
 
     return nil
@@ -69,7 +69,7 @@ func (c *ContractType) ValidateInsert() error {
 //Return user-readable error
 func (c *ContractType) ValidateUpdate() error {
     if c.Id == 0 {
-        return errors.New("missing id in contract type to be updated") //TODO: user-readable error message
+        return errors.New("A szerződéstípus frissítéséhez az azonosító megadása kötelező! Próbálja frissíteni az oldalt!")
     }
     return c.ValidateInsert()
 }
@@ -77,7 +77,7 @@ func (c *ContractType) ValidateUpdate() error {
 //Returns user-readable error
 func (c *ContractType) ValidateDelete() error {
     if c.Id == 0 {
-        return errors.New("missing id in contract type to be deleted") //TODO: user-readable error message
+        return errors.New("A szerződéstípus törléséhez az azonosító megadása kötelező! Próbálja frissíteni az oldalt!")
     }
     return nil
 }

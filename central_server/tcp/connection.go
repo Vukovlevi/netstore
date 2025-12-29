@@ -12,9 +12,9 @@ import (
 )
 
 const (
-    VERSION_ERROR_MESSAGE = "not valid version"
-    INVALID_MSG_TYPE_ERROR_MESSAGE = "not valid message type"
-    AUTHENTICATION_ERROR_MESSAGE = "invalid credentials"
+    VERSION_ERROR_MESSAGE = "A protokoll verziója hibás. Jelezze a rendszergazdánál!"
+    INVALID_MSG_TYPE_ERROR_MESSAGE = "Hibás üzenet típus. Jelezze a rendszergazdánál!"
+    AUTHENTICATION_ERROR_MESSAGE = "Hibás azonosítási adatok. Jelezze a rendszergazdánál!"
 )
 
 type Connection struct {
@@ -64,7 +64,7 @@ func (c *Connection) ReadLoop() {
             c.ReadPayload(header.MsgLen)
             slog.Error("header not valid", "client id", c.Id.String(), "err", err)
             if err == ErrVersionMismatch {
-                sendErr := c.SendErrorMessage(VERSION_ERROR_MESSAGE) //TODO: hungarian error message
+                sendErr := c.SendErrorMessage(VERSION_ERROR_MESSAGE)
                 if sendErr != nil {
                     slog.Error("there was an error sending error message", "client id", c.Id, "error", sendErr)
                 }
@@ -138,14 +138,14 @@ func (c *Connection) HandleMessage(message *TcpMessage) {
     case MSG_TYPE_ANSWER:
         c.GiveAnswer(message.ToAnswerMessage())
     default:
-        c.SendErrorMessage(INVALID_MSG_TYPE_ERROR_MESSAGE) //TODO: hungarian error message
+        c.SendErrorMessage(INVALID_MSG_TYPE_ERROR_MESSAGE)
     }
 }
 
 func (c *Connection) Authenticate(message *AuthenticationMessage) {
     if err := message.Authenticate(); err != nil {
         slog.Error("authentication failure for client", "id", c.Id.String(), "address", c.Conn.RemoteAddr().String(), "sent psk", string(message.Content))
-        err = c.SendErrorMessage(AUTHENTICATION_ERROR_MESSAGE) //TODO: hungarian error message
+        err = c.SendErrorMessage(AUTHENTICATION_ERROR_MESSAGE)
         if err != nil {
             slog.Error("could not send error message", "error", err)
         }

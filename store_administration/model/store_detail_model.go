@@ -28,7 +28,7 @@ func (s *StoreDetail) UpdateStoreDetail() error {
 //Returns user-readable error
 func (s *StoreDetail) ValidateUpdate() error {
     if s.Address == "" || s.CentralServerAddress == "" || s.CentralServerPort == 0 || s.StoreTypeId == 0 {
-        return errors.New("missing address or central server address, etc") //TODO: user-readable error message
+        return errors.New("Az üzlet adatai hiányosak (cím, központi szerver címe, központi szerver portja, vagy az üzlet típusa)!")
     }
     return nil
 }

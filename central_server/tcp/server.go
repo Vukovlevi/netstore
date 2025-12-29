@@ -52,7 +52,7 @@ func (s *Server) Start() {
         }
 
         slog.Debug("new connection accepted", "connection", conn.RemoteAddr().String())
-        connection := CreateConnection(conn, s.SearchRequestQueue.SearchRequestChan, s.ConnChan) //TODO: searchRequestChan
+        connection := CreateConnection(conn, s.SearchRequestQueue.SearchRequestChan, s.ConnChan)
         go connection.ReadLoop()
     }
 }
@@ -141,7 +141,7 @@ func (s *Server) CreateAndSendClientAnswer(singleAnswers []*AnswerMessage, fullA
     clientAnswerContent, err := json.Marshal(fullAnswer)
     if err != nil {
         slog.Error("could not marshal client answer content", "error", err)
-        errMsg := CreateErrorMessage("error while encoding answer") //TODO: hungarian error message
+        errMsg := CreateErrorMessage("A válasz kódolása közben hiba lépett fel!")
         fullAnswerChan <- errMsg.ToMessageBytes()
         return
     }

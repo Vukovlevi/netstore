@@ -11,7 +11,7 @@ import (
 func HandlePostContractType(c echo.Context) error {
     contractType := model.ContractType{}
     if err := c.Bind(&contractType); err != nil {
-        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind contract type")) //TODO: user-readalbe error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződéstípus adatainak olvasása nem sikerült!"))
     }
 
     if err := contractType.ValidateInsert(); err != nil {
@@ -20,17 +20,17 @@ func HandlePostContractType(c echo.Context) error {
 
     if err := contractType.InsertNewContractType(); err != nil {
         slog.Error("could not save new contract type", "error", err, "contract type", contractType)
-        return c.JSON(http.StatusBadRequest, CreateErrorMessage("could not save contract type (possibly existing)")) //TODO: user-readable error message
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage("Az új szerződéstípus mentése nem sikerült (lehet hogy már létezik ilyen néven)!"))
     }
 
-    return c.JSON(http.StatusCreated, CreateMessage("contract type successfully created")) //TODO: user-readable error message
+    return c.JSON(http.StatusCreated, CreateMessage("Új szerződéstípus sikeresen létrehozva!"))
 }
 
 func HandleGetAllContractType(c echo.Context) error {
     contractTypes, err := model.GetAllContractType()
     if err != nil {
         slog.Error("could not get all contract types", "error", err)
-        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not get all contract types")) //TODO: user-readable error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződéstípusok lekérdezése nem sikerült!"))
     }
     return c.JSON(http.StatusOK, contractTypes)
 }
@@ -38,7 +38,7 @@ func HandleGetAllContractType(c echo.Context) error {
 func HandleUpdateContractType(c echo.Context) error {
     contractType := model.ContractType{}
     if err := c.Bind(&contractType); err != nil {
-        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind contract type")) //TODO: user-readalbe error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződéstípus adatainak olvasása nem sikerült!"))
     }
 
     if err := contractType.ValidateUpdate(); err != nil {
@@ -47,16 +47,16 @@ func HandleUpdateContractType(c echo.Context) error {
 
     if err := contractType.UpdateContractType(); err != nil {
         slog.Error("could not update contract type", "error", err, "contract type", contractType)
-        return c.JSON(http.StatusBadRequest, CreateErrorMessage("could not update contract type (possibly existing)")) //TODO: user-readable error message
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage("A szerződéstípus módosítása sikertelen (lehet hogy már létezik típus ilyen néven)!"))
     }
 
-    return c.JSON(http.StatusOK, CreateMessage("contract type successfully updated")) //TODO: user-readable error message
+    return c.JSON(http.StatusOK, CreateMessage("A szerződéstípus módosítása sikeres!"))
 }
 
 func HandleDeleteContractType(c echo.Context) error {
     contractType := model.ContractType{}
     if err := c.Bind(&contractType); err != nil {
-        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind contract type")) //TODO: user-readalbe error message
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A szerződéstípus adatainak olvasása sikertelen!"))
     }
 
     if err := contractType.ValidateDelete(); err != nil {
@@ -65,7 +65,7 @@ func HandleDeleteContractType(c echo.Context) error {
 
     if err := contractType.DeleteContractType(); err != nil {
         slog.Error("could not delete contract type", "error", err, "contract type", contractType)
-        return c.JSON(http.StatusBadRequest, CreateErrorMessage("could not delete contract type")) //TODO: user-readable error message
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage("A szerződéstípus törlése sikertelen!"))
     }
 
     return c.NoContent(http.StatusNoContent)

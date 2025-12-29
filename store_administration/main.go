@@ -78,8 +78,6 @@ func main() {
     e.Static("/assets", "public/assets")
     e.GET("/*", func(c echo.Context) error {return c.File("public/index.html")})
 
-    //TODO: implement password-change rendering without authentication middleware
-
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
     e.Logger.Fatal(e.Start(":8000")) //TODO: read address from config
