@@ -2,6 +2,7 @@ package route
 
 import (
 	"io"
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -25,6 +26,7 @@ func HandleGetConnect(c echo.Context) error {
 func HandlePostConnect(c echo.Context) error {
 	connectInfo := ConnectInfo{}
 	if err := c.Bind(&connectInfo); err != nil {
+		slog.Error("could not bind connect info", "error", err)
 		return c.JSON(http.StatusInternalServerError, CreateErrorMessage("Csatlakozási adatok olvasása sikertelen!"))
 	}
 
@@ -34,6 +36,7 @@ func HandlePostConnect(c echo.Context) error {
 
 	err := network.NewNetworkManager(connectInfo.Ip, connectInfo.Port, connectInfo.Psk)
 	if err != nil {
+		slog.Error("could not connect to central server", "error", err)
 		return c.JSON(http.StatusInternalServerError, CreateErrorMessage(err.Error()))
 	}
 
