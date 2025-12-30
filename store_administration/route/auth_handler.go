@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -63,7 +64,7 @@ func SetSessionCookie(c echo.Context, session model.Session) {
         Path: "/",
         SameSite: http.SameSiteStrictMode,
         HttpOnly: true,
-        Secure: false, //TODO: read from config
+        Secure: os.Getenv("SECURE_COOKIE") == "TRUE",
         Expires: session.ExpiresAt,
     })
 }
@@ -82,7 +83,7 @@ func HandleLogout(c echo.Context) error {
         Path: "/",
         SameSite: http.SameSiteStrictMode,
         HttpOnly: true,
-        Secure: false, //TODO: read from config
+        Secure: os.Getenv("SECURE_COOKIE") == "TRUE",
         Expires: time.Now().Add(time.Second * -1),
         MaxAge: -1,
     })
