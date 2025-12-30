@@ -131,3 +131,10 @@ func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
 	}
 	return searchResultBytes, nil
 }
+
+func (n *NetworkManager) Disconnect() {
+	n.mutex.Lock()
+	defer n.mutex.Unlock()
+
+	n.Status = STATUS_NOT_CONNECTED
+}

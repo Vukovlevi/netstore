@@ -70,7 +70,7 @@ func (c *Connection) Authenticate(psk string) error {
 
 func (c *Connection) ReadLoop() {
     defer func() {
-        c.Conn.Close()
+		c.Close()
     }()
 
     for {
@@ -139,9 +139,9 @@ func (c *Connection) HandleMessage(message *TcpMessage) {
     case MSG_TYPE_CLIENT_ANSWER:
         c.GiveServerAnswer(message.ToClientAnswerMessage())
     case MSG_TYPE_ERROR:
-		c.Conn.Close()
         errorMessage := message.ToErrorMessage()
 		c.GiveServerAnswer(errorMessage)
+		c.Close()
     default:
     }
 }
@@ -192,4 +192,9 @@ func (c *Connection) write(msg []byte) error {
 func (c *Connection) SendMessage(message Message) error {
     send := message.ToMessageBytes()
     return c.write(send)
+}
+
+func (c *Connection) Close() {
+	c.Conn.Close()
+	Manager.Disconnect()
 }
