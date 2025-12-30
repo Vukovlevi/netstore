@@ -39,7 +39,7 @@ func TestBadMessageLength(t *testing.T) {
         }
     }()
 
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     if header == nil {
         log.Fatalf("header should not be nil here")
     }
@@ -54,7 +54,7 @@ func TestBadMessageLength(t *testing.T) {
         log.Fatalf("read message should be nil here")
     }
 
-    header, _ = connection.ReadHeader()
+    header, _,  _ = connection.ReadHeader()
     if header != nil {
         log.Fatalf("header should be nil here")
     }
@@ -81,7 +81,7 @@ func TestReading_ShortSuccess(t *testing.T) {
         }
     }()
 
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     if header == nil {
         log.Fatalf("header should not be nil here")
     }
@@ -129,7 +129,7 @@ func TestReading_VersionMismatch(t *testing.T) {
         }
     }()
 
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     if header == nil {
         log.Fatalf("header should not be nil here")
     }
@@ -203,7 +203,7 @@ func TestReading_LongSuccess(t *testing.T) {
 
 
     go func(wg *sync.WaitGroup) {
-        header, _ := connection.ReadHeader()
+        header, _,  _ := connection.ReadHeader()
         if header == nil {
             log.Fatalf("header should not be nil here")
         }
@@ -291,7 +291,7 @@ func sendMessageToServer(client net.Conn, message tcp.Message) {
 }
 
 func testAuthenticationFailure(connection *tcp.Connection, client net.Conn) {
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     go connection.HandleMessage(readMessage)
 
@@ -308,7 +308,7 @@ func testAuthenticationFailure(connection *tcp.Connection, client net.Conn) {
 
 func testAuthenticationSuccess(connection *tcp.Connection, client net.Conn) {
     connection.ConnChan = make(chan *tcp.Connection, 1)
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     go connection.HandleMessage(readMessage)
 
@@ -337,7 +337,7 @@ func testAuthenticationSuccess(connection *tcp.Connection, client net.Conn) {
 func testEnqueueSearchRequest(connection *tcp.Connection) {
     connection.SearchRequestChan = make(chan *queue.SearchRequestNode, 1)
 
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     connection.HandleMessage(readMessage)
 
@@ -352,7 +352,7 @@ func testEnqueueSearchRequest(connection *tcp.Connection) {
 func testGiveAnswer(connection *tcp.Connection) {
     connection.AnswerChan = make(chan *tcp.AnswerMessage, 1)
 
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     connection.HandleMessage(readMessage)
 
@@ -365,7 +365,7 @@ func testGiveAnswer(connection *tcp.Connection) {
 }
 
 func testGiveInvalidAnswer(connection *tcp.Connection) {
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     connection.HandleMessage(readMessage)
     //works as a test, because in case of invalid answer id, it should not send anything on the channel -> no error
@@ -373,7 +373,7 @@ func testGiveInvalidAnswer(connection *tcp.Connection) {
 }
 
 func testInvalidMsgType(connection *tcp.Connection, client net.Conn) {
-    header, _ := connection.ReadHeader()
+    header, _,  _ := connection.ReadHeader()
     readMessage := connection.ReadPayload(header.MsgLen)
     go connection.HandleMessage(readMessage)
 
