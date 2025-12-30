@@ -107,6 +107,7 @@ watchEffect(() => {
         v-if="contract.id != 0"
         @click="() => emits('delete')"
         class="bg-red-600 hover:bg-red-700 text-white font-medium py-1 px-3 rounded"
+        type="button"
       >
         Szerződés törlés
       </button>
