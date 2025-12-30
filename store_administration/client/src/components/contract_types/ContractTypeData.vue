@@ -90,7 +90,7 @@ async function saveContractType() {
   }
 }
 
-//TODO: vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
+//TODO: összes helyen törlésnél modal, meg esetleg a mégse gomboknál is, egyeztess difivel
 </script>
 <template>
   <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">

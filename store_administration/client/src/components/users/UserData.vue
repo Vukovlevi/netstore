@@ -122,7 +122,6 @@ function confirm() {
   isModalOpen.value = false;
   emits("back");
 }
-//TODO: vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
 </script>
 
 <template>
