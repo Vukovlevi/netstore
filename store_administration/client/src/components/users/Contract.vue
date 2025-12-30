@@ -20,6 +20,7 @@ const isUpdate = ref(false);
 const contractTypes: Ref<ContractType[], ContractType[]> = ref([]);
 const mode: Ref<"data" | "day", "data" | "day"> = ref("data");
 const weekDays: Ref<WeekDay[], WeekDay[]> = ref([]);
+let wasSaved = false;
 
 async function getContractTypes() {
   try {
@@ -113,6 +114,7 @@ async function saveContract() {
     }
 
     emits("feedback", "success", data.message, null, false);
+    wasSaved = true;
   } catch (err) {
     console.error(err);
     emits(
@@ -204,6 +206,7 @@ async function deleteContract() {
 
     if (resp.status == 204) {
       emits("feedback", "success", "Szerződés törlése sikeres!", null, false);
+      wasSaved = true;
       return;
     }
 
@@ -248,7 +251,7 @@ onMounted(() => {
         v-if="mode == 'data'"
         :contract="contract"
         :contractTypes="contractTypes"
-        @back="emits('back')"
+        @back="emits('back', wasSaved)"
         @next="mode = 'day'"
         @delete="deleteContract"
       />

@@ -10,6 +10,7 @@ import type { Role } from "../types/Role.ts";
 import Feedback from "../components/Feedback.vue";
 import type { FeedbackType, Feedback as TFeedback } from "../types/Feedback.ts";
 import Contract from "../components/users/Contract.vue";
+import Modal from "../components/Modal.vue";
 
 let users: User[] = [];
 const filteredUsers: Ref<User[], User[]> = ref([]);
@@ -20,6 +21,7 @@ const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null);
 const currentUser: Ref<User | null, User | null> = ref(null);
 const mode: Ref<"all" | "single" | "contract", "all" | "single" | "contract"> =
   ref("all");
+const isModalOpen = ref(false);
 
 async function getUsers() {
   try {
@@ -162,9 +164,27 @@ onMounted(() => {
   getUsers();
   getRoles();
 });
+
+function cancelBackFromContract() {
+  isModalOpen.value = false;
+}
+
+function confirmBackFromContract() {
+  isModalOpen.value = false;
+  mode.value = "single";
+  feedback.value = null;
+}
 </script>
 
 <template>
+  <Modal
+    v-if="isModalOpen"
+    title="Biztosan vissza akar lépni?"
+    message="A szerződés nem mentett módosításai elvesznek!"
+    confirm-text="Igen, visszalépek"
+    @cancel="cancelBackFromContract"
+    @confirm="confirmBackFromContract"
+  />
   <div class="mx-auto max-w-7xl mt-[5rem]">
     <div
       class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
@@ -224,12 +244,9 @@ onMounted(() => {
         v-if="mode == 'contract'"
         :userId="currentUser!.id"
         @feedback="handleFeedback"
-        @back="
-          () => {
-            mode = 'single';
-            feedback = null;
-          }
-        "
+        @back="(wasSaved: boolean) => {if (!wasSaved) isModalOpen = true;
+          else confirmBackFromContract()
+        }"
       />
     </div>
   </div>
