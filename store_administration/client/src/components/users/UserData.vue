@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { UserClass, type User } from "../../types/User.ts";
 import type { Role } from "../../types/Role.ts";
+import Modal from "../Modal.vue";
 
 const NEW_USER = "Új felhasználó felvitele";
 const UPDATE_USER = "Felhasználó módosítása";
@@ -10,6 +11,8 @@ const props = defineProps<{ user: User | null; roles: Role[] }>();
 const emits = defineEmits(["feedback", "back", "contract"]);
 const user = new UserClass(props.user);
 const isUpdate = ref(false);
+const isModalOpen = ref(false);
+let wasSaved = false;
 
 function validate(): { message: string; valid: boolean } {
   if (props.user == null) return validateNewUser();
@@ -87,6 +90,7 @@ async function saveUser() {
 
     user.role.value = props.roles.find((x) => x.id == user.roleId.value)!.name;
     emits("feedback", "success", data.message, user.toUser(), isUpdate.value);
+    wasSaved = true;
   } catch (err) {
     console.error(err);
     emits(
@@ -110,10 +114,26 @@ onMounted(() => {
   }
 });
 
+function cancel() {
+  isModalOpen.value = false;
+}
+
+function confirm() {
+  isModalOpen.value = false;
+  emits("back");
+}
 //TODO: vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
 </script>
 
 <template>
+  <Modal
+    v-if="isModalOpen"
+    title="Biztosan vissza akar lépni?"
+    message="A nem mentett módosítások elvesznek!"
+    confirm-text="Igen, visszalépek"
+    @cancel="cancel"
+    @confirm="confirm"
+  />
   <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
     <div class="space-y-8">
       <div>
@@ -297,7 +317,12 @@ onMounted(() => {
           <button
             class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
             type="button"
-            @click="() => emits('back')"
+            @click="
+              () => {
+                if (!wasSaved) isModalOpen = true;
+                else emits('back');
+              }
+            "
           >
             Vissza
           </button>
