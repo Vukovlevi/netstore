@@ -24,8 +24,8 @@ type Server struct {
     mutex *sync.RWMutex
 }
 
-func NewServer() *Server {
-	ln, err := net.Listen("tcp", "0.0.0.0:42069") //TODO: read from config
+func NewServer(address string) *Server {
+	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		slog.Error("could not create listener for server", "error", err)
 		panic("missing listener")

@@ -10,6 +10,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/joho/godotenv"
+	"github.com/vukovlevi/netstore/central_server/config"
 	"github.com/vukovlevi/netstore/central_server/tcp"
 )
 
@@ -51,7 +53,9 @@ func NewTestClient(username, role string, num int) *TestClient {
 }
 
 func (c *TestClient) ConnectToServer() {
-	conn, err := net.Dial("tcp", "127.0.0.1:42069") //TODO: read from config
+	godotenv.Load()
+	config := config.LoadConfig()
+	conn, err := net.Dial("tcp", config.ToAddress())
 	if err != nil {
 		log.Fatalf("could not connect to server, error: %s", err.Error())
 	}

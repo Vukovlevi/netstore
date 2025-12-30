@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/joho/godotenv"
+	"github.com/vukovlevi/netstore/central_server/config"
 	"github.com/vukovlevi/netstore/central_server/tcp"
 	client_test "github.com/vukovlevi/netstore/central_server/test/client"
 )
@@ -17,7 +19,9 @@ func TestServer(t *testing.T) {
 	}
 	slog.SetDefault(slog.New(slog.NewJSONHandler(logFile, &slog.HandlerOptions{Level: slog.LevelDebug})))
 
-	server := tcp.NewServer()
+	godotenv.Load()
+	config := config.LoadConfig()
+	server := tcp.NewServer(config.ToAddress())
 	go server.Start()
 
 	testClientAuthActions()
