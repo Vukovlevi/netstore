@@ -1,46 +1,41 @@
 import React from 'react';
-import type { Category, SubCategory } from '../../types/Types';
+import type { StoringCondition } from '../../types/Types';
 import FeedbackMessage from '../ui/FeedbackMessage';
 
-interface SubCategoryFormProps {
-    subCategories: SubCategory[];
-    categories: Category[];
+interface StoringConditionFormProps {
+    conditions: StoringCondition[];
     selectedId: number | null;
-    name: string;
-    categoryId: number | '';
+    description: string;
     loading: boolean;
     error: string | null;
     successMsg: string | null;
-    setName: (name: string) => void;
-    setCategoryId: (id: number | '') => void;
+    setDescription: (val: string) => void;
     setSelectedId: (id: number | null) => void;
     handleSubmit: (e: React.FormEvent) => void;
     handleDelete: () => void;
 }
 
-export default function SubCategoryForm({ 
-    subCategories, categories, selectedId, name, categoryId, loading, error, successMsg, 
-    setName, setCategoryId, setSelectedId, handleSubmit, handleDelete 
-}: SubCategoryFormProps) {
+export default function StoringConditionForm({ 
+    conditions, selectedId, description, loading, error, successMsg, 
+    setDescription, setSelectedId, handleSubmit, handleDelete 
+}: StoringConditionFormProps) {
 
     const handleReset = () => {
         setSelectedId(null);
-        setName("");
-        setCategoryId("");
+        setDescription("");
     };
 
     return (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-3xl">
-          
           <div className="mb-8 flex justify-between items-start">
             <div>
                 <h1 className="text-2xl font-bold text-slate-900">
-                {selectedId ? 'Alkategória szerkesztése' : 'Új alkategória'}
+                {selectedId ? 'Tárolási körülmény szerkesztése' : 'Új tárolási körülmény'}
                 </h1>
                 <p className="text-gray-500 mt-1 text-sm">
                 {selectedId 
-                    ? 'Szerkessze a kiválasztott alkategóriát vagy törölje.' 
-                    : 'Adjon hozzá új alkategóriát egy főkategóriához.'}
+                    ? 'Szerkessze a kiválasztott körülményt vagy törölje.' 
+                    : 'Adjon hozzá új tárolási körülményt.'}
                 </p>
             </div>
             {selectedId && (
@@ -54,7 +49,6 @@ export default function SubCategoryForm({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            
             <div className="grid grid-cols-1 gap-6">
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
@@ -67,54 +61,31 @@ export default function SubCategoryForm({
                     if (id === 0) {
                         handleReset();
                     } else {
-                        const sub = subCategories.find(s => Number(s.id) === id);
-                        if (sub) {
+                        const cond = conditions.find(c => Number(c.id) === id);
+                        if (cond) {
                             setSelectedId(id);
-                            setName(sub.name);
-                            setCategoryId(Number(sub.category_id));
+                            setDescription(cond.description);
                         }
                     }
                   }}
                   value={selectedId || 0}
                 >
                   <option value={0}>-- Új létrehozása --</option>
-                  {subCategories.map(sub => (
-                    <option key={sub.id} value={sub.id}>
-                        {sub.name} {sub.category_name ? `(${sub.category_name})` : ''}
-                    </option>
+                  {conditions.map(c => (
+                    <option key={c.id} value={c.id}>{c.description}</option>
                   ))}
                 </select>
               </div>
 
               <div className="flex flex-col gap-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                  Főkategória
-                </label>
-                <select
-                  className={`appearance-none w-full border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-all ${
-                      selectedId ? 'bg-gray-200 cursor-not-allowed opacity-75' : 'bg-gray-50'
-                  }`}
-                  value={categoryId}
-                  onChange={(e) => setCategoryId(Number(e.target.value))}
-                  required
-                  disabled={!!selectedId}
-                >
-                    <option value="" disabled>Válasszon kategóriát...</option>
-                    {categories.map(cat => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                  Alkategória neve
+                  Leírás (pl. Hűtve tárolandó)
                 </label>
                 <input 
                   type="text" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="pl. Szénsavas üdítő"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="pl. Szobahőmérsékleten"
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
                 />
               </div>
@@ -124,7 +95,6 @@ export default function SubCategoryForm({
             {successMsg && <FeedbackMessage type="success" message={successMsg} />}
 
             <div className="flex items-center justify-end gap-4 pt-6 mt-2 border-t border-gray-50">
-              
               {selectedId && (
                 <button
                   type="button"
@@ -138,13 +108,12 @@ export default function SubCategoryForm({
 
               <button
                 type="submit"
-                disabled={loading || !name.trim() || !categoryId}
+                disabled={loading || !description.trim()}
                 className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Mentés...' : (selectedId ? 'Módosítás' : 'Létrehozás')}
               </button>
             </div>
-
           </form>
         </div>
     );

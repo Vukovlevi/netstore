@@ -12,13 +12,16 @@ require './sql_functions.php';
 require './read_cookies.php';
 require './crud/category.php';
 require './crud/sub_category.php';
+require './crud/product_type.php';
+require './crud/storing_condition.php';
+require './crud/brand.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $body = json_decode(file_get_contents('php://input'), true);
 
-$isAuth = authentication();
-if(!$isAuth) return http_response_code(401);
+//$isAuth = authentication();
+//if(!$isAuth) return http_response_code(401);
 
 switch(end($uri)) {
     case 'category':
@@ -27,9 +30,17 @@ switch(end($uri)) {
     case 'sub_category':
         handleSubCategory($method, $body);
         break;
+    case 'product_type':
+        handleProductType($method, $body);
+        break;
+    case 'storing_condition':
+        handleStoringCondition($method,$body);
+        break;
+    case 'brand':
+        handleBrand($method,$body);
+        break;
     case 'auth':
         return http_response_code(200);
     default:
         break;
 }
-?>

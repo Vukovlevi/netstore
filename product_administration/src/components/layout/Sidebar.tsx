@@ -1,4 +1,4 @@
-import { LayoutDashboard, ShoppingBag, Layers, Package, Tag, Award, Search, UserCircle } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Layers, Package, Tag, Award, Search, Archive } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const SidebarItem = ({ icon: Icon, label, to }: { icon: any, label: string, to: string }) => (
@@ -32,17 +32,26 @@ export default function Sidebar() {
                     <SidebarItem icon={LayoutDashboard} label="Irányítópult" to="/" />
                     <SidebarItem icon={ShoppingBag} label="Kategóriák" to="/categories" />
                     <SidebarItem icon={Layers} label="Alkategóriák" to="/subcategories" />
-                    <SidebarItem icon={Package} label="Termékek" to="/products" />
                     <SidebarItem icon={Tag} label="Terméktípusok" to="/product-types" />
+                    <SidebarItem icon={Package} label="Termékek" to="/products" />
                     <SidebarItem icon={Award} label="Gyártók" to="/brands" />
+                    <SidebarItem icon={Archive} label="Tárolási körülmények" to="/storing-condition" />
                     <SidebarItem icon={Search} label="Részletes keresés" to="/search" />
                 </nav>
             </div>
 
             <div className="p-6 border-t border-gray-100">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center">
-                        <UserCircle className="text-orange-500" />
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100">
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="aspect-square w-8 h-8 rounded-full bg-cover bg-center profile-icon fill-blue-600"
+                            viewBox="0 0 640 640"
+                        >
+                            <path
+                                d="M320 312C386.3 312 440 258.3 440 192C440 125.7 386.3 72 320 72C253.7 72 200 125.7 200 192C200 258.3 253.7 312 320 312zM290.3 368C191.8 368 112 447.8 112 546.3C112 562.7 125.3 576 141.7 576L498.3 576C514.7 576 528 562.7 528 546.3C528 447.8 448.2 368 349.7 368L290.3 368z"
+                            />
+                    </svg>
                     </div>
                     <div>
                         <p className="text-sm font-bold text-slate-900">Admin</p>

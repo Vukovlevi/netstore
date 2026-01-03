@@ -57,7 +57,7 @@ export default function CategoryForm({
                   Szerkesztendő kiválasztása
                 </label>
                 <select 
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all appearance-none"
                   onChange={(e) => {
                     const id = Number(e.target.value);
                     if (id === 0) {
