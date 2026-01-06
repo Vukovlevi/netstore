@@ -3,11 +3,12 @@ import Layout from './components/layout/Layout';
 import CategoryManagement from './views/CategoryManagement';
 import SubCategoryManagement from './views/SubCategoryManagement';
 import Dashboard from './views/Dashboard';
-import { ProductPlaceholder, SearchPlaceholder} from './views/Placeholders';
+import {SearchPlaceholder} from './views/Placeholders';
 import RequireAuth from './components/RequireAuth'; 
 import ProductTypeManagement from './views/ProductTypeManagement';
 import StoringConditionManagement from './views/StoringConditionManagement';
 import BrandManagement from './views/BrandManagement';
+import ProductManagement from './views/ProductManagement';
 
 const Login = () => <h1>Login Page</h1>;
 
@@ -22,7 +23,7 @@ export default function App() {
             <Route path="categories" element={<CategoryManagement />} />
             <Route path="subcategories" element={<SubCategoryManagement/>} />
             <Route path="product-types" element={<ProductTypeManagement />} />
-            <Route path="products" element={<ProductPlaceholder />} />
+            <Route path="products" element={<ProductManagement/>} />
             <Route path="brands" element={<BrandManagement />} />
             <Route path="storing-condition" element={<StoringConditionManagement />} />
             <Route path="search" element={<SearchPlaceholder />} />

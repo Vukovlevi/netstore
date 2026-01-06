@@ -30,6 +30,16 @@ export interface Brand {
   is_temporary: number;
 }
 
+export interface Product {
+  id: number;
+  name: string;
+  type_id: number;
+  brand_id: number;
+  is_active: number;
+  type_name?: string;
+  brand_name?: string;
+}
+
 export interface ApiResponse {
   message?: string;
   id?: number;

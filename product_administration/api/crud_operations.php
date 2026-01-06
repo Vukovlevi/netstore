@@ -15,6 +15,7 @@ require './crud/sub_category.php';
 require './crud/product_type.php';
 require './crud/storing_condition.php';
 require './crud/brand.php';
+require './crud/product.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
@@ -38,6 +39,9 @@ switch(end($uri)) {
         break;
     case 'brand':
         handleBrand($method,$body);
+        break;
+    case 'product':
+        handleProduct($method, $body);
         break;
     case 'auth':
         return http_response_code(200);

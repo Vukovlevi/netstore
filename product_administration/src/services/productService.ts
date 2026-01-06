@@ -1,26 +1,22 @@
-import type { Brand, ApiResponse } from "../types/Types";
+import type { Product, ApiResponse } from "../types/Types";
 
-const API_URL = "./api/brand";
+const API_URL = "./api/product";
 
-export const brandService = {
-  getAll: async (): Promise<Brand[]> => {
+export const productService = {
+  getAll: async (): Promise<Product[]> => {
     const res = await fetch(API_URL);
     return res.json();
   },
 
   create: async (
     name: string,
-    is_own: boolean,
-    is_temporary: boolean
+    type_id: number,
+    brand_id: number
   ): Promise<ApiResponse> => {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        is_own: is_own ? 1 : 0,
-        is_temporary: is_temporary ? 1 : 0,
-      }),
+      body: JSON.stringify({ name, type_id, brand_id }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Hiba a létrehozáskor");
@@ -30,18 +26,13 @@ export const brandService = {
   update: async (
     id: number,
     name: string,
-    is_own: boolean,
-    is_temporary: boolean
+    type_id: number,
+    brand_id: number
   ): Promise<ApiResponse> => {
     const res = await fetch(API_URL, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id,
-        name,
-        is_own: is_own ? 1 : 0,
-        is_temporary: is_temporary ? 1 : 0,
-      }),
+      body: JSON.stringify({ id, name, type_id, brand_id }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Hiba a frissítéskor");
