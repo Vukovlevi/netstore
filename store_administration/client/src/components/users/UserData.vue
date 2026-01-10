@@ -10,7 +10,7 @@ const UPDATE_USER = "Felhasználó módosítása";
 const props = defineProps<{ user: User | null; roles: Role[] }>();
 const emits = defineEmits(["feedback", "back", "contract"]);
 const user = new UserClass(props.user);
-user.roleId.value = props.roles.find(role => role.name == user.role.value)!.id
+if (props.user != null) user.roleId.value = props.roles.find(role => role.name == user.role.value)!.id
 let oldUser = user.toUser()
 const isUpdate = ref(false);
 const isModalOpen = ref(false);
