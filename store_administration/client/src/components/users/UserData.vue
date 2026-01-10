@@ -10,9 +10,10 @@ const UPDATE_USER = "Felhasználó módosítása";
 const props = defineProps<{ user: User | null; roles: Role[] }>();
 const emits = defineEmits(["feedback", "back", "contract"]);
 const user = new UserClass(props.user);
+user.roleId.value = props.roles.find(role => role.name == user.role.value)!.id
+let oldUser = user.toUser()
 const isUpdate = ref(false);
 const isModalOpen = ref(false);
-let wasSaved = false;
 
 function validate(): { message: string; valid: boolean } {
   if (props.user == null) return validateNewUser();
@@ -90,7 +91,7 @@ async function saveUser() {
 
     user.role.value = props.roles.find((x) => x.id == user.roleId.value)!.name;
     emits("feedback", "success", data.message, user.toUser(), isUpdate.value);
-    wasSaved = true;
+    oldUser = user.toUser()
   } catch (err) {
     console.error(err);
     emits(
@@ -125,14 +126,8 @@ function confirm() {
 </script>
 
 <template>
-  <Modal
-    v-if="isModalOpen"
-    title="Biztosan vissza akar lépni?"
-    message="A nem mentett módosítások elvesznek!"
-    confirm-text="Igen, visszalépek"
-    @cancel="cancel"
-    @confirm="confirm"
-  />
+  <Modal v-if="isModalOpen" title="Biztosan vissza akar lépni?" message="A nem mentett módosítások elvesznek!"
+    confirm-text="Igen, visszalépek" @cancel="cancel" @confirm="confirm" />
   <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
     <div class="space-y-8">
       <div>
@@ -147,140 +142,82 @@ function confirm() {
       <form class="space-y-6" @submit.prevent="saveUser">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              for="firstname"
-              >Vezetéknév*</label
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+              for="firstname">Vezetéknév*</label>
             <div class="mt-1">
               <input
                 class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-                id="firstname"
-                placeholder="pl.: Kiss"
-                type="text"
-                v-model="user.lastname.value"
-              />
+                id="firstname" placeholder="pl.: Kiss" type="text" v-model="user.lastname.value" />
             </div>
           </div>
 
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              for="lastname"
-              >Keresztnév*</label
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="lastname">Keresztnév*</label>
             <div class="mt-1">
               <input
                 class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-                id="lastname"
-                placeholder="pl.: Miklós"
-                type="text"
-                v-model="user.firstname.value"
-              />
+                id="lastname" placeholder="pl.: Miklós" type="text" v-model="user.firstname.value" />
             </div>
           </div>
         </div>
 
         <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            for="username"
-            >Felhasználónév*</label
-          >
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+            for="username">Felhasználónév*</label>
           <div class="mt-1">
             <input
               class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-              id="username"
-              placeholder="pl. mkiss"
-              type="text"
-              v-model="user.username.value"
-            />
+              id="username" placeholder="pl. mkiss" type="text" v-model="user.username.value" />
           </div>
         </div>
 
         <div v-if="!isUpdate" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              for="password"
-              >Jelszó*</label
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="password">Jelszó*</label>
             <div class="mt-1">
               <input
                 class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-                id="password"
-                placeholder="Adja meg a jelszót"
-                type="password"
-                v-model="user.password.value"
-              />
+                id="password" placeholder="Adja meg a jelszót" type="password" v-model="user.password.value" />
             </div>
           </div>
 
           <div v-if="!isUpdate">
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              for="password_confirm"
-              >Jelszó megerősítése*</label
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="password_confirm">Jelszó
+              megerősítése*</label>
             <div class="mt-1">
               <input
                 class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-                id="password_confirm"
-                placeholder="Erősítse meg a jelszót"
-                type="password"
-                v-model="user.passwordConfirm.value"
-              />
+                id="password_confirm" placeholder="Erősítse meg a jelszót" type="password"
+                v-model="user.passwordConfirm.value" />
             </div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              for="email"
-              >Email</label
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="email">Email</label>
             <div class="mt-1">
               <input
                 class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-                id="email"
-                placeholder="pl. email@example.com"
-                type="email"
-                v-model="user.email.value"
-              />
+                id="email" placeholder="pl. email@example.com" type="email" v-model="user.email.value" />
             </div>
           </div>
 
           <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              for="phone"
-              >Telefonszám</label
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="phone">Telefonszám</label>
             <div class="mt-1">
               <input
                 class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
-                id="phone"
-                placeholder="pl. +36 30 123 4567"
-                type="tel"
-                v-model="user.phoneNumber.value"
-              />
+                id="phone" placeholder="pl. +36 30 123 4567" type="tel" v-model="user.phoneNumber.value" />
             </div>
           </div>
         </div>
         <div>
-          <label
-            class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-            for="position"
-            >Rang</label
-          >
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="position">Rang</label>
           <div class="mt-1">
             <select
               class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:focus:border-primary dark:focus:ring-primary"
-              id="position"
-              v-model="user.roleId.value"
-            >
+              id="position" v-model="user.roleId.value">
               <option value="0">Válasszon pozíciót</option>
               <option v-for="role in props.roles" :value="role.id">
                 {{ role.name }}
@@ -290,17 +227,10 @@ function confirm() {
         </div>
 
         <div v-if="!isUpdate" class="flex items-center">
-          <input
-            id="disable_password_change"
-            name="disable_password_change"
-            type="checkbox"
+          <input id="disable_password_change" name="disable_password_change" type="checkbox"
             class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:focus:ring-primary"
-            v-model="user.passwordChanged.value"
-          />
-          <label
-            for="disable_password_change"
-            class="ml-2 block text-sm text-gray-700 dark:text-gray-300"
-          >
+            v-model="user.passwordChanged.value" />
+          <label for="disable_password_change" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
             Jelszóváltoztatás kikapcsolása
           </label>
         </div>
@@ -308,27 +238,22 @@ function confirm() {
         <div class="flex justify-end gap-3 pt-4">
           <button
             class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
-            type="button"
-            @click="() => emits('contract')"
-          >
+            type="button" @click="() => emits('contract')">
             Szerződés kezelése
           </button>
           <button
             class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
-            type="button"
-            @click="
+            type="button" @click="
               () => {
-                if (!wasSaved) isModalOpen = true;
+                if (!user.compare(oldUser)) isModalOpen = true;
                 else emits('back');
               }
-            "
-          >
+            ">
             Vissza
           </button>
           <button
             class="rounded bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            type="submit"
-          >
+            type="submit">
             Mentés
           </button>
         </div>
