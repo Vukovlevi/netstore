@@ -81,16 +81,13 @@ class ContractClass {
     };
   }
 
-  compare(contact: Contract): boolean {
-    //console.log(this.contractTypeId == contact.contractTypeId);
-    //console.log(this.salary == contact.salary);
-    //console.log(new Date(this.startsAt).toISOString() == contact.startsAt);
-    //console.log(!this.changedEndsAt);
-    //console.log(!this.changedContractDays);
+  compare(contract: Contract): boolean {
+    if (this.startsAt == "" && contract.startsAt != "") return false;
     return (
-      this.contractTypeId == contact.contractTypeId &&
-      this.salary == contact.salary &&
-      new Date(this.startsAt).toISOString() == contact.startsAt &&
+      this.contractTypeId == contract.contractTypeId &&
+      this.salary == contract.salary &&
+      (this.startsAt == contract.startsAt ||
+        new Date(this.startsAt).toISOString() == contract.startsAt) &&
       !this.changedEndsAt &&
       !this.changedContractDays
     );
