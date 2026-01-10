@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, type Ref } from "vue";
+import { onMounted, ref, watchEffect, type Ref } from "vue";
 import {
   ContractClass,
   type Contract,
@@ -16,11 +16,14 @@ const UPDATE_CONTRACT = "Szerződés módosítása";
 const props = defineProps<{ userId: number }>();
 const emits = defineEmits(["feedback", "back", "next"]);
 const contract = ref(new ContractClass());
+let oldContract: Contract;
+let oldInputEndsAt = "";
+let wasDeleted = false;
+let loaded = false;
 const isUpdate = ref(false);
 const contractTypes: Ref<ContractType[], ContractType[]> = ref([]);
 const mode: Ref<"data" | "day", "data" | "day"> = ref("data");
 const weekDays: Ref<WeekDay[], WeekDay[]> = ref([]);
-let wasSaved = false;
 
 async function getContractTypes() {
   try {
@@ -113,8 +116,11 @@ async function saveContract() {
       return emits("feedback", "error", data.error, null, false);
     }
 
+    contract.value.contractType = contractTypes.value.find(contractType => contractType.id == contract.value.contractTypeId)!.name
     emits("feedback", "success", data.message, null, false);
-    wasSaved = true;
+    oldContract = contract.value.toContract()
+    contract.value.changedEndsAt = false
+    contract.value.changedContractDays = false
   } catch (err) {
     console.error(err);
     emits(
@@ -206,7 +212,7 @@ async function deleteContract() {
 
     if (resp.status == 204) {
       emits("feedback", "success", "Szerződés törlése sikeres!", null, false);
-      wasSaved = true;
+      wasDeleted = true;
       return;
     }
 
@@ -226,17 +232,29 @@ async function deleteContract() {
   }
 }
 
-onMounted(() => {
-  getContractTypes();
-  getContract();
+onMounted(async () => {
   getWeekDays();
+  await getContractTypes();
+  await getContract();
+  if (contract.value.contractType != "") contract.value.contractTypeId = contractTypes.value.find(contractType => contractType.name == contract.value.contractType)!.id
+  oldContract = contract.value.toContract()
 });
+
+watchEffect(() => {
+  console.log(contract.value.inputEndsAt)
+  if (!loaded) {
+    loaded = true
+    return
+  }
+  if (oldInputEndsAt != contract.value.inputEndsAt) {
+    oldInputEndsAt = contract.value.inputEndsAt
+    contract.value.changedEndsAt = true
+  }
+})
 </script>
 
 <template>
-  <div
-    class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8 max-h-[calc(100vh-15rem)] overflow-y-auto"
-  >
+  <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8 max-h-[calc(100vh-15rem)] overflow-y-auto">
     <div class="space-y-8">
       <div>
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -247,21 +265,13 @@ onMounted(() => {
         </p>
       </div>
 
-      <ContractData
-        v-if="mode == 'data'"
-        :contract="contract"
-        :contractTypes="contractTypes"
-        @back="emits('back', wasSaved)"
-        @next="mode = 'day'"
-        @delete="deleteContract"
-      />
-      <ContractDay
-        v-else
-        @back="mode = 'data'"
-        :weekDays="weekDays"
-        :contractDays="contract.contractDays"
-        @save="(contractDays: TContractDay[]) => {contract.contractDays = contractDays; saveContract()}"
-      />
+      <ContractData v-if="mode == 'data'" :contract="contract" :contractTypes="contractTypes"
+        @back="emits('back', contract.compare(oldContract) || wasDeleted)" @next="mode = 'day'"
+        @delete="deleteContract" />
+      <ContractDay v-else
+        @back="(contractDays: TContractDay[], changedContractDays: boolean) => { contract.contractDays = contractDays; if (!contract.changedContractDays) contract.changedContractDays = changedContractDays; mode = 'data' }"
+        :weekDays="weekDays" :contractDays="contract.contractDays"
+        @save="(contractDays: TContractDay[]) => { contract.contractDays = contractDays; saveContract() }" />
     </div>
   </div>
 </template>

@@ -35,6 +35,9 @@ class ContractClass {
   deletedAt: DeletedAt | null = null;
   contractDays: ContractDay[] = [];
 
+  changedEndsAt = false;
+  changedContractDays = false;
+
   constructor(contract: Contract | null = null) {
     if (contract == null) {
       return;
@@ -67,7 +70,8 @@ class ContractClass {
       contractTypeId: this.contractTypeId,
       contractType: this.contractType,
       salary: this.salary,
-      startsAt: new Date(this.startsAt).toISOString(),
+      startsAt:
+        this.startsAt == "" ? "" : new Date(this.startsAt).toISOString(),
       endsAt:
         this.inputEndsAt == ""
           ? { Valid: false, Time: "0001-01-01T00:00:00Z" }
@@ -75,6 +79,21 @@ class ContractClass {
       deletedAt: this.deletedAt,
       contractDays: this.contractDays,
     };
+  }
+
+  compare(contact: Contract): boolean {
+    //console.log(this.contractTypeId == contact.contractTypeId);
+    //console.log(this.salary == contact.salary);
+    //console.log(new Date(this.startsAt).toISOString() == contact.startsAt);
+    //console.log(!this.changedEndsAt);
+    //console.log(!this.changedContractDays);
+    return (
+      this.contractTypeId == contact.contractTypeId &&
+      this.salary == contact.salary &&
+      new Date(this.startsAt).toISOString() == contact.startsAt &&
+      !this.changedEndsAt &&
+      !this.changedContractDays
+    );
   }
 }
 
