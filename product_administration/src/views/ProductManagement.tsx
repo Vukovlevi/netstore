@@ -23,6 +23,14 @@ export default function ProductManagement() {
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState<number | "">("");
+  const [size, setSize] = useState("");
+  const [sizeType, setSizeType] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
+  const [price, setPrice] = useState<number | "">("");
+  const [discount, setDiscount] = useState<number | "">("");
+  const [warranty, setWarranty] = useState("");
   const [categoryId, setCategoryId] = useState<number | "">("");
   const [subCategoryId, setSubCategoryId] = useState<number | "">("");
   const [typeId, setTypeId] = useState<number | "">("");
@@ -66,12 +74,29 @@ export default function ProductManagement() {
     }
   };
 
+  const formatDate = (dateString: any): string => {
+    if (!dateString) return "";
+    const str = String(dateString);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+    if (str.includes("T")) return str.split("T")[0];
+    if (/^\d{4}$/.test(str)) return `${str}-01-01`;
+    return "";
+  };
+
   const selectProduct = (id: number) => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
 
     setSelectedId(product.id);
     setName(product.name);
+    setDescription(product.description);
+    setAmount(product.amount);
+    setSize(product.size);
+    setSizeType(product.size_type);
+    setExpiresAt(formatDate(product.expires_at));
+    setPrice(product.price);
+    setDiscount(product.discount);
+    setWarranty(formatDate(product.warranty));
     setBrandId(product.brand_id);
 
     const type = productTypes.find((t) => t.id === product.type_id);
@@ -94,25 +119,51 @@ export default function ProductManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!typeId || !brandId) return;
+    if (
+      !typeId ||
+      !brandId ||
+      amount === "" ||
+      !size.trim() ||
+      !sizeType.trim() ||
+      price === "" ||
+      discount === ""
+    )
+      return;
 
     setError(null);
     setSuccessMsg(null);
     setLoading(true);
 
+    const productData = {
+      name,
+      description,
+      amount: Number(amount),
+      size,
+      size_type: sizeType,
+      expires_at: formatDate(expiresAt) || null,
+      price: Number(price),
+      discount: Number(discount),
+      warranty: formatDate(warranty) || null,
+      type_id: Number(typeId),
+      brand_id: Number(brandId),
+    };
+
     try {
       if (selectedId) {
-        await productService.update(
-          selectedId,
-          name,
-          Number(typeId),
-          Number(brandId)
-        );
+        await productService.update(selectedId, productData);
         setSuccessMsg("Termék sikeresen frissítve!");
       } else {
-        await productService.create(name, Number(typeId), Number(brandId));
+        await productService.create(productData);
         setSuccessMsg("Új termék létrehozva!");
         setName("");
+        setDescription("");
+        setAmount("");
+        setSize("");
+        setSizeType("");
+        setExpiresAt("");
+        setPrice("");
+        setDiscount("");
+        setWarranty("");
         setCategoryId("");
         setSubCategoryId("");
         setTypeId("");
@@ -135,6 +186,14 @@ export default function ProductManagement() {
       await productService.delete(selectedId);
       setSuccessMsg("Termék törölve!");
       setName("");
+      setDescription("");
+      setAmount("");
+      setSize("");
+      setSizeType("");
+      setExpiresAt("");
+      setPrice("");
+      setDiscount("");
+      setWarranty("");
       setCategoryId("");
       setSubCategoryId("");
       setTypeId("");
@@ -223,6 +282,14 @@ export default function ProductManagement() {
         brands={brands}
         selectedId={selectedId}
         name={name}
+        description={description}
+        amount={amount}
+        size={size}
+        sizeType={sizeType}
+        expiresAt={expiresAt}
+        price={price}
+        discount={discount}
+        warranty={warranty}
         categoryId={categoryId}
         subCategoryId={subCategoryId}
         typeId={typeId}
@@ -231,6 +298,14 @@ export default function ProductManagement() {
         error={error}
         successMsg={successMsg}
         setName={setName}
+        setDescription={setDescription}
+        setAmount={setAmount}
+        setSize={setSize}
+        setSizeType={setSizeType}
+        setExpiresAt={setExpiresAt}
+        setPrice={setPrice}
+        setDiscount={setDiscount}
+        setWarranty={setWarranty}
         setCategoryId={setCategoryId}
         setSubCategoryId={setSubCategoryId}
         setTypeId={setTypeId}

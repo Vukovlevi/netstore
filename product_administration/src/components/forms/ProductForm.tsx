@@ -17,6 +17,14 @@ interface ProductFormProps {
 
   selectedId: number | null;
   name: string;
+  description: string;
+  amount: number | "";
+  size: string;
+  sizeType: string;
+  expiresAt: string;
+  price: number | "";
+  discount: number | "";
+  warranty: string;
   categoryId: number | "";
   subCategoryId: number | "";
   typeId: number | "";
@@ -27,6 +35,14 @@ interface ProductFormProps {
   successMsg: string | null;
 
   setName: (val: string) => void;
+  setDescription: (val: string) => void;
+  setAmount: (val: number | "") => void;
+  setSize: (val: string) => void;
+  setSizeType: (val: string) => void;
+  setExpiresAt: (val: string) => void;
+  setPrice: (val: number | "") => void;
+  setDiscount: (val: number | "") => void;
+  setWarranty: (val: string) => void;
   setCategoryId: (val: number | "") => void;
   setSubCategoryId: (val: number | "") => void;
   setTypeId: (val: number | "") => void;
@@ -45,6 +61,14 @@ export default function ProductForm({
   brands,
   selectedId,
   name,
+  description,
+  amount,
+  size,
+  sizeType,
+  expiresAt,
+  price,
+  discount,
+  warranty,
   categoryId,
   subCategoryId,
   typeId,
@@ -53,6 +77,14 @@ export default function ProductForm({
   error,
   successMsg,
   setName,
+  setDescription,
+  setAmount,
+  setSize,
+  setSizeType,
+  setExpiresAt,
+  setPrice,
+  setDiscount,
+  setWarranty,
   setCategoryId,
   setSubCategoryId,
   setTypeId,
@@ -64,10 +96,30 @@ export default function ProductForm({
   const handleReset = () => {
     setSelectedId(null);
     setName("");
+    setDescription("");
+    setAmount("");
+    setSize("");
+    setSizeType("");
+    setExpiresAt("");
+    setPrice("");
+    setDiscount("");
+    setWarranty("");
     setCategoryId("");
     setSubCategoryId("");
     setTypeId("");
     setBrandId("");
+  };
+
+  const formatDate = (dateString: any): string => {
+    if (!dateString) return "";
+    const str = String(dateString);
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+    if (str.includes("T")) return str.split("T")[0];
+
+    if (/^\d{4}$/.test(str)) return `${str}-01-01`;
+    return "";
   };
 
   const handleProductSelect = (val: string) => {
@@ -79,6 +131,14 @@ export default function ProductForm({
       if (prod) {
         setSelectedId(id);
         setName(prod.name);
+        setDescription(prod.description);
+        setAmount(Number(prod.amount));
+        setSize(prod.size);
+        setSizeType(prod.size_type);
+        setExpiresAt(formatDate(prod.expires_at));
+        setPrice(Number(prod.price));
+        setDiscount(Number(prod.discount));
+        setWarranty(formatDate(prod.warranty));
         setBrandId(Number(prod.brand_id));
 
         const type = productTypes.find(
@@ -267,6 +327,113 @@ export default function ProductForm({
               className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
             />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Lejárat
+              </label>
+              <input
+                type="date"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Ár (Ft)
+              </label>
+              <input
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(Number(e.target.value))}
+                placeholder="pl. 450"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Mennyiség
+              </label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                placeholder="pl. 10"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Kiszerelés
+              </label>
+              <input
+                type="text"
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                placeholder="pl. 0.5L"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Kiszerelés Típusa
+              </label>
+              <input
+                type="text"
+                value={sizeType}
+                onChange={(e) => setSizeType(e.target.value)}
+                placeholder="pl. Liter"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Kedvezmény (%)
+              </label>
+              <input
+                type="number"
+                value={discount}
+                onChange={(e) => setDiscount(Number(e.target.value))}
+                placeholder="pl. 10"
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Garancia Lejárata
+              </label>
+              <input
+                type="date"
+                value={warranty}
+                onChange={(e) => setWarranty(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              Termék leírása
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Rövid leírás a termékről..."
+              rows={3}
+              className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all resize-none"
+            />
+          </div>
         </div>
 
         {error && <FeedbackMessage type="error" message={error} />}
@@ -286,7 +453,18 @@ export default function ProductForm({
 
           <button
             type="submit"
-            disabled={loading || !name.trim() || !typeId || !brandId}
+            disabled={
+              loading ||
+              !name.trim() ||
+              !description.trim() ||
+              amount === "" ||
+              !size.trim() ||
+              !sizeType.trim() ||
+              price === "" ||
+              discount === "" ||
+              !typeId ||
+              !brandId
+            }
             className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Mentés..." : selectedId ? "Módosítás" : "Létrehozás"}

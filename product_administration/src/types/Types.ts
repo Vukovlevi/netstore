@@ -33,9 +33,16 @@ export interface Brand {
 export interface Product {
   id: number;
   name: string;
+  description: string;
+  amount: number;
+  size: string;
+  size_type: string;
+  expires_at: string | null;
+  price: number;
+  discount: number;
+  warranty: string | null;
   type_id: number;
   brand_id: number;
-  is_active: number;
   type_name?: string;
   brand_name?: string;
 }
