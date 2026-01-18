@@ -5,6 +5,7 @@ import {
   type OpenHour,
   type WeekDay,
 } from "../../types/OpenHour";
+import Modal from "../Modal.vue";
 
 const NEW_OPEN_HOUR = "Új nyitvatartási idő felvitele";
 const UPDATE_OPEN_HOUR = "Nyitvatartási idő módosítása";
@@ -12,6 +13,8 @@ const UPDATE_OPEN_HOUR = "Nyitvatartási idő módosítása";
 const props = defineProps<{ openHour: OpenHour | null }>();
 const emits = defineEmits(["feedback", "back"]);
 const openHour = ref(new OpenHourClass(props.openHour));
+let oldOpenHour = openHour.value.toOpenHour();
+const isModalOpen = ref(false);
 const weekDays: Ref<WeekDay[], WeekDay[]> = ref([]);
 const isUpdate = ref(props.openHour != null);
 const isSpecialDate = ref(false);
@@ -97,6 +100,7 @@ async function saveOpenHour() {
     }
 
     setWeekDaysByIds();
+    oldOpenHour = openHour.value.toOpenHour();
 
     emits(
       "feedback",
@@ -166,9 +170,26 @@ onMounted(async () => {
     isSpecialDate.value = true;
   }
 });
+
+function cancel() {
+  isModalOpen.value = false;
+}
+
+function confirm() {
+  isModalOpen.value = false;
+  emits("back");
+}
 </script>
 
 <template>
+  <Modal
+    v-if="isModalOpen"
+    title="Biztosan vissza akar lépni?"
+    message="A szerződéstípus adatainak nem mentett módosításai elvesznek!"
+    confirm-text="Igen, visszalépek"
+    @cancel="cancel"
+    @confirm="confirm"
+  />
   <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
     <div class="space-y-8">
       <div>
@@ -265,6 +286,7 @@ onMounted(async () => {
               :id="'day-' + weekDay.id"
               :value="weekDay.id"
               v-model="openHour.weekDayIds"
+              @click="() => (openHour.wasWeekDayChanged = true)"
               class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50"
             />
             <label
@@ -280,7 +302,12 @@ onMounted(async () => {
       <div class="flex justify-end gap-3 pt-4">
         <button
           type="button"
-          @click="() => emits('back')"
+          @click="
+            () => {
+              if (!openHour.compare(oldOpenHour)) isModalOpen = true;
+              else confirm();
+            }
+          "
           class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
         >
           Mégse
