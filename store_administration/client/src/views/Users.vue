@@ -141,6 +141,8 @@ async function deleteUser(userId: Number) {
         type: "success",
         message: "Felhasználó törlése sikeres!",
       };
+
+      toDeleteUserId = 0;
       return;
     }
 
