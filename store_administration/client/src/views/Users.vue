@@ -23,6 +23,9 @@ const mode: Ref<"all" | "single" | "contract", "all" | "single" | "contract"> =
   ref("all");
 const isModalOpen = ref(false);
 
+let toDeleteUserId = 0;
+const isDeleteModalOpen = ref(false);
+
 async function getUsers() {
   try {
     const resp = await fetch("/api/all-user");
@@ -174,6 +177,15 @@ function confirmBackFromContract() {
   mode.value = "single";
   feedback.value = null;
 }
+
+function cancelDelete() {
+  isDeleteModalOpen.value = false;
+}
+
+function confirmDelete() {
+  isDeleteModalOpen.value = false;
+  deleteUser(toDeleteUserId);
+}
 </script>
 
 <template>
@@ -184,6 +196,14 @@ function confirmBackFromContract() {
     confirm-text="Igen, visszalépek"
     @cancel="cancelBackFromContract"
     @confirm="confirmBackFromContract"
+  />
+  <Modal
+    v-if="isDeleteModalOpen"
+    title="Megerősítés"
+    message="Biztosan törölni akarja a felhasználót?"
+    confirm-text="Törlés"
+    @cancel="cancelDelete"
+    @confirm="confirmDelete"
   />
   <div class="mx-auto max-w-7xl mt-[5rem]">
     <div
@@ -219,7 +239,7 @@ function confirmBackFromContract() {
         :users="filteredUsers"
         v-if="mode == 'all'"
         @modify="(user: User) => modifyUser(user)"
-        @delete="deleteUser"
+        @delete="(userId: number) => {toDeleteUserId = userId; isDeleteModalOpen = true}"
       />
       <UserData
         v-if="mode == 'single'"
