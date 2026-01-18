@@ -4,10 +4,14 @@ import type { Feedback as TFeedback } from "../types/Feedback";
 import { StoreDetailClass, type StoreDetail } from "../types/StoreDetail";
 import type { StoreType } from "../types/StoreType";
 import Feedback from "../components/Feedback.vue";
+import Modal from "../components/Modal.vue";
+import { router } from "../router";
 
 const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null);
 
 const storeDetail = ref(new StoreDetailClass());
+let oldStoreDetail: StoreDetail;
+const isModalOpen = ref(false);
 const storeTypes: Ref<StoreType[], StoreType[]> = ref([]);
 
 async function getStoreDetail() {
@@ -21,6 +25,7 @@ async function getStoreDetail() {
     }
 
     storeDetail.value = new StoreDetailClass(data as StoreDetail);
+    oldStoreDetail = data as StoreDetail;
   } catch (err) {
     feedback.value = {
       type: "error",
@@ -74,6 +79,7 @@ async function saveStoreDetail() {
       type: "success",
       message: "Az üzlet adatainak mentése sikeres!",
     };
+    oldStoreDetail = storeDetail.value.toStoreDetail();
   } catch (err) {
     feedback.value = {
       type: "error",
@@ -115,9 +121,26 @@ onMounted(() => {
   getStoreDetail();
   getStoreTypes();
 });
+
+function cancel() {
+  isModalOpen.value = false;
+}
+
+function confirm() {
+  isModalOpen.value = false;
+  router.push("/");
+}
 </script>
 
 <template>
+  <Modal
+    v-if="isModalOpen"
+    title="Biztosan vissza akar lépni?"
+    message="Az üzlet adatainak nem mentett módosításai elvesznek!"
+    confirm-text="Igen, visszalépek"
+    @cancel="cancel"
+    @confirm="confirm"
+  />
   <div
     class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-background-dark"
   >
@@ -214,12 +237,18 @@ onMounted(() => {
       </div>
 
       <div class="flex justify-end gap-3 pt-4">
-        <RouterLink
-          to="/"
+        <button
+          type="button"
           class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
+          @click="
+            () => {
+              if (!storeDetail.compare(oldStoreDetail)) isModalOpen = true;
+              else confirm();
+            }
+          "
         >
           Mégse
-        </RouterLink>
+        </button>
         <button
           type="submit"
           class="rounded bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"

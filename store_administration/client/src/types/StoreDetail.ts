@@ -30,6 +30,15 @@ class StoreDetailClass {
       storeTypeId: this.storeTypeId,
     };
   }
+
+  compare(storeDetail: StoreDetail): boolean {
+    return (
+      storeDetail.address == this.address &&
+      storeDetail.centralServerAddress == this.centralServerAddress &&
+      storeDetail.centralServerPort == this.centralServerPort &&
+      storeDetail.storeTypeId == this.storeTypeId
+    );
+  }
 }
 
 export type { StoreDetail };
