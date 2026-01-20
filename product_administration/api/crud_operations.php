@@ -16,6 +16,7 @@ require './crud/product_type.php';
 require './crud/storing_condition.php';
 require './crud/brand.php';
 require './crud/product.php';
+require './crud/search_product.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
@@ -42,6 +43,9 @@ switch(end($uri)) {
         break;
     case 'product':
         handleProduct($method, $body);
+        break;
+    case 'search_product':
+        handleSearchProduct($method, $body);
         break;
     case 'auth':
         return http_response_code(200);

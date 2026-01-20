@@ -43,8 +43,11 @@ export interface Product {
   warranty: string | null;
   type_id: number;
   brand_id: number;
-  type_name?: string;
   brand_name?: string;
+  type_name?: string;
+  sub_category_name?: string;
+  category_name?: string;
+  storing_condition_name?: string;
 }
 
 export interface ApiResponse {
