@@ -101,6 +101,7 @@ async function getWeekDays() {
 }
 
 function onFileChanged(event: Event) {
+  contract.value.changedContractFile = true
   const target = event.target as HTMLInputElement
 
   if (!target.files || target.files.length == 0) {
