@@ -125,7 +125,6 @@ async function saveContract() {
     if (file.value) formData.append("file", file.value)
     const resp = await fetch("/api/contract", {
       method: isUpdate.value ? "PUT" : "POST",
-      headers: { "Content-Type": "application/json" },
       body: formData,
     });
     const data = await resp.json();

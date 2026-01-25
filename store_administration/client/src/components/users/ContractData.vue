@@ -106,8 +106,8 @@ function confirm() {
           </span>
 
           <div class="flex items-center gap-2">
-            <button v-if="file" type="button" @click="() => emits('clearFile')" class="text-gray-400 hover:text-red-500"
-              aria-label="Fájl eltávolítása">
+            <button v-if="file" type="button" @click.stop="() => emits('clearFile')"
+              class="text-gray-400 hover:text-red-500" aria-label="Fájl eltávolítása">
               ✕
             </button>
 
