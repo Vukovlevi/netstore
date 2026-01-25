@@ -151,3 +151,16 @@ func HandleGetContractFile(c echo.Context) error {
     }
     return c.File(fmt.Sprintf("%s/%s", CONTRACT_FOLDER, filename))
 }
+
+func HandleDeleteContractFile(c echo.Context) error {
+    contract := model.Contract{}
+    if err := c.Bind(&contract); err != nil {
+        slog.Error("could not bind contract for deleting contract file", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind contract")) //TODO: hungarian error message
+    }
+    if err := deleteContractFile(contract); err != nil {
+        slog.Error("could not delete contract file", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not delete contract file")) //TODO: hungarian error message
+    }
+    return c.NoContent(http.StatusNoContent)
+}
