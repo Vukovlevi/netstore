@@ -80,7 +80,7 @@ func main() {
     apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)
     apiStoreLeaderOrHRGroup.PUT("/contract", route.HandleUpdateContract)
     apiStoreLeaderOrHRGroup.DELETE("/contract", route.HandleDeleteContract)
-    apiStoreLeaderOrHRGroup.GET("/contract/:filename", route.HandleGetContractFile)
+    apiStoreLeaderOrHRGroup.GET("/contract-file", route.HandleGetContractFile)
     apiStoreLeaderOrHRGroup.DELETE("/contract-file", route.HandleDeleteContractFile)
 
     apiAuthGroup.GET("/echo", route.HandleGetEcho)

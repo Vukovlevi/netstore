@@ -101,7 +101,7 @@ func (c *Contract) UpdateContract() error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE contract SET user_id = ?, contract_type_id = ?, salary = ?, starts_at = ?, ends_at = ?, file = ? WHERE id = ?", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt, c.Id, c.Filename)
+	_, err = tx.Exec("UPDATE contract SET user_id = ?, contract_type_id = ?, salary = ?, starts_at = ?, ends_at = ?, file = ? WHERE id = ?", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt, c.Filename, c.Id)
 	if err != nil {
 		return err
 	}
@@ -147,6 +147,11 @@ func (c *Contract) DeleteContract() error {
 	}
 
 	return tx.Commit()
+}
+
+func (c *Contract) DeleteContractFileFromDB() error {
+    _, err := db.DB.Exec("UPDATE contract SET file = NULL WHERE id = ?", c.Id)
+    return err
 }
 
 func (c *Contract) ValidateInsert() error {

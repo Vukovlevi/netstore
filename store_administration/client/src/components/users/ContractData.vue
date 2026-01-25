@@ -119,16 +119,21 @@ function confirm() {
         </label>
 
         <!-- Existing uploaded file -->
-        <div v-if="contract.filename.Valid" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-          <a :href="`/api/contract/${contract.filename.String}`" target="_blank" rel="noopener"
+        <div v-if="contract.filename.Valid" class="flex items-center gap-2 text-md text-gray-600 dark:text-gray-400">
+          <a :href="`/api/contract-file?filename=${contract.filename.String}`" target="_blank" rel="noopener"
             class="hover:underline text-primary">
             {{ contract.filename.String }}
           </a>
 
-          <button type="button" @click="() => emits('deleteFile')" class="text-gray-400 hover:text-red-500"
-            aria-label="Feltöltött fájl törlése">
-            🗑
+          <button type="button" @click="() => emits('deleteFile')"
+            class="text-gray-400 hover:text-red-500 flex items-center" aria-label="Feltöltött fájl törlése">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="inline-block h-4 w-4"
+              style="height: 1em; width: 1em;" fill="currentColor">
+              <path
+                d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z" />
+            </svg>
           </button>
+
         </div>
       </div>
     </div>

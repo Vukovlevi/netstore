@@ -52,7 +52,7 @@ func HandlePostContract(c echo.Context) error {
     file, err := c.FormFile("file")
     if err == nil {
         if saveErr := saveContractFile(file); saveErr != nil {
-            slog.Error("could not save contract file", "error", err)
+            slog.Error("could not save contract file", "error", saveErr)
             return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not save contract file")) //TODO: hungarian error message
         }
         contract.Filename = sql.NullString{Valid: true, String: file.Filename}
@@ -107,11 +107,11 @@ func HandleUpdateContract(c echo.Context) error {
     file, err := c.FormFile("file")
     if err == nil {
         if delErr := deleteContractFile(contract); delErr != nil {
-            slog.Error("could not delete previous contract file", "error", err)
+            slog.Error("could not delete previous contract file", "error", delErr)
             return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not delete previous contract file")) //TODO: hungarian error message
         }
         if saveErr := saveContractFile(file); saveErr != nil {
-            slog.Error("could not save new contract file", "error", err)
+            slog.Error("could not save new contract file", "error", saveErr)
             return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not save new contract file")) //TODO: hungarian error message
         }
         contract.Filename = sql.NullString{Valid: true, String: file.Filename}
@@ -145,7 +145,7 @@ func HandleDeleteContract(c echo.Context) error {
 }
 
 func HandleGetContractFile(c echo.Context) error {
-    filename := c.Param("filename")
+    filename := c.QueryParam("filename")
     if filename == "" {
         return c.JSON(http.StatusBadRequest, CreateErrorMessage("missing filename")) //TODO: hungarian error message
     }
@@ -157,6 +157,10 @@ func HandleDeleteContractFile(c echo.Context) error {
     if err := c.Bind(&contract); err != nil {
         slog.Error("could not bind contract for deleting contract file", "error", err)
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not bind contract")) //TODO: hungarian error message
+    }
+    if err := contract.DeleteContractFileFromDB(); err != nil {
+        slog.Error("could not delete contract file from db", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("could not delete contract file from db")) //TODO: hungarian error message
     }
     if err := deleteContractFile(contract); err != nil {
         slog.Error("could not delete contract file", "error", err)

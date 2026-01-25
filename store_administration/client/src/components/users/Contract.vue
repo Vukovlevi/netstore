@@ -138,6 +138,11 @@ async function saveContract() {
     oldContract = contract.value.toContract()
     contract.value.changedEndsAt = false
     contract.value.changedContractDays = false
+    contract.value.changedContractFile = false
+    if (file.value) {
+      contract.value.filename = { Valid: true, String: file.value.name }
+      file.value = null
+    }
   } catch (err) {
     console.error(err);
     emits(
@@ -230,6 +235,7 @@ async function deleteContract() {
     if (resp.status == 204) {
       emits("feedback", "success", "Szerződés törlése sikeres!", null, false);
       wasDeleted = true;
+      contract.value = new ContractClass()
       return;
     }
 
@@ -279,6 +285,7 @@ async function deleteContractFile() {
 
     if (resp.status == 204) {
       emits("feedback", "success", "Szerződés fájl törlése sikeres!", null, false);
+      contract.value.filename = { Valid: false, String: "" }
       return
     }
 
@@ -323,7 +330,7 @@ function confirm() {
       </div>
 
       <ContractData v-if="mode == 'data'" :contract="contract" :contractTypes="contractTypes" :file="file"
-        @fileChanged="onFileChanged" @clearFile="() => file = null"
+        @fileChanged="onFileChanged" @clearFile="() => file = null" @deleteFile="() => isModalOpen = true"
         @back="emits('back', contract.compare(oldContract) || wasDeleted)" @next="mode = 'day'"
         @delete="deleteContract" />
       <ContractDay v-else
