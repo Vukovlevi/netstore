@@ -1,5 +1,10 @@
 import type { DeletedAt, NullTime } from "./DeletedAt";
 
+type NullString = {
+  Valid: boolean;
+  String: string;
+};
+
 type ContractDay = {
   id: number;
   startingTime: string;
@@ -18,6 +23,7 @@ type Contract = {
   salary: number;
   startsAt: string;
   endsAt: NullTime;
+  filename: NullString;
   deletedAt: DeletedAt | null;
   contractDays: ContractDay[];
 };
@@ -32,11 +38,13 @@ class ContractClass {
   startsAt = "";
   endsAt: NullTime = { Valid: false, Time: "0001-01-01T00:00:00Z" };
   inputEndsAt = "";
+  filename: NullString = { Valid: false, String: "" };
   deletedAt: DeletedAt | null = null;
   contractDays: ContractDay[] = [];
 
   changedEndsAt = false;
   changedContractDays = false;
+  changedContractFile = false;
 
   constructor(contract: Contract | null = null) {
     if (contract == null) {
@@ -58,6 +66,7 @@ class ContractClass {
         .toISOString()
         .substring(0, 10);
     }
+    this.filename = contract.filename;
     this.deletedAt = contract.deletedAt;
     this.contractDays = contract.contractDays;
   }
@@ -76,6 +85,7 @@ class ContractClass {
         this.inputEndsAt == ""
           ? { Valid: false, Time: "0001-01-01T00:00:00Z" }
           : { Valid: true, Time: new Date(this.inputEndsAt).toISOString() },
+      filename: this.filename,
       deletedAt: this.deletedAt,
       contractDays: this.contractDays,
     };
@@ -89,7 +99,8 @@ class ContractClass {
       (this.startsAt == contract.startsAt ||
         new Date(this.startsAt).toISOString() == contract.startsAt) &&
       !this.changedEndsAt &&
-      !this.changedContractDays
+      !this.changedContractDays &&
+      !this.changedContractFile
     );
   }
 }

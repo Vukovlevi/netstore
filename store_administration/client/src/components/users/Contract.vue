@@ -9,6 +9,7 @@ import type { ContractType } from "../../types/ContractType.ts";
 import ContractData from "./ContractData.vue";
 import ContractDay from "./ContractDay.vue";
 import type { WeekDay } from "../../types/OpenHour.ts";
+import Modal from "../Modal.vue";
 
 const NEW_CONTRACT = "Szerződés hozzáadása";
 const UPDATE_CONTRACT = "Szerződés módosítása";
@@ -24,6 +25,8 @@ const isUpdate = ref(false);
 const contractTypes: Ref<ContractType[], ContractType[]> = ref([]);
 const mode: Ref<"data" | "day", "data" | "day"> = ref("data");
 const weekDays: Ref<WeekDay[], WeekDay[]> = ref([]);
+const file: Ref<File | null, File | null> = ref(null)
+const isModalOpen = ref(false)
 
 async function getContractTypes() {
   try {
@@ -97,6 +100,17 @@ async function getWeekDays() {
   }
 }
 
+function onFileChanged(event: Event) {
+  const target = event.target as HTMLInputElement
+
+  if (!target.files || target.files.length == 0) {
+    file.value = null
+    return
+  }
+
+  file.value = target.files[0]!
+}
+
 async function saveContract() {
   const { message, valid } = validate();
   if (!valid) {
@@ -105,10 +119,13 @@ async function saveContract() {
   }
 
   try {
+    const formData = new FormData()
+    formData.append("contract", JSON.stringify(contract.value.toContract()))
+    if (file.value) formData.append("file", file.value)
     const resp = await fetch("/api/contract", {
       method: isUpdate.value ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(contract.value.toContract()),
+      body: formData,
     });
     const data = await resp.json();
 
@@ -251,9 +268,49 @@ watchEffect(() => {
     contract.value.changedEndsAt = true
   }
 })
+
+async function deleteContractFile() {
+  try {
+    const resp = await fetch("/api/contract-file", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(contract.value.toContract())
+    })
+
+    if (resp.status == 204) {
+      emits("feedback", "success", "Szerződés fájl törlése sikeres!", null, false);
+      return
+    }
+
+    const data = await resp.json();
+    if (data.error) {
+      emits("feedback", "error", data.error, null, false);
+    }
+  } catch (err) {
+    console.error(err);
+    emits(
+      "feedback",
+      "error",
+      "Ismeretlen hiba miatt nem sikerült törölni a szerződés fájlt!",
+      null,
+      false
+    );
+  }
+}
+
+function cancel() {
+  isModalOpen.value = false
+}
+
+function confirm() {
+  isModalOpen.value = false
+  deleteContractFile()
+}
 </script>
 
 <template>
+  <Modal v-if="isModalOpen" title="Megerősítés" message="Biztosan törölni akarja a szerződés fájlt?"
+    confirm-text="Törlés" @cancel="cancel" @confirm="confirm" />
   <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8 max-h-[calc(100vh-15rem)] overflow-y-auto">
     <div class="space-y-8">
       <div>
@@ -265,7 +322,8 @@ watchEffect(() => {
         </p>
       </div>
 
-      <ContractData v-if="mode == 'data'" :contract="contract" :contractTypes="contractTypes"
+      <ContractData v-if="mode == 'data'" :contract="contract" :contractTypes="contractTypes" :file="file"
+        @fileChanged="onFileChanged" @clearFile="() => file = null"
         @back="emits('back', contract.compare(oldContract) || wasDeleted)" @next="mode = 'day'"
         @delete="deleteContract" />
       <ContractDay v-else
