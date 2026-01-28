@@ -7,6 +7,7 @@ import { subCategoryService } from "../services/subCategoryService";
 import { productTypeService } from "../services/productTypeService";
 import { brandService } from "../services/brandService";
 import { storingConditionService } from "../services/storingConditionService";
+import { productService } from "../services/productService";
 import type {
   Category,
   SubCategory,
@@ -35,6 +36,7 @@ export default function SearchProductManagement() {
   const [storingConditions, setStoringConditions] = useState<
     StoringCondition[]
   >([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   const [filters, setFilters] = useState<SearchFilters>({
     page: 1,
@@ -49,20 +51,22 @@ export default function SearchProductManagement() {
 
   const loadDependencies = async () => {
     try {
-      const [cats, subs, types, brs, conds] = await Promise.all([
-        categoryService.getAll(),
-        subCategoryService.getAll(),
-        productTypeService.getAll(),
-        brandService.getAll(),
-        storingConditionService.getAll(),
+      const [cats, subs, types, brs, conds, prods] = await Promise.all([
+        categoryService.getAll().catch(() => []),
+        subCategoryService.getAll().catch(() => []),
+        productTypeService.getAll().catch(() => []),
+        brandService.getAll().catch(() => []),
+        storingConditionService.getAll().catch(() => []),
+        productService.getAll().catch(() => []),
       ]);
       setCategories(Array.isArray(cats) ? cats : []);
       setSubCategories(Array.isArray(subs) ? subs : []);
       setProductTypes(Array.isArray(types) ? types : []);
       setBrands(Array.isArray(brs) ? brs : []);
       setStoringConditions(Array.isArray(conds) ? conds : []);
+      setAllProducts(Array.isArray(prods) ? prods : []);
     } catch (err) {
-      console.error("Failed to load dependencies");
+      setError("Hiba történt az adatok betöltésekor.");
     }
   };
 
@@ -126,6 +130,7 @@ export default function SearchProductManagement() {
         productTypes={productTypes}
         brands={brands}
         storingConditions={storingConditions}
+        products={allProducts}
         filters={filters}
         setFilters={setFilters}
         activeTab={activeTab}
@@ -144,8 +149,9 @@ export default function SearchProductManagement() {
               Találatok ({total} termék)
             </h2>
             <span className="text-xs text-gray-500">
-              {(filters.page - 1) * 25 + 1} -{" "}
-              {Math.min(filters.page * 25, total)} / {total}
+              {total > 0
+                ? `${(filters.page - 1) * 25 + 1} - ${Math.min(filters.page * 25, total)} / ${total}`
+                : "0 / 0"}
             </span>
           </div>
 
@@ -186,7 +192,7 @@ export default function SearchProductManagement() {
                           )}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {product.amount} {product.size}
+                          {product.amount} db ({product.size} {product.size_type})
                         </td>
                       </tr>
                     ))}

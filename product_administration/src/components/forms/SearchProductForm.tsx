@@ -1,13 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import type {
   Category,
   SubCategory,
   ProductType,
   Brand,
   StoringCondition,
+  Product,
 } from "../../types/Types";
 import type { SearchFilters } from "../../services/searchFilters";
-import { Filter, X, Layers, Tag } from "lucide-react";
+import { Filter, ChevronRight, ChevronLeft, Layers, Tag, Search, PackageOpen } from "lucide-react";
 
 interface SearchProductFormProps {
   categories: Category[];
@@ -15,6 +16,7 @@ interface SearchProductFormProps {
   productTypes: ProductType[];
   brands: Brand[];
   storingConditions: StoringCondition[];
+  products: Product[];
 
   filters: SearchFilters;
   setFilters: React.Dispatch<React.SetStateAction<SearchFilters>>;
@@ -33,6 +35,7 @@ export default function SearchProductForm({
   productTypes,
   brands,
   storingConditions,
+  products,
   filters,
   setFilters,
   activeTab,
@@ -41,63 +44,138 @@ export default function SearchProductForm({
   clearFilters,
   loading,
 }: SearchProductFormProps) {
-  const handleCategoryChange = (catId: number) => {
+  const [showNameDropdown, setShowNameDropdown] = useState(false);
+
+  const getFilteredProducts = () => {
+    if (!filters.name || filters.name.trim() === "") return [];
+    const term = filters.name.toLowerCase();
+    return products.filter((product) => {
+      const matchesName = product.name.toLowerCase().includes(term);
+      const matchesBrand = product.brand_name?.toLowerCase().includes(term);
+      const matchesType = product.type_name?.toLowerCase().includes(term);
+      return matchesName || matchesBrand || matchesType;
+    }).slice(0, 10);
+  };
+
+  const handleProductSelect = (product: Product) => {
+    setFilters((prev) => ({
+      ...prev,
+      name: product.name,
+    }));
+    setShowNameDropdown(false);
+  };
+
+  const handleCategoryChange = (value: string) => {
+    const catId = value ? Number(value) : undefined;
     setFilters((prev) => ({
       ...prev,
       category_id: catId,
       sub_category_id: undefined,
       type_id: undefined,
+      storing_condition_id: undefined,
     }));
   };
 
-  const handleSubCategoryChange = (subId: number) => {
-    const sub = subCategories.find((s) => s.id === subId);
-    if (sub) {
-      setFilters((prev) => ({
-        ...prev,
-        sub_category_id: subId,
-        category_id: sub.category_id,
-        type_id: undefined,
-      }));
-    } else {
+  const handleSubCategoryChange = (value: string) => {
+    const subId = value ? Number(value) : undefined;
+    if (!subId) {
       setFilters((prev) => ({
         ...prev,
         sub_category_id: undefined,
         type_id: undefined,
+        storing_condition_id: undefined,
       }));
+      return;
     }
+    const sub = subCategories.find((s) => Number(s.id) === subId);
+    setFilters((prev) => ({
+      ...prev,
+      sub_category_id: subId,
+      category_id: sub ? Number(sub.category_id) : prev.category_id,
+      type_id: undefined,
+      storing_condition_id: undefined,
+    }));
   };
 
-  const handleTypeChange = (typeId: number) => {
-    const type = productTypes.find((t) => t.id === typeId);
+  const handleTypeChange = (value: string) => {
+    const typeId = value ? Number(value) : undefined;
+    if (!typeId) {
+      setFilters((prev) => ({
+        ...prev,
+        type_id: undefined,
+        storing_condition_id: undefined,
+      }));
+      return;
+    }
+    const type = productTypes.find((t) => Number(t.id) === typeId);
     if (type) {
-      const sub = subCategories.find((s) => s.id === type.sub_id);
-      const subId = sub ? sub.id : undefined;
-      const catId = sub ? sub.category_id : undefined;
-
+      const sub = subCategories.find((s) => Number(s.id) === Number(type.sub_id));
       setFilters((prev) => ({
         ...prev,
         type_id: typeId,
-        sub_category_id: subId,
-        category_id: catId,
-        storing_condition_id: type.storing_condition_id,
+        sub_category_id: sub ? Number(sub.id) : undefined,
+        category_id: sub ? Number(sub.category_id) : undefined,
+        storing_condition_id: Number(type.storing_condition_id),
       }));
-    } else {
-      setFilters((prev) => ({ ...prev, type_id: undefined }));
     }
   };
 
-  const filteredSubCategories = filters.category_id
-    ? subCategories.filter(
-        (sc) => Number(sc.category_id) === Number(filters.category_id),
-      )
-    : [];
+  const handleStoringConditionChange = (value: string) => {
+    const condId = value ? Number(value) : undefined;
+    setFilters((prev) => ({
+      ...prev,
+      storing_condition_id: condId,
+    }));
+  };
 
-  const filteredTypes = filters.sub_category_id
-    ? productTypes.filter(
-        (pt) => Number(pt.sub_id) === Number(filters.sub_category_id),
-      )
-    : [];
+  const getAvailableSubCategories = () => {
+    if (!subCategories || subCategories.length === 0) return [];
+    if (filters.category_id && filters.category_id > 0) {
+      return subCategories.filter(
+        (sc) => Number(sc.category_id) === Number(filters.category_id)
+      );
+    }
+    return subCategories;
+  };
+
+  const getAvailableTypes = () => {
+    if (!productTypes || productTypes.length === 0) return [];
+    if (filters.sub_category_id && filters.sub_category_id > 0) {
+      return productTypes.filter(
+        (pt) => Number(pt.sub_id) === Number(filters.sub_category_id)
+      );
+    }
+    if (filters.category_id && filters.category_id > 0) {
+      const subIds = subCategories
+        .filter((sc) => Number(sc.category_id) === Number(filters.category_id))
+        .map((sc) => Number(sc.id));
+      return productTypes.filter((pt) => subIds.includes(Number(pt.sub_id)));
+    }
+    return productTypes;
+  };
+
+  const getAvailableStoringConditions = () => {
+    if (!storingConditions || storingConditions.length === 0) return [];
+    return storingConditions;
+  };
+
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (filters.category_id) count++;
+    if (filters.sub_category_id) count++;
+    if (filters.type_id) count++;
+    if (filters.storing_condition_id) count++;
+    if (filters.brand_id) count++;
+    return count;
+  };
+
+  const goToNextTab = () => {
+    setActiveTab("attributes");
+  };
+
+  const goToPrevTab = () => {
+    setActiveTab("relations");
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -106,15 +184,17 @@ export default function SearchProductForm({
           <h1 className="text-2xl font-bold text-slate-900">Komplex szűrés</h1>
         </div>
         <button
+          type="button"
           onClick={clearFilters}
           className="text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 transition-colors"
         >
-          <X className="w-4 h-4" /> Szűrők törlése
+          Szűrők törlése
         </button>
       </div>
 
       <div className="flex border-b border-gray-100">
         <button
+          type="button"
           className={`flex-1 py-4 text-sm font-medium text-center transition-colors flex items-center justify-center gap-2 ${
             activeTab === "relations"
               ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
@@ -122,9 +202,16 @@ export default function SearchProductForm({
           }`}
           onClick={() => setActiveTab("relations")}
         >
-          <Layers className="w-4 h-4" /> Kapcsolatok és Kategóriák
+          <Layers className="w-4 h-4" />
+          <span>1. Kapcsolatok</span>
+          {getActiveFiltersCount() > 0 && (
+            <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+              {getActiveFiltersCount()}
+            </span>
+          )}
         </button>
         <button
+          type="button"
           className={`flex-1 py-4 text-sm font-medium text-center transition-colors flex items-center justify-center gap-2 ${
             activeTab === "attributes"
               ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
@@ -132,321 +219,410 @@ export default function SearchProductForm({
           }`}
           onClick={() => setActiveTab("attributes")}
         >
-          <Tag className="w-4 h-4" /> Termék tulajdonságok
+          <Tag className="w-4 h-4" />
+          <span>2. Tulajdonságok</span>
         </button>
       </div>
 
       <form onSubmit={handleSearch} className="p-6">
         {activeTab === "relations" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Kategória
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
-                value={filters.category_id || ""}
-                onChange={(e) => handleCategoryChange(Number(e.target.value))}
-              >
-                <option value="">Válasszon...</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Kategória
+                </label>
+                <select
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
+                  value={filters.category_id || ""}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
+                >
+                  <option value="">Válasszon...</option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Alkategória
+                </label>
+                <select
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
+                  value={filters.sub_category_id || ""}
+                  onChange={(e) => handleSubCategoryChange(e.target.value)}
+                >
+                  <option value="">Válasszon...</option>
+                  {getAvailableSubCategories().map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Terméktípus
+                </label>
+                <select
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
+                  value={filters.type_id || ""}
+                  onChange={(e) => handleTypeChange(e.target.value)}
+                >
+                  <option value="">Válasszon...</option>
+                  {getAvailableTypes().map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Tárolási körülmény
+                </label>
+                <select
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
+                  value={filters.storing_condition_id || ""}
+                  onChange={(e) => handleStoringConditionChange(e.target.value)}
+                  disabled={!!filters.type_id}
+                >
+                  <option value="">Válasszon...</option>
+                  {getAvailableStoringConditions().map((sc) => (
+                    <option key={sc.id} value={sc.id}>
+                      {sc.description}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Gyártó
+                </label>
+                <select
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
+                  value={filters.brand_id || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      brand_id: e.target.value ? Number(e.target.value) : undefined,
+                    }))
+                  }
+                >
+                  <option value="">Válasszon...</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Alkategória
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 disabled:opacity-50"
-                value={filters.sub_category_id || ""}
-                onChange={(e) =>
-                  handleSubCategoryChange(Number(e.target.value))
-                }
-                disabled={!filters.category_id}
+            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+              <button
+                type="button"
+                onClick={goToNextTab}
+                className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-sm px-8 py-3 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
               >
-                <option value="">Válasszon...</option>
-                {filteredSubCategories.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
+                Tovább <ChevronRight className="w-5 h-5" />
+              </button>
             </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Terméktípus
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 disabled:opacity-50"
-                value={filters.type_id || ""}
-                onChange={(e) => handleTypeChange(Number(e.target.value))}
-                disabled={!filters.sub_category_id}
-              >
-                <option value="">Válasszon...</option>
-                {filteredTypes.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Tárolási körülmény
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 disabled:opacity-50"
-                value={filters.storing_condition_id || ""}
-                onChange={(e) =>
-                  setFilters({
-                    ...filters,
-                    storing_condition_id: Number(e.target.value),
-                  })
-                }
-                disabled={!!filters.type_id}
-              >
-                <option value="">Válasszon...</option>
-                {storingConditions.map((sc) => (
-                  <option key={sc.id} value={sc.id}>
-                    {sc.description}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Gyártó
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
-                value={filters.brand_id || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, brand_id: Number(e.target.value) })
-                }
-              >
-                <option value="">Válasszon...</option>
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          </>
         )}
 
         {activeTab === "attributes" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="md:col-span-2">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Szabad szöveges keresés (Név)
-              </label>
-              <input
-                type="text"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
-                value={filters.name || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, name: e.target.value })
-                }
-                placeholder="Pl. Tej, Kenyér..."
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Raktáron lévő mennyiség (Min - Max)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
-                  placeholder="Min"
-                  value={filters.amount_min || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      amount_min: Number(e.target.value),
-                    })
-                  }
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="number"
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
-                  placeholder="Max"
-                  value={filters.amount_max || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      amount_max: Number(e.target.value),
-                    })
-                  }
-                />
+          <>
+            {getActiveFiltersCount() > 0 && (
+              <div className="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <p className="text-sm text-blue-800 font-medium mb-2">Kiválasztott kapcsolatok:</p>
+                <div className="flex flex-wrap gap-2">
+                  {filters.category_id && (
+                    <span className="bg-white text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200">
+                      {categories.find(c => c.id === filters.category_id)?.name}
+                    </span>
+                  )}
+                  {filters.sub_category_id && (
+                    <span className="bg-white text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200">
+                      {subCategories.find(s => Number(s.id) === filters.sub_category_id)?.name}
+                    </span>
+                  )}
+                  {filters.type_id && (
+                    <span className="bg-white text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200">
+                      {productTypes.find(t => Number(t.id) === filters.type_id)?.name}
+                    </span>
+                  )}
+                  {filters.storing_condition_id && (
+                    <span className="bg-white text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200">
+                      {storingConditions.find(sc => Number(sc.id) === filters.storing_condition_id)?.description}
+                    </span>
+                  )}
+                  {filters.brand_id && (
+                    <span className="bg-white text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200">
+                      {brands.find(b => Number(b.id) === filters.brand_id)?.name}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Lejárt termékek mutatása
-              </label>
-              <div className="flex items-center h-[46px]">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                  checked={filters.show_expired}
-                  onChange={(e) =>
-                    setFilters({ ...filters, show_expired: e.target.checked })
-                  }
-                />
-                <span className="ml-2 text-sm text-gray-700">
-                  Csak a lejártak mutatása
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Kiszerelés méret
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
-                placeholder="Pl. 0.5 vagy 2"
-                value={filters.size_val || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, size_val: Number(e.target.value) })
-                }
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Méret típus
-              </label>
-              <select
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
-                value={filters.size_type || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, size_type: e.target.value })
-                }
-              >
-                <option value="">Mindegy</option>
-                <option value="L">L</option>
-                <option value="kg">kg</option>
-                <option value="g">g</option>
-                <option value="XXL">XXL</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Ár (Min - Max)
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
-                  placeholder="Min Ft"
-                  value={filters.price_min || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      price_min: Number(e.target.value),
-                    })
-                  }
-                />
-                <span className="text-gray-400">-</span>
-                <input
-                  type="number"
-                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
-                  placeholder="Max Ft"
-                  value={filters.price_max || ""}
-                  onChange={(e) =>
-                    setFilters({
-                      ...filters,
-                      price_max: Number(e.target.value),
-                    })
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Egyéb opciók
-              </label>
-              <div className="flex gap-6 h-[46px] items-center">
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                    checked={filters.has_warranty}
-                    onChange={(e) =>
-                      setFilters({ ...filters, has_warranty: e.target.checked })
-                    }
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    Garanciális
-                  </span>
-                </label>
-                <label className="flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                    checked={filters.is_discounted}
-                    onChange={(e) =>
-                      setFilters({
-                        ...filters,
-                        is_discounted: e.target.checked,
-                      })
-                    }
-                  />
-                  <span className="ml-2 text-sm text-gray-700">Akciós</span>
-                </label>
-              </div>
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                Egyéb tulajdonságok (szabad szöveges)
-              </label>
-              <input
-                type="text"
-                className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
-                value={filters.other_properties || ""}
-                onChange={(e) =>
-                  setFilters({ ...filters, other_properties: e.target.value })
-                }
-                placeholder="Pl. leírásban keresés..."
-              />
-            </div>
-          </div>
-        )}
-
-        <div className="mt-8 pt-6 border-t border-gray-100 flex justify-end">
-          <button
-            type="submit"
-            className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-sm px-8 py-3 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
-            disabled={loading}
-          >
-            {loading ? (
-              "Keresés..."
-            ) : (
-              <>
-                <Filter className="w-5 h-5" /> Keresés indítása
-              </>
             )}
-          </button>
-        </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="md:col-span-2 relative">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Terméknév keresés
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block transition-all"
+                    value={filters.name || ""}
+                    onChange={(e) => {
+                      setFilters((prev) => ({ ...prev, name: e.target.value }));
+                      setShowNameDropdown(true);
+                    }}
+                    onFocus={() => setShowNameDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowNameDropdown(false), 200)}
+                    placeholder="Keresés név, márka vagy típus alapján..."
+                  />
+                  {showNameDropdown && filters.name && filters.name.trim() !== "" && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto z-50">
+                      {getFilteredProducts().length > 0 ? (
+                        getFilteredProducts().map((product) => (
+                          <div
+                            key={product.id}
+                            onMouseDown={() => handleProductSelect(product)}
+                            className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors group"
+                          >
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-3">
+                                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">
+                                  <PackageOpen className="h-4 w-4 text-blue-500" />
+                                </div>
+                                <div>
+                                  <div className="font-semibold text-slate-800 text-sm">
+                                    {product.name}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {product.type_name}
+                                  </div>
+                                </div>
+                              </div>
+                              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
+                                {product.brand_name}
+                              </span>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                          Nincs találat a keresett kifejezésre.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Raktáron lévő mennyiség (Min - Max)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
+                    placeholder="Min"
+                    value={filters.amount_min || ""}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        amount_min: e.target.value ? Number(e.target.value) : undefined,
+                      }))
+                    }
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="number"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
+                    placeholder="Max"
+                    value={filters.amount_max || ""}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        amount_max: e.target.value ? Number(e.target.value) : undefined,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Ár (Min - Max) Ft
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
+                    placeholder="Min Ft"
+                    value={filters.price_min || ""}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        price_min: e.target.value ? Number(e.target.value) : undefined,
+                      }))
+                    }
+                  />
+                  <span className="text-gray-400">-</span>
+                  <input
+                    type="number"
+                    className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
+                    placeholder="Max Ft"
+                    value={filters.price_max || ""}
+                    onChange={(e) =>
+                      setFilters((prev) => ({
+                        ...prev,
+                        price_max: e.target.value ? Number(e.target.value) : undefined,
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Kiszerelés méret
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
+                  placeholder="Pl. 0.5 vagy 2"
+                  value={filters.size_val || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      size_val: e.target.value ? Number(e.target.value) : undefined,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Méret típus
+                </label>
+                <select
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg block p-3"
+                  value={filters.size_type || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, size_type: e.target.value }))
+                  }
+                >
+                  <option value="">Mindegy</option>
+                  <option value="L">L</option>
+                  <option value="kg">kg</option>
+                  <option value="g">g</option>
+                  <option value="db">db</option>
+                </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Egyéb opciók
+                </label>
+                <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                      checked={filters.show_expired}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, show_expired: e.target.checked }))
+                      }
+                    />
+                    <span className="ml-2 text-sm text-gray-700">
+                      Lejárt termékek mutatása
+                    </span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                      checked={filters.has_warranty}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, has_warranty: e.target.checked }))
+                      }
+                    />
+                    <span className="ml-2 text-sm text-gray-700">
+                      Csak garanciális
+                    </span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
+                      checked={filters.is_discounted}
+                      onChange={(e) =>
+                        setFilters((prev) => ({ ...prev, is_discounted: e.target.checked }))
+                      }
+                    />
+                    <span className="ml-2 text-sm text-gray-700">
+                      Csak akciós
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
+                  Egyéb tulajdonságok / leírás keresés
+                </label>
+                <input
+                  type="text"
+                  className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
+                  value={filters.other_properties || ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, other_properties: e.target.value }))
+                  }
+                  placeholder="Keresés a leírásban vagy egyéb tulajdonságokban..."
+                />
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between">
+              <button
+                type="button"
+                onClick={goToPrevTab}
+                className="text-gray-600 bg-gray-100 hover:bg-gray-200 focus:ring-4 focus:ring-gray-300 font-bold rounded-xl text-sm px-6 py-3 transition-colors flex items-center gap-2"
+              >
+                <ChevronLeft className="w-5 h-5" /> Vissza
+              </button>
+              <button
+                type="submit"
+                className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-sm px-8 py-3 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
+                disabled={loading}
+              >
+                {loading ? (
+                  "Keresés..."
+                ) : (
+                  <>
+                    <Filter className="w-5 h-5" /> Keresés indítása
+                  </>
+                )}
+              </button>
+            </div>
+          </>
+        )}
       </form>
     </div>
   );
