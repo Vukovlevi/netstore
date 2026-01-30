@@ -46,31 +46,61 @@ export default function ProductManagement() {
   }, []);
 
   const loadData = async () => {
+    let prods: Product[] = [];
     try {
-      const prods = await productService.getAll();
-      if (Array.isArray(prods)) {
-        setProducts(prods);
-      } else {
-        setProducts([]);
-      }
+      const result = await productService.getAll();
+      prods = Array.isArray(result) ? result : [];
+      setProducts(prods);
     } catch (err) {
       console.error("Failed to load products");
       setProducts([]);
     }
 
+    let subs: SubCategory[] = [];
+    let types: ProductType[] = [];
     try {
-      const [cats, subs, types, brs] = await Promise.all([
+      const [cats, subsResult, typesResult, brs] = await Promise.all([
         categoryService.getAll(),
         subCategoryService.getAll(),
         productTypeService.getAll(),
         brandService.getAll(),
       ]);
+      subs = Array.isArray(subsResult) ? subsResult : [];
+      types = Array.isArray(typesResult) ? typesResult : [];
       setCategories(Array.isArray(cats) ? cats : []);
-      setSubCategories(Array.isArray(subs) ? subs : []);
-      setProductTypes(Array.isArray(types) ? types : []);
+      setSubCategories(subs);
+      setProductTypes(types);
       setBrands(Array.isArray(brs) ? brs : []);
     } catch (err) {
       console.error("Failed to load dependencies");
+    }
+
+    const selectId = sessionStorage.getItem("selectProductId");
+    if (selectId) {
+      sessionStorage.removeItem("selectProductId");
+      const product = prods.find((p) => Number(p.id) === Number(selectId));
+      if (product) {
+        setSelectedId(product.id);
+        setName(product.name);
+        setDescription(product.description);
+        setAmount(product.amount);
+        setSize(product.size);
+        setSizeType(product.size_type);
+        setExpiresAt(formatDate(product.expires_at));
+        setPrice(product.price);
+        setDiscount(product.discount);
+        setWarranty(formatDate(product.warranty));
+        setBrandId(product.brand_id);
+        const type = types.find((t) => Number(t.id) === Number(product.type_id));
+        if (type) {
+          setTypeId(type.id);
+          const sub = subs.find((s) => Number(s.id) === Number(type.sub_id));
+          if (sub) {
+            setSubCategoryId(sub.id);
+            setCategoryId(sub.category_id);
+          }
+        }
+      }
     }
   };
 

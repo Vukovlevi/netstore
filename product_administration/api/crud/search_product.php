@@ -100,8 +100,6 @@ function handleSearchProduct($method, $body) {
 
             if (isset($_GET['show_expired']) && $_GET['show_expired'] === 'true') {
                 $baseSql .= " AND p.expires_at IS NOT NULL AND p.expires_at < CURDATE()";
-            } else {
-                $baseSql .= " AND (p.expires_at IS NULL OR p.expires_at >= CURDATE())";
             }
 
             if (!empty($_GET['other_properties'])) {
@@ -112,7 +110,11 @@ function handleSearchProduct($method, $body) {
             }
 
             $countSql = "SELECT COUNT(*) as total " . $baseSql;
-            $countResult = getData($countSql, $types, $params);
+            if (strlen($types) > 0) {
+                $countResult = getData($countSql, $types, $params);
+            } else {
+                $countResult = getData($countSql);
+            }
             $total = isset($countResult[0]['total']) ? (int)$countResult[0]['total'] : 0;
 
             $sql = "SELECT p.*,

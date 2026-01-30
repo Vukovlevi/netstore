@@ -1,14 +1,13 @@
-import React, { useState } from "react";
+import React from "react";
 import type {
   Category,
   SubCategory,
   ProductType,
   Brand,
   StoringCondition,
-  Product,
 } from "../../types/Types";
 import type { SearchFilters } from "../../services/searchFilters";
-import { Filter, ChevronRight, ChevronLeft, Layers, Tag, Search, PackageOpen } from "lucide-react";
+import { Filter, ChevronRight, ChevronLeft, Layers, Tag } from "lucide-react";
 
 interface SearchProductFormProps {
   categories: Category[];
@@ -16,7 +15,6 @@ interface SearchProductFormProps {
   productTypes: ProductType[];
   brands: Brand[];
   storingConditions: StoringCondition[];
-  products: Product[];
 
   filters: SearchFilters;
   setFilters: React.Dispatch<React.SetStateAction<SearchFilters>>;
@@ -35,7 +33,6 @@ export default function SearchProductForm({
   productTypes,
   brands,
   storingConditions,
-  products,
   filters,
   setFilters,
   activeTab,
@@ -44,27 +41,6 @@ export default function SearchProductForm({
   clearFilters,
   loading,
 }: SearchProductFormProps) {
-  const [showNameDropdown, setShowNameDropdown] = useState(false);
-
-  const getFilteredProducts = () => {
-    if (!filters.name || filters.name.trim() === "") return [];
-    const term = filters.name.toLowerCase();
-    return products.filter((product) => {
-      const matchesName = product.name.toLowerCase().includes(term);
-      const matchesBrand = product.brand_name?.toLowerCase().includes(term);
-      const matchesType = product.type_name?.toLowerCase().includes(term);
-      return matchesName || matchesBrand || matchesType;
-    }).slice(0, 10);
-  };
-
-  const handleProductSelect = (product: Product) => {
-    setFilters((prev) => ({
-      ...prev,
-      name: product.name,
-    }));
-    setShowNameDropdown(false);
-  };
-
   const handleCategoryChange = (value: string) => {
     const catId = value ? Number(value) : undefined;
     setFilters((prev) => ({
@@ -345,7 +321,7 @@ export default function SearchProductForm({
                 <div className="flex flex-wrap gap-2">
                   {filters.category_id && (
                     <span className="bg-white text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200">
-                      {categories.find(c => c.id === filters.category_id)?.name}
+                      {categories.find(c => Number(c.id) === filters.category_id)?.name}
                     </span>
                   )}
                   {filters.sub_category_id && (
@@ -373,65 +349,6 @@ export default function SearchProductForm({
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2 relative">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                  Terméknév keresés
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    type="text"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block transition-all"
-                    value={filters.name || ""}
-                    onChange={(e) => {
-                      setFilters((prev) => ({ ...prev, name: e.target.value }));
-                      setShowNameDropdown(true);
-                    }}
-                    onFocus={() => setShowNameDropdown(true)}
-                    onBlur={() => setTimeout(() => setShowNameDropdown(false), 200)}
-                    placeholder="Keresés név, márka vagy típus alapján..."
-                  />
-                  {showNameDropdown && filters.name && filters.name.trim() !== "" && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden max-h-64 overflow-y-auto z-50">
-                      {getFilteredProducts().length > 0 ? (
-                        getFilteredProducts().map((product) => (
-                          <div
-                            key={product.id}
-                            onMouseDown={() => handleProductSelect(product)}
-                            className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-0 transition-colors group"
-                          >
-                            <div className="flex justify-between items-center">
-                              <div className="flex items-center gap-3">
-                                <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-white transition-colors">
-                                  <PackageOpen className="h-4 w-4 text-blue-500" />
-                                </div>
-                                <div>
-                                  <div className="font-semibold text-slate-800 text-sm">
-                                    {product.name}
-                                  </div>
-                                  <div className="text-xs text-slate-500">
-                                    {product.type_name}
-                                  </div>
-                                </div>
-                              </div>
-                              <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-md">
-                                {product.brand_name}
-                              </span>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center text-gray-500 text-sm">
-                          Nincs találat a keresett kifejezésre.
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
               <div>
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
                   Raktáron lévő mennyiség (Min - Max)
@@ -551,7 +468,7 @@ export default function SearchProductForm({
                       }
                     />
                     <span className="ml-2 text-sm text-gray-700">
-                      Lejárt termékek mutatása
+                      Csak lejárt termékek
                     </span>
                   </label>
                   <label className="flex items-center cursor-pointer">

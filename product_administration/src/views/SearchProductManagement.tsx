@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import SearchProductForm from "../components/forms/SearchProductForm";
 import { searchService } from "../services/searchFilters";
 import type { SearchFilters } from "../services/searchFilters";
@@ -7,7 +8,6 @@ import { subCategoryService } from "../services/subCategoryService";
 import { productTypeService } from "../services/productTypeService";
 import { brandService } from "../services/brandService";
 import { storingConditionService } from "../services/storingConditionService";
-import { productService } from "../services/productService";
 import type {
   Category,
   SubCategory,
@@ -20,6 +20,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import FeedbackMessage from "../components/ui/FeedbackMessage";
 
 export default function SearchProductManagement() {
+  const navigate = useNavigate();
   const [results, setResults] = useState<Product[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -36,7 +37,6 @@ export default function SearchProductManagement() {
   const [storingConditions, setStoringConditions] = useState<
     StoringCondition[]
   >([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   const [filters, setFilters] = useState<SearchFilters>({
     page: 1,
@@ -51,20 +51,18 @@ export default function SearchProductManagement() {
 
   const loadDependencies = async () => {
     try {
-      const [cats, subs, types, brs, conds, prods] = await Promise.all([
+      const [cats, subs, types, brs, conds] = await Promise.all([
         categoryService.getAll().catch(() => []),
         subCategoryService.getAll().catch(() => []),
         productTypeService.getAll().catch(() => []),
         brandService.getAll().catch(() => []),
         storingConditionService.getAll().catch(() => []),
-        productService.getAll().catch(() => []),
       ]);
       setCategories(Array.isArray(cats) ? cats : []);
       setSubCategories(Array.isArray(subs) ? subs : []);
       setProductTypes(Array.isArray(types) ? types : []);
       setBrands(Array.isArray(brs) ? brs : []);
       setStoringConditions(Array.isArray(conds) ? conds : []);
-      setAllProducts(Array.isArray(prods) ? prods : []);
     } catch (err) {
       setError("Hiba történt az adatok betöltésekor.");
     }
@@ -130,7 +128,6 @@ export default function SearchProductManagement() {
         productTypes={productTypes}
         brands={brands}
         storingConditions={storingConditions}
-        products={allProducts}
         filters={filters}
         setFilters={setFilters}
         activeTab={activeTab}
@@ -173,7 +170,11 @@ export default function SearchProductManagement() {
                     {results.map((product) => (
                       <tr
                         key={product.id}
-                        className="bg-white border-b hover:bg-gray-50"
+                        onClick={() => {
+                          sessionStorage.setItem("selectProductId", String(product.id));
+                          navigate("/products");
+                        }}
+                        className="bg-white border-b hover:bg-blue-50 cursor-pointer transition-colors"
                       >
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {product.name}
@@ -184,12 +185,12 @@ export default function SearchProductManagement() {
                         </td>
                         <td className="px-6 py-4">{product.type_name}</td>
                         <td className="px-6 py-4 text-right font-bold text-slate-700">
-                          {product.price} Ft
                           {product.discount > 0 && (
-                            <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded">
-                              -{product.discount}%
+                            <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded mx-1">
+                              -{Math.round(product.discount * 100)}%
                             </span>
                           )}
+                          {product.price} Ft
                         </td>
                         <td className="px-6 py-4 text-right">
                           {product.amount} db ({product.size} {product.size_type})
