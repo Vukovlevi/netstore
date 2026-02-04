@@ -24,6 +24,7 @@ class OpenHourClass {
   weekDays: string[] = [];
   deletedAt: DeletedAt | null = null;
   inputSpecialDate = "";
+  wasWeekDayChanged = false;
 
   constructor(openHour: OpenHour | null) {
     if (openHour == null) {
@@ -31,8 +32,11 @@ class OpenHourClass {
     }
 
     this.id = openHour.id;
-    this.opensAt = openHour.opensAt;
-    this.closesAt = openHour.closesAt;
+    this.opensAt = openHour.opensAt.substring(0, openHour.opensAt.length - 3);
+    this.closesAt = openHour.closesAt.substring(
+      0,
+      openHour.closesAt.length - 3
+    );
     if (openHour.specialDate && openHour.specialDate.Valid) {
       this.specialDate = openHour.specialDate;
       this.inputSpecialDate = new Date(openHour.specialDate.Time.split("T")[0]!)
@@ -47,8 +51,8 @@ class OpenHourClass {
   toOpenHour(): OpenHour {
     return {
       id: this.id,
-      opensAt: this.opensAt,
-      closesAt: this.closesAt,
+      opensAt: this.opensAt + ":00",
+      closesAt: this.closesAt + ":00",
       specialDate:
         this.inputSpecialDate == ""
           ? { Valid: false, Time: "0001-01-01T00:00:00Z" }
@@ -60,6 +64,23 @@ class OpenHourClass {
       weekDays: this.weekDays,
       deletedAt: this.deletedAt,
     };
+  }
+
+  compare(openHour: OpenHour): boolean {
+    if (this.inputSpecialDate == "" && openHour.specialDate.Valid) return false;
+    if (this.inputSpecialDate != "" && !openHour.specialDate.Valid)
+      return false;
+    if (
+      this.inputSpecialDate != "" &&
+      openHour.specialDate.Valid &&
+      openHour.specialDate.Time != new Date(this.inputSpecialDate).toISOString()
+    )
+      return false;
+    return (
+      openHour.opensAt == this.opensAt + ":00" &&
+      openHour.closesAt == this.closesAt + ":00" &&
+      !this.wasWeekDayChanged
+    );
   }
 }
 

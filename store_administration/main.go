@@ -3,18 +3,22 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/vukovlevi/netstore/store_administration/config"
 	"github.com/vukovlevi/netstore/store_administration/db"
 	"github.com/vukovlevi/netstore/store_administration/middleware"
+	"github.com/vukovlevi/netstore/store_administration/network"
 	"github.com/vukovlevi/netstore/store_administration/route"
 
 	mw "github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+    slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
+
     err := godotenv.Load()
     if err != nil {
         slog.Error("could not load environment variables", "error", err)
@@ -28,6 +32,11 @@ func main() {
         panic("unable to apply application config")
     }
     defer db.Disconnect()
+
+    err = network.NewNetworkManager("", "", "")
+    if err != nil {
+        slog.Error("could not create network manager", "error", err)
+    }
 
     e := echo.New()
     e.Use(mw.CORS())
@@ -63,18 +72,22 @@ func main() {
     apiStoreLeaderGroup.DELETE("/open-hour", route.HandleDeleteOpenHour)
     apiStoreLeaderGroup.GET("/weekdays", route.HandleGetWeekDays)
 
-    apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContracts)
+    apiStoreLeaderGroup.GET("/connect", route.HandleGetConnect)
+    apiStoreLeaderGroup.POST("/connect", route.HandlePostConnect)
+    apiAuthGroup.POST("/network-search", route.HandlePostNetworkSearch)
+
+    apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContractByUserId)
     apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)
     apiStoreLeaderOrHRGroup.PUT("/contract", route.HandleUpdateContract)
     apiStoreLeaderOrHRGroup.DELETE("/contract", route.HandleDeleteContract)
+    apiStoreLeaderOrHRGroup.GET("/contract-file", route.HandleGetContractFile)
+    apiStoreLeaderOrHRGroup.DELETE("/contract-file", route.HandleDeleteContractFile)
 
     apiAuthGroup.GET("/echo", route.HandleGetEcho)
     e.Static("/assets", "public/assets")
     e.GET("/*", func(c echo.Context) error {return c.File("public/index.html")})
 
-    //TODO: implement password-change rendering without authentication middleware
-
     apiAuthGroup.GET("/", func(c echo.Context) error {return c.JSON(http.StatusOK, map[string]string{"message": "itt vagy"})})
 
-    e.Logger.Fatal(e.Start(":8000")) //TODO: read address from config
+    e.Logger.Fatal(e.Start(config.ToAddress()))
 }

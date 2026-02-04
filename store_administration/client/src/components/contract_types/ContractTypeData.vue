@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { ContractTypeClass, type ContractType } from "../../types/ContractType";
+import Modal from "../Modal.vue";
 
 const NEW_CONTRACT_TYPE = "Új szerződéstípus felvitele";
 const UPDATE_CONTRACT_TYPE = "Szerződéstípus módosítása";
@@ -11,6 +12,8 @@ const MAX_WEEKLY_WORK_HOURS = DAYS_A_WEEK * MAX_WORK_HOURS_A_DAY;
 const props = defineProps<{ contractType: ContractType | null }>();
 const emits = defineEmits(["feedback", "back"]);
 const contractType = ref(new ContractTypeClass(props.contractType));
+let oldContractType = contractType.value.toContractType();
+const isModalOpen = ref(false);
 const isUpdate = ref(props.contractType != null);
 
 function validate(): { message: string; valid: boolean } {
@@ -68,6 +71,8 @@ async function saveContractType() {
       return;
     }
 
+    oldContractType = contractType.value.toContractType();
+
     emits(
       "feedback",
       "success",
@@ -90,9 +95,26 @@ async function saveContractType() {
   }
 }
 
-//TODO: vissza gomb lenyomásakor figyelmeztetés (modal) -> majd törlésnél is lehet ezt használni (hasonló mint a feedback, csak modal)
+function cancel() {
+  isModalOpen.value = false;
+}
+
+function confirm() {
+  isModalOpen.value = false;
+  emits("back");
+}
+
+//TODO: összes helyen törlésnél modal, meg esetleg a mégse gomboknál is, egyeztess difivel
 </script>
 <template>
+  <Modal
+    v-if="isModalOpen"
+    title="Biztosan vissza akar lépni?"
+    message="A szerződéstípus adatainak nem mentett módosításai elvesznek!"
+    confirm-text="Igen, visszalépek"
+    @cancel="cancel"
+    @confirm="confirm"
+  />
   <div class="container mx-auto max-w-2xl px-4 py-10 sm:px-6 lg:px-8">
     <div class="space-y-8">
       <div>
@@ -147,7 +169,12 @@ async function saveContractType() {
       <div class="flex justify-end gap-3 pt-4">
         <button
           type="button"
-          @click="() => emits('back')"
+          @click="
+            () => {
+              if (!contractType.compare(oldContractType)) isModalOpen = true;
+              else confirm();
+            }
+          "
           class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
         >
           Mégse

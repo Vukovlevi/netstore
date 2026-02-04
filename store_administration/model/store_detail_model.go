@@ -8,15 +8,16 @@ import (
 
 type StoreDetail struct {
     Address string `json:"address"`
-    CentralServerAddress string `json:"centralServerAddress"`
-    CentralServerPort uint16 `json:"centralServerPort"`
-    StoreTypeId int `json:"storeTypeId"`
+    CentralServerAddress string `json:"centralServerAddress,omitzero,omitempty"`
+    CentralServerPort uint16 `json:"centralServerPort,omitzero,omitempty"`
+    StoreTypeId int `json:"storeTypeId,omitempty,omitzero"`
+    StoreTypeName string `json:"storeTypeName,omitempty,omitzero"`
 }
 
 func GetStoreDetail() (StoreDetail, error) {
-    row := db.DB.QueryRow("SELECT address, central_server_address, central_server_port, store_type_id FROM store_detail")
+    row := db.DB.QueryRow("SELECT address, central_server_address, central_server_port, store_type_id, name FROM store_detail INNER JOIN store_type ON store_detail.store_type_id = store_type.id")
     storeDetail := StoreDetail{}
-    err := row.Scan(&storeDetail.Address, &storeDetail.CentralServerAddress, &storeDetail.CentralServerPort, &storeDetail.StoreTypeId)
+    err := row.Scan(&storeDetail.Address, &storeDetail.CentralServerAddress, &storeDetail.CentralServerPort, &storeDetail.StoreTypeId, &storeDetail.StoreTypeName)
     return storeDetail, err
 }
 
@@ -28,7 +29,7 @@ func (s *StoreDetail) UpdateStoreDetail() error {
 //Returns user-readable error
 func (s *StoreDetail) ValidateUpdate() error {
     if s.Address == "" || s.CentralServerAddress == "" || s.CentralServerPort == 0 || s.StoreTypeId == 0 {
-        return errors.New("missing address or central server address, etc") //TODO: user-readable error message
+        return errors.New("Az üzlet adatai hiányosak (cím, központi szerver címe, központi szerver portja, vagy az üzlet típusa)!")
     }
     return nil
 }

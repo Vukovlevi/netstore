@@ -5,11 +5,14 @@ import type { OpenHour } from "../types/OpenHour";
 import Feedback from "../components/Feedback.vue";
 import OpenHourData from "../components/open_hours/OpenHourData.vue";
 import OpenHourCard from "../components/open_hours/OpenHourCard.vue";
+import Modal from "../components/Modal.vue";
 
 const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null);
 const openHours: Ref<OpenHour[], OpenHour[]> = ref([]);
 const currentOpenHour: Ref<OpenHour | null, OpenHour | null> = ref(null);
 const mode: Ref<"all" | "single", "all" | "single"> = ref("all");
+const isModalOpen = ref(false);
+let toDeleteOpenHourId = 0;
 
 async function getOpenHours() {
   try {
@@ -84,6 +87,7 @@ async function deleteOpenHour(openHourId: Number) {
         type: "success",
         message: "Nyitvatartási idő törlése sikeres!",
       };
+      toDeleteOpenHourId = 0;
       return;
     }
 
@@ -110,9 +114,26 @@ async function deleteOpenHour(openHourId: Number) {
 onMounted(() => {
   getOpenHours();
 });
+
+function cancel() {
+  isModalOpen.value = false;
+}
+
+function confirm() {
+  isModalOpen.value = false;
+  deleteOpenHour(toDeleteOpenHourId);
+}
 </script>
 
 <template>
+  <Modal
+    v-if="isModalOpen"
+    title="Megerősítés"
+    message="Biztosan törölni akarja a nyitvatartási időt?"
+    confirm-text="Törlés"
+    @cancel="cancel"
+    @confirm="confirm"
+  />
   <div class="mx-auto max-w-7xl mt-[5rem]">
     <div
       class="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center"
@@ -143,7 +164,7 @@ onMounted(() => {
         v-for="openHour in openHours"
         :openHour="openHour"
         @modify="(openHour: OpenHour) => modifyOpenHour(openHour)"
-        @delete="deleteOpenHour"
+        @delete="(openHourId: number) => {toDeleteOpenHourId = openHourId; isModalOpen = true}"
       />
     </div>
     <OpenHourData

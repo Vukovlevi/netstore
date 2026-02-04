@@ -32,6 +32,13 @@ class ContractTypeClass {
       deletedAt: this.deletedAt,
     };
   }
+
+  compare(contractType: ContractType): boolean {
+    return (
+      contractType.name == this.name &&
+      contractType.weeklyHours == this.weeklyHours
+    );
+  }
 }
 
 export type { ContractType };

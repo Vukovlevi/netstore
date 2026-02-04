@@ -63,6 +63,17 @@ class UserClass {
       deletedAt: this.deletedAt.value,
     };
   }
+
+  compare(user: User): boolean {
+    return (
+      this.firstname.value == user.firstname &&
+      this.lastname.value == user.lastname &&
+      this.username.value == user.username &&
+      this.phoneNumber.value == user.phoneNumber &&
+      this.email.value == user.email &&
+      this.roleId.value == user.roleId
+    );
+  }
 }
 
 export type { User };

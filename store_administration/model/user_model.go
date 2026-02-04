@@ -98,7 +98,7 @@ func (u *User) LogoutUser() error {
 //Returns user-readable error
 func (u *User) ValidateInsert() error {
     if u.Firstname == "" || u.Lastname == "" || u.Username == "" || u.Password == "" || u.RoleId == 0 {
-        return errors.New("missing required parameter for saving new user") //TODO: hungarian error message
+        return errors.New("Az új felhasználó létrehozásához hiányoznak adatok (vezetéknév, keresztnév, felhasználónév, jelszó, vagy rang)!")
     }
     return nil
 }
@@ -106,7 +106,7 @@ func (u *User) ValidateInsert() error {
 //Returns user-readable error
 func (u *User) ValidateUpdate() error {
     if u.Id == 0 || u.Firstname == "" || u.Lastname == "" || u.Username == "" || u.RoleId == 0 {
-        return errors.New("missing required paramter for updating user") //TODO: hungarian error message
+        return errors.New("A felhasználó módosításához hiányoznak adatok (azonosító, vezetéknév, keresztnév, felhasználónév, vagy rang)!")
     }
     return nil
 }
@@ -114,13 +114,13 @@ func (u *User) ValidateUpdate() error {
 //Returns user-readable error
 func (u *User) ValidateDelete(deleteBy User, storeLeaderRole string) error {
     if u.Id == 0 {
-        return errors.New("missing id for deleting user") //TODO: hungarian error message
+        return errors.New("A felhasználó törléséhez az azonosító megadása kötelező! Próbálja frissíteni az oldalt!")
     }
 
     user, err := GetUserByUserId(u.Id)
     if err != nil {
         slog.Error("could not get user to be deleted with given id", "error", err, "id", u.Id)
-        return errors.New("could not get user with given id") //TODO: hungarian error message
+        return errors.New("A törlendő felhasználó lekérdezése nem sikerült!")
     }
 
     if user.Role != storeLeaderRole {
@@ -128,7 +128,7 @@ func (u *User) ValidateDelete(deleteBy User, storeLeaderRole string) error {
     }
 
     if deleteBy.Role != storeLeaderRole {
-        return errors.New("an HR person can not delete store leader account") //TODO: hungarian error message
+        return errors.New("HR rangú felhasználó nem törölhet üzletvezetőt!")
     }
 
     numOfStoreLeaders := 0
@@ -136,10 +136,10 @@ func (u *User) ValidateDelete(deleteBy User, storeLeaderRole string) error {
     err = row.Scan(&numOfStoreLeaders)
     if err != nil {
         slog.Error("could not count store leaders in db", "error", err)
-        return errors.New("could not count store leaders in db") //TODO: hungarian error message
+        return errors.New("A törlés nem hajtható végre, mert üzletvezető rangú a törlendő felhasználó, és nem sikerült ellenőrizni az üzletvezetők számát!")
     }
     if numOfStoreLeaders < 2 {
-        return errors.New("could not delete store leader, because there has to remain at least 1 store leader in the db") //TODO: hungarian error message
+        return errors.New("A rendszerben legalább 1 üzletvezető rangú felhasználónak maradnia kell, ezért a törlés nem hajtható végre!")
     }
 
     return nil
@@ -148,7 +148,7 @@ func (u *User) ValidateDelete(deleteBy User, storeLeaderRole string) error {
 //Returns user-readable error
 func (u *User) ValidateUpdatePassword(oldPassword, newPassword string) error {
     if len(newPassword) < 8 {
-        return errors.New("the new password is not long enough (at least 8 characters)") //TODO: user-readable error message
+        return errors.New("Az új jelszó hossza legalább 8 karakter kell legyen!")
     }
 
     realOldPassword := ""
@@ -156,11 +156,11 @@ func (u *User) ValidateUpdatePassword(oldPassword, newPassword string) error {
     err := row.Scan(&realOldPassword)
     if err != nil {
         slog.Error("could not scan real old password of user during password change", "error", err)
-        return errors.New("something went wrong") //TODO: user-readable error message
+        return errors.New("A jelszó változtatás sikertelen!")
     }
 
     if !CheckPassword(oldPassword, realOldPassword) {
-        return errors.New("password does not match your password") //TODO: user-readable error message
+        return errors.New("A jelenlegi jelszó helytelen!")
     }
 
     u.Password = newPassword

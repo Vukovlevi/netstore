@@ -24,37 +24,29 @@ type Contract struct {
 	ContractType   string `json:"contractType"`
 	ContractTypeId int    `json:"contractTypeId,omitempty,omitzero"`
 	Salary         int    `json:"salary"`
-	Filename       string `json:"filename"`
+	Filename       sql.NullString `json:"filename"`
 	StartsAt       time.Time `json:"startsAt"`
 	EndsAt 		   sql.NullTime `json:"endsAt"`
 	DeletedAt 	   sql.NullTime `json:"deleted_at"`
 	ContractDays   []ContractDay `json:"contractDays"`
 }
 
-func GetAllContract() ([]Contract, error) {
-	rows, err := db.DB.Query("SELECT contract.id, CONCAT(user.lastname, ' ', user.firstname), contract_type.name, salary, starts_at, ends_at, contract.deleted_at FROM contract INNER JOIN contract_type ON contract.contract_type_id = contract_type.id INNER JOIN user ON contract.user_id = user.id WHERE contract.deleted_at IS NULL")
+func GetContractByUserId(userId int) (Contract, error) {
+	row := db.DB.QueryRow("SELECT contract.id, CONCAT(user.lastname, ' ', user.firstname), contract_type.name, salary, starts_at, ends_at, file, contract.deleted_at FROM contract INNER JOIN contract_type ON contract.contract_type_id = contract_type.id INNER JOIN user ON contract.user_id = user.id WHERE user.id = ? AND contract.deleted_at IS NULL", userId)
+
+	contract := Contract{}
+	err := row.Scan(&contract.Id, &contract.UserName, &contract.ContractType, &contract.Salary, &contract.StartsAt, &contract.EndsAt, &contract.Filename, &contract.DeletedAt)
 	if err != nil {
-		return []Contract{}, err
+		return Contract{}, err
 	}
 
-	contracts := []Contract{}
-	for rows.Next() {
-		contract := Contract{}
-		err = rows.Scan(&contract.Id, &contract.UserName, &contract.ContractType, &contract.Salary, &contract.StartsAt, &contract.EndsAt, &contract.DeletedAt)
-		if err != nil {
-			return contracts, err
-		}
-
-		contractDays, err := getContractDaysForContract(contract.Id)
-		if err != nil {
-			return contracts, err
-		}
-		contract.ContractDays = contractDays
-
-		contracts = append(contracts, contract)
+	contractDays, err := getContractDaysForContract(contract.Id)
+	if err != nil {
+		return Contract{}, err
 	}
+	contract.ContractDays = contractDays
 
-	return contracts, nil
+	return contract, nil
 }
 
 func getContractDaysForContract(contractId int) ([]ContractDay, error) {
@@ -83,18 +75,16 @@ func (c *Contract) InsertNewContract() error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("INSERT INTO contract (user_id, contract_type_id, salary, starts_at, ends_at) VALUES (?, ?, ?, ?, ?)", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt)
+    res, err := tx.Exec("INSERT INTO contract (user_id, contract_type_id, salary, starts_at, ends_at, file) VALUES (?, ?, ?, ?, ?, ?)", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt, c.Filename)
 	if err != nil {
 		return err
 	}
 
-	id := 0
-	row := tx.QueryRow("SELECT id FROM contract ORDER BY id DESC LIMIT 1")
-	err = row.Scan(&id)
-	if err != nil {
-		return err
-	}
-	c.Id = id
+    id, err := res.LastInsertId()
+    if err != nil {
+        return err
+    }
+	c.Id = int(id)
 
 	err = insertContractDaysForContract(c.Id, c.ContractDays, tx)
 	if err != nil {
@@ -111,7 +101,7 @@ func (c *Contract) UpdateContract() error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("UPDATE contract SET user_id = ?, contract_type_id = ?, salary = ?, starts_at = ?, ends_at = ? WHERE id = ?", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt, c.Id)
+	_, err = tx.Exec("UPDATE contract SET user_id = ?, contract_type_id = ?, salary = ?, starts_at = ?, ends_at = ?, file = ? WHERE id = ?", c.UserId, c.ContractTypeId, c.Salary, c.StartsAt, c.EndsAt, c.Filename, c.Id)
 	if err != nil {
 		return err
 	}
@@ -157,6 +147,11 @@ func (c *Contract) DeleteContract() error {
 	}
 
 	return tx.Commit()
+}
+
+func (c *Contract) DeleteContractFileFromDB() error {
+    _, err := db.DB.Exec("UPDATE contract SET file = NULL WHERE id = ?", c.Id)
+    return err
 }
 
 func (c *Contract) ValidateInsert() error {

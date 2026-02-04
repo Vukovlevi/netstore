@@ -11,14 +11,18 @@ type OpenHour struct {
 	Id      int `json:"id"`
 	OpensAt string `json:"opensAt"`
 	ClosesAt string `json:"closesAt"`
-	SpecialDate sql.NullTime `json:"specialDate,omitempty,omitzero"`
+	SpecialDate sql.NullTime `json:"specialDate,omitzero"`
 	WeekDayIds []int `json:"weekDayIds,omitempty,omitzero"`
 	WeekDays []string `json:"weekDays,omitempty,omitzero"`
 	DeletedAt sql.NullTime `json:"deletedAt"`
 }
 
-func GetOpenHours() ([]OpenHour, error) {
-	rows, err := db.DB.Query("SELECT id, opens_at, closes_at, special_date, deleted_at FROM open_hour WHERE deleted_at IS NULL")
+func GetOpenHours(onlyThisAndNextYear bool) ([]OpenHour, error) {
+	query := "SELECT id, opens_at, closes_at, special_date, deleted_at FROM open_hour WHERE deleted_at IS NULL"
+	if onlyThisAndNextYear {
+		query += " AND (special_date IS NULL OR YEAR(special_date) = YEAR(NOW()) OR YEAR(special_date) = YEAR(NOW()) + 1)"
+	}
+	rows, err := db.DB.Query(query)
 	if err != nil {
 		return []OpenHour{}, err
 	}
@@ -68,18 +72,16 @@ func (o *OpenHour) InsertNewOpenHour() error {
 	}
 	defer tx.Rollback()
 
-	_, err = tx.Exec("INSERT INTO open_hour (opens_at, closes_at, special_date) VALUES (?, ?, ?)", o.OpensAt, o.ClosesAt, o.SpecialDate)
+    res, err := tx.Exec("INSERT INTO open_hour (opens_at, closes_at, special_date) VALUES (?, ?, ?)", o.OpensAt, o.ClosesAt, o.SpecialDate)
 	if err != nil {
 		return err
 	}
 
-	id := 0
-	row := tx.QueryRow("SELECT id FROM open_hour ORDER BY id DESC LIMIT 1")
-	err = row.Scan(&id)
-	if err != nil {
-		return err
-	}
-	o.Id = id
+	id, err := res.LastInsertId()
+    if err != nil {
+        return err
+    }
+	o.Id = int(id)
 
 	err = insertWeekDaysForOpenHour(o.Id, o.WeekDayIds, tx)
 	if err != nil {
