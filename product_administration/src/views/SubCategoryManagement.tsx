@@ -3,22 +3,29 @@ import SubCategoryForm from '../components/forms/SubCategoryForm';
 import { subCategoryService } from '../services/subCategoryService';
 import { categoryService } from '../services/categoryService';
 import type { Category, SubCategory } from '../types/Types';
+import { useAuth, ROLES } from '../context/AuthContext';
+import AccessDenied from '../components/AccessDenied';
 
 export default function SubCategoryManagement() {
+  const { canWrite } = useAuth();
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [name, setName] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const hasAccess = canWrite('sub_category');
+
   useEffect(() => {
-    loadData();
-  }, []);
+    if (hasAccess) {
+      loadData();
+    }
+  }, [hasAccess]);
 
   const loadData = async () => {
     try {
@@ -77,6 +84,15 @@ export default function SubCategoryManagement() {
       setLoading(false);
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <AccessDenied
+        resource="sub_category"
+        requiredRoles={[ROLES.UZLETVEZETO, ROLES.RAKTARVEZETO]}
+      />
+    );
+  }
 
   return (
     <div className="flex justify-center items-start">

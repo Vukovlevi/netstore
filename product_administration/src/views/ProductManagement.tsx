@@ -13,8 +13,11 @@ import type {
   Product,
 } from "../types/Types";
 import { Search, PackageOpen } from "lucide-react";
+import { useAuth, ROLES } from "../context/AuthContext";
+import AccessDenied from "../components/AccessDenied";
 
 export default function ProductManagement() {
+  const { canWrite } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
@@ -41,9 +44,13 @@ export default function ProductManagement() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const hasAccess = canWrite("product");
+
   useEffect(() => {
-    loadData();
-  }, []);
+    if (hasAccess) {
+      loadData();
+    }
+  }, [hasAccess]);
 
   const loadData = async () => {
     let prods: Product[] = [];
@@ -248,6 +255,15 @@ export default function ProductManagement() {
   });
 
   const searchResults = searchTerm ? filteredProducts : [];
+
+  if (!hasAccess) {
+    return (
+      <AccessDenied
+        resource="product"
+        requiredRoles={[ROLES.UZLETVEZETO, ROLES.RAKTARVEZETO, ROLES.RAKTARKEZELO]}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col items-center justify-start gap-6 w-full relative">

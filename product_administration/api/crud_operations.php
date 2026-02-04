@@ -10,6 +10,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require './sql_functions.php';
 require './read_cookies.php';
+require './middleware/roles.php';
 require './crud/category.php';
 require './crud/sub_category.php';
 require './crud/product_type.php';
@@ -21,11 +22,24 @@ require './crud/search_product.php';
 $method = $_SERVER['REQUEST_METHOD'];
 $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $body = json_decode(file_get_contents('php://input'), true);
+$resource = end($uri);
 
-//$isAuth = authentication();
-//if(!$isAuth) return http_response_code(401);
+// Authentication check
+$isAuth = authentication();
+if (!$isAuth && $resource !== 'auth') {
+    http_response_code(401);
+    echo json_encode(['message' => 'Nincs bejelentkezve!'], JSON_UNESCAPED_UNICODE);
+    exit();
+}
 
-switch(end($uri)) {
+// Role-based access control for write operations
+if ($method !== 'GET' && $resource !== 'auth') {
+    if (!checkResourceAccess($resource, $method)) {
+        exit();
+    }
+}
+
+switch($resource) {
     case 'category':
         handleCategory($method, $body);
         break;
@@ -48,7 +62,12 @@ switch(end($uri)) {
         handleSearchProduct($method, $body);
         break;
     case 'auth':
-        return http_response_code(200);
+        http_response_code(200);
+        if ($isAuth) {
+            echo json_encode($_REQUEST['user'], JSON_UNESCAPED_UNICODE);
+        }
+        break;
     default:
+        http_response_code(404);
         break;
 }

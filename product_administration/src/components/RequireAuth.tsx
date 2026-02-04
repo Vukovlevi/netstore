@@ -1,45 +1,22 @@
-import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-const AUTH_API_PATH = './api/auth';
 const LOGIN_PATH = 'http://localhost:8000/login';
 
-const useAuthStatus = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch(AUTH_API_PATH);
-        console.log(res);
-        setIsAuthenticated(true);
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        setIsAuthenticated(true);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, []); 
-
-  return { isAuthenticated, isLoading };
-};
-
-interface RequireAuthProps {
-}
-
-export default function RequireAuth({}: RequireAuthProps) {
-  const { isAuthenticated, isLoading } = useAuthStatus();
+export default function RequireAuth() {
+  const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div>Loading...</div>; 
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-    return window.location.href=LOGIN_PATH;
+    window.location.href = LOGIN_PATH;
+    return null;
   }
 
   return <Outlet />;

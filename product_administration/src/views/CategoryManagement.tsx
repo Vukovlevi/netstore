@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import CategoryForm from '../components/forms/CategoryForm';
 import { categoryService } from '../services/categoryService';
 import type { Category } from '../types/Types';
+import { useAuth, ROLES } from '../context/AuthContext';
+import AccessDenied from '../components/AccessDenied';
 
 export default function CategoryManagement() {
+  const { canWrite } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [name, setName] = useState('');
@@ -11,9 +14,13 @@ export default function CategoryManagement() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const hasAccess = canWrite('category');
+
   useEffect(() => {
-    loadCategories();
-  }, []);
+    if (hasAccess) {
+      loadCategories();
+    }
+  }, [hasAccess]);
 
   const loadCategories = async () => {
     try {
@@ -64,6 +71,15 @@ export default function CategoryManagement() {
       setLoading(false);
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <AccessDenied
+        resource="category"
+        requiredRoles={[ROLES.UZLETVEZETO, ROLES.RAKTARVEZETO]}
+      />
+    );
+  }
 
   return (
     <div className="flex justify-center items-start">

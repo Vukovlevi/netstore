@@ -2,21 +2,28 @@ import React, { useState, useEffect } from 'react';
 import BrandForm from '../components/forms/BrandForm';
 import { brandService } from '../services/brandService';
 import type { Brand } from '../types/Types';
+import { useAuth, ROLES } from '../context/AuthContext';
+import AccessDenied from '../components/AccessDenied';
 
 export default function BrandManagement() {
+  const { canWrite } = useAuth();
   const [brands, setBrands] = useState<Brand[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [name, setName] = useState('');
   const [isOwn, setIsOwn] = useState(false);
   const [isTemporary, setIsTemporary] = useState(false);
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const hasAccess = canWrite('brand');
+
   useEffect(() => {
-    loadData();
-  }, []);
+    if (hasAccess) {
+      loadData();
+    }
+  }, [hasAccess]);
 
   const loadData = async () => {
     try {
@@ -71,6 +78,15 @@ export default function BrandManagement() {
       setLoading(false);
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <AccessDenied
+        resource="brand"
+        requiredRoles={[ROLES.UZLETVEZETO, ROLES.RAKTARVEZETO]}
+      />
+    );
+  }
 
   return (
     <div className="flex justify-center items-start">

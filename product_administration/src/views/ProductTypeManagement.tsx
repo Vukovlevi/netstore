@@ -5,27 +5,34 @@ import { categoryService } from '../services/categoryService';
 import { subCategoryService } from '../services/subCategoryService';
 import { storingConditionService } from '../services/storingConditionService';
 import type { Category, SubCategory, ProductType, StoringCondition } from '../types/Types';
+import { useAuth, ROLES } from '../context/AuthContext';
+import AccessDenied from '../components/AccessDenied';
 
 export default function ProductTypeManagement() {
+  const { canWrite } = useAuth();
   const [productTypes, setProductTypes] = useState<ProductType[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [storingConditions, setStoringConditions] = useState<StoringCondition[]>([]);
-  
+
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState<number | ''>('');
   const [subCategoryId, setSubCategoryId] = useState<number | ''>('');
   const [storingConditionId, setStoringConditionId] = useState<number | ''>('');
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const hasAccess = canWrite('product_type');
+
   useEffect(() => {
-    loadData();
-  }, []);
+    if (hasAccess) {
+      loadData();
+    }
+  }, [hasAccess]);
 
   const loadData = async () => {
     try {
@@ -105,6 +112,15 @@ export default function ProductTypeManagement() {
       setLoading(false);
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <AccessDenied
+        resource="product_type"
+        requiredRoles={[ROLES.UZLETVEZETO, ROLES.RAKTARVEZETO]}
+      />
+    );
+  }
 
   return (
     <div className="flex justify-center items-start">

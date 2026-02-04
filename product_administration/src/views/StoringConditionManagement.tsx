@@ -2,19 +2,26 @@ import React, { useState, useEffect } from 'react';
 import StoringConditionForm from '../components/forms/StoringConditionForm';
 import { storingConditionService } from '../services/storingConditionService';
 import type { StoringCondition } from '../types/Types';
+import { useAuth, ROLES } from '../context/AuthContext';
+import AccessDenied from '../components/AccessDenied';
 
 export default function StoringConditionManagement() {
+  const { canWrite } = useAuth();
   const [conditions, setConditions] = useState<StoringCondition[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [description, setDescription] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
+  const hasAccess = canWrite('storing_condition');
+
   useEffect(() => {
-    loadData();
-  }, []);
+    if (hasAccess) {
+      loadData();
+    }
+  }, [hasAccess]);
 
   const loadData = async () => {
     try {
@@ -65,6 +72,15 @@ export default function StoringConditionManagement() {
       setLoading(false);
     }
   };
+
+  if (!hasAccess) {
+    return (
+      <AccessDenied
+        resource="storing_condition"
+        requiredRoles={[ROLES.UZLETVEZETO, ROLES.RAKTARVEZETO]}
+      />
+    );
+  }
 
   return (
     <div className="flex justify-center items-start">
