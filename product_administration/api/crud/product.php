@@ -79,7 +79,7 @@ function handleProduct($method, $body) {
                 $warrantyDate = isset($body['warranty']) ? $sanitizeDate($body['warranty']) : null;
                 $expiresDate = isset($body['expires_at']) ? $sanitizeDate($body['expires_at']) : null;
 
-                $success = changeData("INSERT INTO product (name, description, amount, size, size_type, expires_at, price, discount, warranty, type_id, brand_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 'ssisssiisii', [
+                $success = changeData("INSERT INTO product (name, description, amount, size, size_type, expires_at, price, discount, warranty, type_id, brand_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 'ssisssidsii', [
                     $body['name'], 
                     $body['description'],
                     (int)$body['amount'],
@@ -87,7 +87,7 @@ function handleProduct($method, $body) {
                     $body['size_type'],
                     $expiresDate,
                     (int)$body['price'],
-                    (int)$body['discount'],
+                    (int)$body['discount']/100,
                     $warrantyDate,
                     (int)$body['type_id'], 
                     (int)$body['brand_id']
@@ -136,7 +136,7 @@ function handleProduct($method, $body) {
                 $warrantyDate = isset($body['warranty']) ? $sanitizeDate($body['warranty']) : null;
                 $expiresDate = isset($body['expires_at']) ? $sanitizeDate($body['expires_at']) : null;
 
-                $success = changeData("UPDATE product SET name = ?, description = ?, amount = ?, size = ?, size_type = ?, expires_at = ?, price = ?, discount = ?, warranty = ?, type_id = ?, brand_id = ? WHERE id = ?", 'ssisssiiisii', [
+                $success = changeData("UPDATE product SET name = ?, description = ?, amount = ?, size = ?, size_type = ?, expires_at = ?, price = ?, discount = ?, warranty = ?, type_id = ?, brand_id = ? WHERE id = ?", 'ssisssidisii', [
                     $body['name'], 
                     $body['description'],
                     (int)$body['amount'],
@@ -144,7 +144,7 @@ function handleProduct($method, $body) {
                     $body['size_type'],
                     $expiresDate,
                     (int)$body['price'],
-                    (int)$body['discount'],
+                    (int)$body['discount']/100,
                     $warrantyDate,
                     (int)$body['type_id'], 
                     (int)$body['brand_id'], 

@@ -26,6 +26,12 @@ function handleSearchProduct($method, $body) {
                 $params[] = "%" . $_GET['name'] . "%";
             }
 
+            if (!empty($_GET['description'])) {
+                $baseSql .= " AND p.description LIKE ?";
+                $types .= "s";
+                $params[] = "%" . $_GET['description'] . "%";
+            }
+
             if (!empty($_GET['category_id'])) {
                 $baseSql .= " AND c.id = ?";
                 $types .= "i";
@@ -100,13 +106,6 @@ function handleSearchProduct($method, $body) {
 
             if (isset($_GET['show_expired']) && $_GET['show_expired'] === 'true') {
                 $baseSql .= " AND p.expires_at IS NOT NULL AND p.expires_at < CURDATE()";
-            }
-
-            if (!empty($_GET['other_properties'])) {
-                $baseSql .= " AND (p.description LIKE ? OR p.other_properties LIKE ?)";
-                $types .= "ss";
-                $params[] = "%" . $_GET['other_properties'] . "%";
-                $params[] = "%" . $_GET['other_properties'] . "%";
             }
 
             $countSql = "SELECT COUNT(*) as total " . $baseSql;

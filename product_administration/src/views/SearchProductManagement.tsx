@@ -111,7 +111,7 @@ export default function SearchProductManagement() {
       size_type: "",
       price_min: undefined,
       price_max: undefined,
-      other_properties: "",
+      description: "",
     });
     setResults([]);
     setTotal(0);

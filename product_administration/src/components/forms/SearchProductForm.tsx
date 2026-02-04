@@ -502,16 +502,16 @@ export default function SearchProductForm({
 
               <div className="md:col-span-2">
                 <label className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">
-                  Egyéb tulajdonságok / leírás keresés
+                  Leírás keresés
                 </label>
                 <input
                   type="text"
                   className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3"
-                  value={filters.other_properties || ""}
+                  value={filters.description || ""}
                   onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, other_properties: e.target.value }))
+                    setFilters((prev) => ({ ...prev, description: e.target.value }))
                   }
-                  placeholder="Keresés a leírásban vagy egyéb tulajdonságokban..."
+                  placeholder="Keresés a termék leírásában..."
                 />
               </div>
             </div>

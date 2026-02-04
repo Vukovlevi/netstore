@@ -4,6 +4,7 @@ const API_URL = "./api/search_product";
 
 export interface SearchFilters {
   name?: string;
+  description?: string;
   category_id?: number;
   sub_category_id?: number;
   type_id?: number;
@@ -22,7 +23,6 @@ export interface SearchFilters {
 
   has_warranty: boolean;
   is_discounted: boolean;
-  other_properties?: string;
 
   page: number;
 }
@@ -40,6 +40,10 @@ export const searchService = {
 
     if (filters.name && filters.name.trim() !== "") {
       params.append("name", filters.name.trim());
+    }
+
+    if (filters.description && filters.description.trim() !== "") {
+      params.append("description", filters.description.trim());
     }
 
     if (filters.category_id !== undefined && filters.category_id !== 0) {
@@ -94,10 +98,6 @@ export const searchService = {
 
     if (filters.is_discounted) {
       params.append("is_discounted", "true");
-    }
-
-    if (filters.other_properties && filters.other_properties.trim() !== "") {
-      params.append("other_properties", filters.other_properties.trim());
     }
 
     params.append("page", filters.page.toString());

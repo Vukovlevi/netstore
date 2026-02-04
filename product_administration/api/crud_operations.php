@@ -24,7 +24,6 @@ $uri = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $body = json_decode(file_get_contents('php://input'), true);
 $resource = end($uri);
 
-// Authentication check
 $isAuth = authentication();
 if (!$isAuth && $resource !== 'auth') {
     http_response_code(401);
@@ -32,7 +31,6 @@ if (!$isAuth && $resource !== 'auth') {
     exit();
 }
 
-// Role-based access control for write operations
 if ($method !== 'GET' && $resource !== 'auth') {
     if (!checkResourceAccess($resource, $method)) {
         exit();
