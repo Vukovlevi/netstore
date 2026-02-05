@@ -10,7 +10,7 @@ import (
 )
 
 type ConnectInfo struct {
-	Ip string `json:"ip_address"`
+	Ip string `json:"ipAddress"`
 	Port string `json:"port"`
 	Psk string `json:"psk"`
 }
