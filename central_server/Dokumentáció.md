@@ -11,6 +11,14 @@ A központi szerver feladata, hogy képes legyen fogadni a hozzá csatlakozó kl
 3. joho/godotenv könyvtár
 4. TCP alapú kommunikációs protokoll (lásd: Protokoll.md)
 
+## A szerver működésének leírása
+
+Ez a leírás a teljes adatfolyam útját, és kezelésének módját a leírja. A pontos részletek ennek megvalósításáról később szerepelnek.
+
+Induláskor létrejön a szerver, amihez tartozik egy request queue, ami a keresési kéréseket kezeli. A szerver elkezd hallgatni TCP kapcsolatokra a konfiguráció alapján. Minden beérkező kapcsolatot egy külön szálon elkezd kezelni (hallgat és küld üzeneteket). Az első üzenetváltás egy authentikáció kell legyen (a prokollban meghatározott módon). Sikeres authentikáció esetén a szerver értesül a kapcsolat hitelesítéséről, és beveszi a hálózat részét képző kapcsolatok listájába (ami egy map). Egy beérkező keresési kérést a kapcsolat eljuttatja a queue-nak, ami behelyezi a sorba, és amint lehet elindítja a feldolgozását. A feldolgozást a szerver végzi. Minden a hálózat részét képző kliensnek elküldi a kérést. A válaszokra csak egy időzítő erejéig vár, ha addig beérkezik az összes válasz, továbbítja azokat, ha az időzítő lejár, az addig beérkezett válaszokat továbbítja. A beérkezett válaszokból aztán egy összesített választ hoz létre, amit visszaküld a kérdezőnek. Egy kapcsolat zárásakor, ha az authentikált volt, a szerver értesül róla, és kiveszi a nyilvántartásából.
+
+Külön szálon futnak az egyes kapcsolatok üzeneteire hallgató loopok, a queue-ba teendő keresési kérésekre hallgató loop, a kapcsolat saját keresési kérésére összesített választ váró kód, a keresési kérés feldolgozása. Ezek egymás között beépített csatornákkal kommunikálnak, a több szál által is használt erőforrások használatát pedig mutexek védik.
+
 ## Packagek
 
 ### Config
@@ -216,3 +224,25 @@ Három konstans található a fájlban, amik hibaüzeneteket tartalmaznak.
 ##### A connection függvényei
 
 1. CreateConnection(net.Conn, chan *SearchRequestNode, chan *Connection): \*Connection függvény: átvesz egy beépített mögöttes TCP kapcsolatot, a csatornát, amin keresztül értesíteni tudja a queuet egy új keresési kérésről, valamint a csatornát, amin keresztül a szerver fele kommunikálhatja a státuszát (authentikált ezért használható a hálózat részeként, vagy bezárt ezért törlendő onnan -> kezelt kapcsolatok mapja), ezek alapján a többi paraméter inicializálásával létrehoz egy Connection struktúrát, amihez visszaadja a pointert
+
+#### Server
+
+##### Konstansok
+
+- TIMEOUT_IN_SECONDS = 3: ennyi másodpercig vár a szerver egy kliensek számára kiküldött keresési kérés válaszainak beérkezésére, ha lejár, akkor az addig beérkezett válaszokat összesíti és elkezdi a következő keresési kérés feldolgozását
+
+##### A szerver struktúrái
+
+1. Server
+   - Listener: net.Listener (a beépített listener, amin hallgatni tud a beérkező TCP kapcsolatokra a szerver)
+   - Connections: map[string]\*Connection (a kezelt kapcsolatokat tartalmazza, csak authentikált kapcsolatok kerülnek ide)
+   - ConnChan: chan \*Connection (ezen a csatornán hallgatja az authentikált kapcsolatokat, hogy berakja őket a mapba, vagy amennyiben már bent vannak, kiveszi őket, mert ezen esetben a kapcsolat bezárulása miatt érkezik az üzenet)
+   - SearchRequestQueue \*queue.SearchRequestQueue (a szerverhez tartozó queue, ami a keresési kéréseket kezeli)
+   - mutex: \*sync.Mutex (a szerverhez tartozó mutex, ami a több szálról is használt erőforrásokat védi)
+
+   - Start() függvény: elindítja a kezelt kapcsolatokat karbantartó loopot (HandleConnections() függvény segítségével), elindítja a szerverhez tartozó queue kérés fogadását (queue.HandleSearchRequest() függvény segítségével), valamint elindít egy loopot, ami fogadja a TCP kapcsolatokat, Connection struktúrát csinál belőlük, és elindítja annak önálló kezelését, blokkolja a futást
+   - HandleConnections() függvény: egy futást blokkoló loopban hallgatja az authentikált vagy bezárt kapcsolatokat a ConnChan-ről érkezve, és kezeli annak megfelelően a mapot
+   - ProcessSearchRequest(\*SearchRequestNode) függvény: ez a callback függvény, amit a queue meghív, hogy elindítsa a keresési kérés feldolgozását -> létrehozza a ClientSearchRequest üzenetet, amit broadcastol (BroadCastSearchMessage() függvény), megvárja az eredmények beérkezését és a ClientAnswer küldését, majd jelzi a queue-nak hogy a feldolgozás befejeződött (FinishProcess() függvény)
+   - BroadCastMessage(\*ClientSearchMessage, chan []byte) függvény: átveszi a ClientSearchMessage üzenetet, illetve a csatornát, ahova az összesített válaszból előállított byte tömböt küldeni kell (erre hallgat a Connection struktúra WaitForAnswer() függvénye), thread-safe módon kiküldi a keresési kérést a klienseknek, majd elindítja a válaszra várási folyamatot (ListenForAnswers() függvény)
+   - ListenForAnswers(chan *AnswerMessage, chan []byte, *sync.WaitGrouo) függvény: átveszi a csatornát, amire az egyek kapcsolatokat a saját egyéni válaszukat küldik, a csatornát, ahova az összesített válaszból előállított byte tömböt küldeni kell (erre hallgat a Connection WaitForAnswers() függvénye), valamint a waitgroupot, ami tartalmazza, hogy hány kiküldött üzenet volt (ennyi választ várunk a timeout előtt), elindít egy TIMEOUT_IN_SECONDS hosszúságú időzítőt, és amíg az tart, addig hallgatja a válaszokat, ha beérkezett az összes válasz, elküldi azt a kérdezőnek (CreateAndSendClientAnswer() függvény), ha az időzítő lejár, ugyanezt teszi az addig beérkezett üzenetekkel
+   - CreateAndSendClientAnswer([]\*AnswerMessage, chan []byte) függvény: átveszi az összes beérkezett egyéni választ tömbként, valamint a csatornát, ahova az összesített válaszokból előállított byte tömb küldendő, előállítja a JSON objektumot az összesített válaszokból, byte tömbbé alakítja az eredményt, létrehoz egy ClientAnswerMessage üzenetet, majd annak a byte-jait elküldi a csatornába, amire a kérdező Connection hallgat (majd a Connection továbbítja az üzenetet, ami lehet egy hibaüzenet is, ha nem sikerült az összesített választ előállítani)
