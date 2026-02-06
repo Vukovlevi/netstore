@@ -8,6 +8,9 @@ const password = reactive({
   oldPassword: "",
   newPassword: "",
   newConfirm: "",
+  showOldPassword: false,
+  showNewPassword: false,
+  showNewConfirm: false,
 });
 const feedback: Ref<TFeedback | null, TFeedback | null> = ref(null);
 
@@ -100,15 +103,68 @@ async function changePassword() {
         >
           Jelenlegi jelszó*
         </label>
-        <div class="mt-1">
+        <div class="relative">
           <input
-            id="current_password"
-            type="password"
-            placeholder="Adja meg jelenlegi jelszavát"
-            v-model="password.oldPassword"
-            class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
+            class="mt-1 block w-full px-4 py-3 pr-12 bg-input-light dark:bg-input-dark border border-border-light dark:border-border-dark rounded-lg placeholder-placeholder-light dark:placeholder-placeholder-dark focus:ring-primary focus:border-primary"
+            id="password"
+            name="password"
+            placeholder="Adja meg jelszavát"
             required
+            :type="password.showOldPassword ? 'text' : 'password'"
+            v-model="password.oldPassword"
           />
+
+          <button
+            type="button"
+            @click="password.showOldPassword = !password.showOldPassword"
+            class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            <!-- Eye (hidden) -->
+            <svg
+              v-if="!password.showOldPassword"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+
+            <!-- Eye (visible) -->
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.368M6.223 6.223A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.043 5.132M15 12a3 3 0 00-3-3"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3l18 18"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -119,15 +175,68 @@ async function changePassword() {
         >
           Új jelszó*
         </label>
-        <div class="mt-1">
+        <div class="relative">
           <input
-            id="new_password"
-            type="password"
-            placeholder="Adja meg az új jelszót"
-            v-model="password.newPassword"
-            class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
+            class="mt-1 block w-full px-4 py-3 pr-12 bg-input-light dark:bg-input-dark border border-border-light dark:border-border-dark rounded-lg placeholder-placeholder-light dark:placeholder-placeholder-dark focus:ring-primary focus:border-primary"
+            id="password"
+            name="password"
+            placeholder="Adja meg jelszavát"
             required
+            :type="password.showNewPassword ? 'text' : 'password'"
+            v-model="password.newPassword"
           />
+
+          <button
+            type="button"
+            @click="password.showNewPassword = !password.showNewPassword"
+            class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            <!-- Eye (hidden) -->
+            <svg
+              v-if="!password.showNewPassword"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+
+            <!-- Eye (visible) -->
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.368M6.223 6.223A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.043 5.132M15 12a3 3 0 00-3-3"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3l18 18"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -138,15 +247,68 @@ async function changePassword() {
         >
           Új jelszó megerősítése*
         </label>
-        <div class="mt-1">
+        <div class="relative">
           <input
-            id="confirm_password"
-            type="password"
-            placeholder="Erősítse meg az új jelszót"
-            v-model="password.newConfirm"
-            class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400 dark:focus:border-primary dark:focus:ring-primary"
+            class="mt-1 block w-full px-4 py-3 pr-12 bg-input-light dark:bg-input-dark border border-border-light dark:border-border-dark rounded-lg placeholder-placeholder-light dark:placeholder-placeholder-dark focus:ring-primary focus:border-primary"
+            id="password"
+            name="password"
+            placeholder="Adja meg jelszavát"
             required
+            :type="password.showNewConfirm ? 'text' : 'password'"
+            v-model="password.newConfirm"
           />
+
+          <button
+            type="button"
+            @click="password.showNewConfirm = !password.showNewConfirm"
+            class="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            <!-- Eye (hidden) -->
+            <svg
+              v-if="!password.showNewConfirm"
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
+            </svg>
+
+            <!-- Eye (visible) -->
+            <svg
+              v-else
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.368M6.223 6.223A9.956 9.956 0 0112 5c4.478 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.043 5.132M15 12a3 3 0 00-3-3"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M3 3l18 18"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 

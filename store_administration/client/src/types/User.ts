@@ -23,6 +23,8 @@ class UserClass {
   username = ref("");
   password = ref("");
   passwordConfirm = ref("");
+  showPassword = ref(false);
+  showConfirmPassword = ref(false);
   passwordChanged = ref(false);
   phoneNumber = ref("");
   email = ref("");
