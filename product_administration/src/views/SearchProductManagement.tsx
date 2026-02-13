@@ -158,12 +158,12 @@ export default function SearchProductManagement() {
                 <table className="w-full text-sm text-left text-gray-500">
                   <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3">Név</th>
-                      <th className="px-6 py-3">Márka</th>
-                      <th className="px-6 py-3">Kategória</th>
-                      <th className="px-6 py-3">Típus</th>
-                      <th className="px-6 py-3 text-right">Ár</th>
-                      <th className="px-6 py-3 text-right">Mennyiség</th>
+                      <th className="px-3 py-2 md:px-6 md:py-3">Név</th>
+                      <th className="px-3 py-2 md:px-6 md:py-3">Márka</th>
+                      <th className="hidden md:table-cell px-6 py-3">Kategória</th>
+                      <th className="hidden md:table-cell px-6 py-3">Típus</th>
+                      <th className="px-3 py-2 md:px-6 md:py-3 text-right">Ár</th>
+                      <th className="hidden md:table-cell px-6 py-3 text-right">Mennyiség</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -176,15 +176,15 @@ export default function SearchProductManagement() {
                         }}
                         className="bg-white border-b hover:bg-blue-50 cursor-pointer transition-colors"
                       >
-                        <td className="px-6 py-4 font-medium text-gray-900">
+                        <td className="px-3 py-3 md:px-6 md:py-4 font-medium text-gray-900">
                           {product.name}
                         </td>
-                        <td className="px-6 py-4">{product.brand_name}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-3 py-3 md:px-6 md:py-4">{product.brand_name}</td>
+                        <td className="hidden md:table-cell px-6 py-4">
                           {product.category_name} / {product.sub_category_name}
                         </td>
-                        <td className="px-6 py-4">{product.type_name}</td>
-                        <td className="px-6 py-4 text-right font-bold text-slate-700">
+                        <td className="hidden md:table-cell px-6 py-4">{product.type_name}</td>
+                        <td className="px-3 py-3 md:px-6 md:py-4 text-right font-bold text-slate-700">
                           {product.discount > 0 && (
                             <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2 py-0.5 rounded mx-1">
                               -{Math.round(product.discount * 100)}%
@@ -192,7 +192,7 @@ export default function SearchProductManagement() {
                           )}
                           {product.price} Ft
                         </td>
-                        <td className="px-6 py-4 text-right">
+                        <td className="hidden md:table-cell px-6 py-4 text-right">
                           {product.amount} db ({product.size} {product.size_type})
                         </td>
                       </tr>

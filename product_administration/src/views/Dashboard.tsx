@@ -45,7 +45,7 @@ export default function Dashboard() {
         <p className="text-gray-500">Üdvözöljük az adminisztrációs felületen.</p>
       </div>
 
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg">
+      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 md:p-6 text-white shadow-lg">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
             <svg
@@ -71,7 +71,7 @@ export default function Dashboard() {
             <Link
               key={link.to}
               to={link.to}
-              className="flex flex-col items-center gap-3 p-6 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all group"
+              className="flex flex-col items-center gap-3 p-4 md:p-6 bg-white rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all group"
             >
               <div className="p-3 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors">
                 <link.icon className="w-6 h-6 text-gray-500 group-hover:text-blue-600 transition-colors" />

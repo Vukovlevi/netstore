@@ -169,7 +169,7 @@ export default function ProductForm({
     : [];
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-3xl">
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 md:p-8 w-full max-w-3xl">
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
@@ -211,7 +211,7 @@ export default function ProductForm({
             </select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
                 Főkategória
@@ -328,7 +328,7 @@ export default function ProductForm({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
                 Lejárat
@@ -354,7 +354,7 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
                 Mennyiség
@@ -381,7 +381,7 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
                 Kiszerelés Típusa
@@ -408,7 +408,7 @@ export default function ProductForm({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
                 Garancia Lejárata
@@ -439,13 +439,13 @@ export default function ProductForm({
         {error && <FeedbackMessage type="error" message={error} />}
         {successMsg && <FeedbackMessage type="success" message={successMsg} />}
 
-        <div className="flex items-center justify-end gap-4 pt-6 mt-2 border-t border-gray-50">
+        <div className="flex flex-col-reverse md:flex-row items-center justify-end gap-3 md:gap-4 pt-6 mt-2 border-t border-gray-50">
           {selectedId && (
             <button
               type="button"
               onClick={handleDelete}
               disabled={loading}
-              className="px-5 py-2.5 text-sm font-bold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-100"
+              className="w-full md:w-auto px-5 py-2.5 text-sm font-bold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors focus:outline-none focus:ring-2 focus:ring-red-100"
             >
               Törlés
             </button>
@@ -465,7 +465,7 @@ export default function ProductForm({
               !typeId ||
               !brandId
             }
-            className="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full md:w-auto px-6 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Mentés..." : selectedId ? "Módosítás" : "Létrehozás"}
           </button>

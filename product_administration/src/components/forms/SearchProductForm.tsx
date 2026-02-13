@@ -155,7 +155,7 @@ export default function SearchProductForm({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+      <div className="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="text-2xl font-bold text-slate-900">Komplex szűrés</h1>
         </div>
@@ -200,7 +200,7 @@ export default function SearchProductForm({
         </button>
       </div>
 
-      <form onSubmit={handleSearch} className="p-6">
+      <form onSubmit={handleSearch} className="p-4 md:p-6">
         {activeTab === "relations" && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
