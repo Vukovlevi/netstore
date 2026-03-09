@@ -139,7 +139,7 @@ func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
 }
 
 func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
-    url := "http://localhost:8000/api/search_product"
+    url := "http://localhost/api/search_product"
     var data any
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(searchData))
