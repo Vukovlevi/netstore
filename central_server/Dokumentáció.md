@@ -11,6 +11,14 @@ A központi szerver feladata, hogy képes legyen fogadni a hozzá csatlakozó kl
 3. joho/godotenv könyvtár
 4. TCP alapú kommunikációs protokoll (lásd: Protokoll.md)
 
+## A szerver működésének leírása
+
+Ez a leírás a teljes adatfolyam útját, és kezelésének módját a leírja. A pontos részletek ennek megvalósításáról később szerepelnek.
+
+Induláskor létrejön a szerver, amihez tartozik egy request queue, ami a keresési kéréseket kezeli. A szerver elkezd hallgatni TCP kapcsolatokra a konfiguráció alapján. Minden beérkező kapcsolatot egy külön szálon elkezd kezelni (hallgat és küld üzeneteket). Az első üzenetváltás egy authentikáció kell legyen (a prokollban meghatározott módon). Sikeres authentikáció esetén a szerver értesül a kapcsolat hitelesítéséről, és beveszi a hálózat részét képző kapcsolatok listájába (ami egy map). Egy beérkező keresési kérést a kapcsolat eljuttatja a queue-nak, ami behelyezi a sorba, és amint lehet elindítja a feldolgozását. A feldolgozást a szerver végzi. Minden a hálózat részét képző kliensnek elküldi a kérést. A válaszokra csak egy időzítő erejéig vár, ha addig beérkezik az összes válasz, továbbítja azokat, ha az időzítő lejár, az addig beérkezett válaszokat továbbítja. A beérkezett válaszokból aztán egy összesített választ hoz létre, amit visszaküld a kérdezőnek. Egy kapcsolat zárásakor, ha az authentikált volt, a szerver értesül róla, és kiveszi a nyilvántartásából.
+
+Külön szálon futnak az egyes kapcsolatok üzeneteire hallgató loopok, a queue-ba teendő keresési kérésekre hallgató loop, a kapcsolat saját keresési kérésére összesített választ váró kód, a keresési kérés feldolgozása. Ezek egymás között beépített csatornákkal kommunikálnak, a több szál által is használt erőforrások használatát pedig mutexek védik.
+
 ## Packagek
 
 ### Config
@@ -180,3 +188,61 @@ Ez a package felelős a TCP kapcsolatok kezeléséért, valamint a kommunikáci�
 4. CreateErrorMessage(string): \*ErrorMessage függvény: paraméterként átveszi a hibaüzenetet, majd létrehoz egy struktúrát az adatokkal, és visszaadja hozzá a pointert
 
 5. CreateAuthenticationSuccessMessage(): \*AuthenticationSuccessMessage függvény: visszaad egy pointert egy sikeres authentikációt jelző üzenethez
+
+#### Connection
+
+##### Konstansok
+
+Három konstans található a fájlban, amik hibaüzeneteket tartalmaznak.
+
+##### A connection struktúrái
+
+1. Connection
+   - Id: uuid.UUID (a kapcsolat egyedi azonosítója, a kapcsolat létrehozásakor jön létre)
+   - Conn: net.Conn (a kapcsolat mögött álló beépített TCP kapcsolat)
+   - SearchRequestChan: chan \*queue.SearchRequestNode (a csatorna, ahova a beérkező keresési kéréseket el kell küldenie a kapcsolatnak, hogy a queue fogadja és feldolgozza)
+   - AnswerChan: chan \*AnswerMessage (a csatorna, ahova kiküldött keresési kérésre érkező válaszokat kell küldeni, hogy a szerver összegyűjthesse)
+   - CurrentAnswerId: string (a jelenleg kiküldött keresési kérés egyedi azonosítója, azért kell, hogy ne kerülhessen másik keresési kérésre adott válasz a szerver által jelenleg várthoz)
+   - IsAuthenticated: bool (mutatja, hogy az adott kapcsolat authentikált-e, ha nem, akkor csak authentikációs üzenet fogadható tőle)
+   - ConnChan: chan \*Connection (a csatorna, ahova a kapcsolat a saját pointerét küldi, ha authentikált vagy bezárult, hogy értesítse ezen eseményekről a szervert, ami ezáltal módosítja a kezelt kapcsolatok mapját)
+   - ReturnError: error (a hiba, ami miatt a kapcsolat read loopja megszakadt, logoláshoz kell)
+   - mutex: \*sync.Mutex (egy mutex, ami biztosítja, hogy a több szálról is kezelt erőforrások ne okozzanak problémát)
+
+   - ReadLoop() függvény: a ReadHeader() függvény és a ReadPayload() függvény segítségével olvas üzenetet, saját hiba esetén folytatja az olvasást és kezeli azt a protokollban meghatározott módon, network hiba esetén zárja a kapcsolatot (külön szálon futtatandó, mert blokkolja a futást, amíg egy üzenetre vár)
+   - ReadHeader(): (\*TcpHeader, error, error) függvény: vár egy üzenetre a klienstől, majd kiolvas belőle egy protokoll által meghatározott fejlécet, visszaadja a fejléc struktúra pointerét ha van, egy saját errort (ami protokolltól való eltérést jelent), és egy network errort (ami egy beépített hiba, ha pl.: bezáródik a TCP kapcsolat)
+   - ReadPayload(uint32): \*TcpMessage függvény: megkapja a várt payload hosszát, majd annyi adatot olvas ki, amiből csinál egy TcpMessage struktúrát, amihez a pointert visszaadja, ha hibát észlel (pl.: nem EOF az utolsó byte -> nem megfelelő message length, azaz hibás message), akkor nilt ad vissza
+   - HandleMessage(\*TcpMessage) függvény: megkap egy általános TcpMessage struktúrát, majd a MessageType alapján meghívja a megfelelő függvényt az üzenet kezeléséhez
+   - Authenticate(\*AuthenticationMessage) függvény: átvesz egy authentication üzenetet, majd elvégzi az authentikációt, ha sikeres, jelzi a szervernek az új kapcsolat felvételét a kapcsolatok mapba (ConnChan segítségével) és visszaküld egy sikeres authentikáció üzenetet, ha nem sikerül az authentikáció, akkor ennek megfelelő hibaüzenetet küld
+   - EnqueueSearch(\*SearchMessage) függvény: átvesz egy SearchMessage-t, amiből csinál egy SearchRequestNode-ot, amit a SearchRequestChan segítségével elküld a queuenak feldolgozásra, valamint egy új szálon elindítja a várakozást a keresés válaszára a WaitForAnswer() függvény segítségével
+   - WaitForAnswer(chan []byte) függvény: átvesz egy csatornát, amin egy keresésre érkezett teljes válaszának byte-jai érkeznek, amikor ez megtörténik, elküldi azt a kliensnek (külön szálon futtatandó, mert a teljes válasz megérkezéséig blokkolja a futást)
+   - GiveAnswer(\*AnswerMessage) függvény: átvesz egy AnswerMessage struktúrát, amit az AnswerChan-be küld, hogy eljuttasa ezen kliens válaszát a szervernek, amennyiben a kapott válasz azonosítója megegyezik a jelenleg futó kérés azonosítójával (CurrentAnswerId), ha nem, akkor eldobja az üzenetet, ezt thread-safe módon teszi
+   - SendErrorMessage(string): error függvény: átvesz egy hibaüzenetet, létrehoz belőle egy struktúrát, majd a SendMessage() függvény segítségével elküldi azt a kliensnek, visszaadja a közben felmerülő hibákat
+   - SendMessage(Message): error függvény: átvesz egy Message interfészt implementáló struktúrát, majd a write() függvény segítségével elküldi a kliensnek, visszaadja a közben felmerülő hibákat
+   - write([]byte): error függvény: átvesz egy byte tömböt, amit a mögöttes kapcsolaton elküld a kliensnek, visszaadja a közben felmerülő hibákat
+   - SendClientSearch(\*ClientSearchMessage): error függvény: átvesz egy kliensnek szánt keresési kérés üzenetet, beállítja thread-safe módon a kapcsolat AnswerChan-jét és CurrentAnswerId-ját, valamint elküldi a kliensnek az üzenetet a SendMessage() függvény segítségével
+
+##### A connection függvényei
+
+1. CreateConnection(net.Conn, chan *SearchRequestNode, chan *Connection): \*Connection függvény: átvesz egy beépített mögöttes TCP kapcsolatot, a csatornát, amin keresztül értesíteni tudja a queuet egy új keresési kérésről, valamint a csatornát, amin keresztül a szerver fele kommunikálhatja a státuszát (authentikált ezért használható a hálózat részeként, vagy bezárt ezért törlendő onnan -> kezelt kapcsolatok mapja), ezek alapján a többi paraméter inicializálásával létrehoz egy Connection struktúrát, amihez visszaadja a pointert
+
+#### Server
+
+##### Konstansok
+
+- TIMEOUT_IN_SECONDS = 3: ennyi másodpercig vár a szerver egy kliensek számára kiküldött keresési kérés válaszainak beérkezésére, ha lejár, akkor az addig beérkezett válaszokat összesíti és elkezdi a következő keresési kérés feldolgozását
+
+##### A szerver struktúrái
+
+1. Server
+   - Listener: net.Listener (a beépített listener, amin hallgatni tud a beérkező TCP kapcsolatokra a szerver)
+   - Connections: map[string]\*Connection (a kezelt kapcsolatokat tartalmazza, csak authentikált kapcsolatok kerülnek ide)
+   - ConnChan: chan \*Connection (ezen a csatornán hallgatja az authentikált kapcsolatokat, hogy berakja őket a mapba, vagy amennyiben már bent vannak, kiveszi őket, mert ezen esetben a kapcsolat bezárulása miatt érkezik az üzenet)
+   - SearchRequestQueue \*queue.SearchRequestQueue (a szerverhez tartozó queue, ami a keresési kéréseket kezeli)
+   - mutex: \*sync.Mutex (a szerverhez tartozó mutex, ami a több szálról is használt erőforrásokat védi)
+
+   - Start() függvény: elindítja a kezelt kapcsolatokat karbantartó loopot (HandleConnections() függvény segítségével), elindítja a szerverhez tartozó queue kérés fogadását (queue.HandleSearchRequest() függvény segítségével), valamint elindít egy loopot, ami fogadja a TCP kapcsolatokat, Connection struktúrát csinál belőlük, és elindítja annak önálló kezelését, blokkolja a futást
+   - HandleConnections() függvény: egy futást blokkoló loopban hallgatja az authentikált vagy bezárt kapcsolatokat a ConnChan-ről érkezve, és kezeli annak megfelelően a mapot
+   - ProcessSearchRequest(\*SearchRequestNode) függvény: ez a callback függvény, amit a queue meghív, hogy elindítsa a keresési kérés feldolgozását -> létrehozza a ClientSearchRequest üzenetet, amit broadcastol (BroadCastSearchMessage() függvény), megvárja az eredmények beérkezését és a ClientAnswer küldését, majd jelzi a queue-nak hogy a feldolgozás befejeződött (FinishProcess() függvény)
+   - BroadCastMessage(\*ClientSearchMessage, chan []byte) függvény: átveszi a ClientSearchMessage üzenetet, illetve a csatornát, ahova az összesített válaszból előállított byte tömböt küldeni kell (erre hallgat a Connection struktúra WaitForAnswer() függvénye), thread-safe módon kiküldi a keresési kérést a klienseknek, majd elindítja a válaszra várási folyamatot (ListenForAnswers() függvény)
+   - ListenForAnswers(chan *AnswerMessage, chan []byte, *sync.WaitGrouo) függvény: átveszi a csatornát, amire az egyek kapcsolatokat a saját egyéni válaszukat küldik, a csatornát, ahova az összesített válaszból előállított byte tömböt küldeni kell (erre hallgat a Connection WaitForAnswers() függvénye), valamint a waitgroupot, ami tartalmazza, hogy hány kiküldött üzenet volt (ennyi választ várunk a timeout előtt), elindít egy TIMEOUT_IN_SECONDS hosszúságú időzítőt, és amíg az tart, addig hallgatja a válaszokat, ha beérkezett az összes válasz, elküldi azt a kérdezőnek (CreateAndSendClientAnswer() függvény), ha az időzítő lejár, ugyanezt teszi az addig beérkezett üzenetekkel
+   - CreateAndSendClientAnswer([]\*AnswerMessage, chan []byte) függvény: átveszi az összes beérkezett egyéni választ tömbként, valamint a csatornát, ahova az összesített válaszokból előállított byte tömb küldendő, előállítja a JSON objektumot az összesített válaszokból, byte tömbbé alakítja az eredményt, létrehoz egy ClientAnswerMessage üzenetet, majd annak a byte-jait elküldi a csatornába, amire a kérdező Connection hallgat (majd a Connection továbbítja az üzenetet, ami lehet egy hibaüzenet is, ha nem sikerült az összesített választ előállítani)
