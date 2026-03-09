@@ -155,6 +155,7 @@ func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+    slog.Debug("got response from prod admin", "resp", resp.Status)
 	if err != nil {
         return data, err
 	}
