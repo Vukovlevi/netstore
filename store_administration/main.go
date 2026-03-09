@@ -74,7 +74,7 @@ func main() {
 
     apiStoreLeaderGroup.GET("/connect", route.HandleGetConnect)
     apiStoreLeaderGroup.POST("/connect", route.HandlePostConnect)
-    apiAuthGroup.POST("/network-search", route.HandlePostNetworkSearch)
+    apiGroup.POST("/network-search", route.HandlePostNetworkSearch)
 
     apiStoreLeaderOrHRGroup.GET("/contract", route.HandleGetContractByUserId)
     apiStoreLeaderOrHRGroup.POST("/contract", route.HandlePostContract)
