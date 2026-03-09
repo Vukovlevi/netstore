@@ -1,10 +1,12 @@
 package network
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"net/http"
 	"sync"
 	"time"
 
@@ -21,6 +23,7 @@ const (
 type NetworkManager struct {
 	Connection *Connection
 	Status int
+    psk string
 	mutex *sync.RWMutex
 }
 
@@ -39,6 +42,7 @@ var (
 // Returns human-readable error
 func NewNetworkManager(ip, port, psk string) error {
 	Manager = &NetworkManager{Status: STATUS_NOT_CONNECTED, mutex: new(sync.RWMutex)}
+    Manager.psk = psk
 	conn, err := ConnectToCentralServer(ip, port)
 	if err != nil {
 		slog.Error("could not connect to central server", "error", err)
@@ -120,16 +124,47 @@ func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
 	storeDetail.StoreTypeId = 0
 	searchResult.StoreDetail = storeDetail
 
-	//TODO: external api call here
-	if err = json.Unmarshal(searchParam, &searchResult.Products); err != nil {
-		return errBytes, err
-	}
+    data, err := n.CallApi(searchParam)
+    if err != nil {
+        return errBytes, err
+    }
+
+    searchResult.Products = data
 
 	searchResultBytes, err := json.Marshal(searchResult)
 	if err != nil {
 		return errBytes, err
 	}
 	return searchResultBytes, nil
+}
+
+func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
+    url := "http://localhost:8000/api/search_product"
+    var data any
+
+	req, err := http.NewRequest("GET", url, bytes.NewReader(searchData))
+	if err != nil {
+        return data, err
+	}
+
+	cookie := &http.Cookie{
+		Name:  "auth_token",
+        Value: n.psk,
+	}
+	req.AddCookie(cookie)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+        return data, err
+	}
+	defer resp.Body.Close()
+
+	// Decode JSON response
+    if err = json.NewDecoder(resp.Body).Decode(data); err != nil {
+        return data, err
+    }
+    return data, nil
 }
 
 func (n *NetworkManager) Disconnect() {
