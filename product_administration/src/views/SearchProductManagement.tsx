@@ -88,6 +88,27 @@ export default function SearchProductManagement() {
     }
   };
 
+  const handleNetworkSearch = async (e?: React.FormEvent, pageOverride?: number) => {
+    if (e) e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSearched(true);
+
+    const currentFilters = { ...filters, page: pageOverride || filters.page };
+
+    try {
+      const response = await searchService.search(currentFilters, true);
+      console.log(response);
+      //setResults(response.data);
+      //setTotal(response.total);
+      //setFilters((prev) => ({ ...prev, page: response.page }));
+    } catch (err) {
+      setError("Hiba történt a keresés során.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePageChange = (newPage: number) => {
     setFilters((prev) => ({ ...prev, page: newPage }));
     handleSearch(undefined, newPage);
@@ -133,6 +154,7 @@ export default function SearchProductManagement() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         handleSearch={handleSearch}
+        handleNetworkSearch={handleNetworkSearch}
         clearFilters={clearFilters}
         loading={loading}
       />

@@ -2,9 +2,9 @@
 function handleSearchProduct($method, $body) {
     header('Content-Type: application/json; charset=utf-8');
 
-    if ($method === 'GET') {
+    if ($method === 'POST') {
         try {
-            $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+            $page = isset($body['page']) ? (int)$body['page'] : 1;
             if ($page < 1) $page = 1;
             $limit = 25;
             $offset = ($page - 1) * $limit;
@@ -20,91 +20,91 @@ function handleSearchProduct($method, $body) {
             $types = "";
             $params = [];
 
-            if (!empty($_GET['name'])) {
+            if (!empty($body['name'])) {
                 $baseSql .= " AND p.name LIKE ?";
                 $types .= "s";
-                $params[] = "%" . $_GET['name'] . "%";
+                $params[] = "%" . $body['name'] . "%";
             }
 
-            if (!empty($_GET['description'])) {
+            if (!empty($body['description'])) {
                 $baseSql .= " AND p.description LIKE ?";
                 $types .= "s";
-                $params[] = "%" . $_GET['description'] . "%";
+                $params[] = "%" . $body['description'] . "%";
             }
 
-            if (!empty($_GET['category_id'])) {
+            if (!empty($body['category_id'])) {
                 $baseSql .= " AND c.id = ?";
                 $types .= "i";
-                $params[] = (int)$_GET['category_id'];
+                $params[] = (int)$body['category_id'];
             }
 
-            if (!empty($_GET['sub_category_id'])) {
+            if (!empty($body['sub_category_id'])) {
                 $baseSql .= " AND sc.id = ?";
                 $types .= "i";
-                $params[] = (int)$_GET['sub_category_id'];
+                $params[] = (int)$body['sub_category_id'];
             }
 
-            if (!empty($_GET['type_id'])) {
+            if (!empty($body['type_id'])) {
                 $baseSql .= " AND pt.id = ?";
                 $types .= "i";
-                $params[] = (int)$_GET['type_id'];
+                $params[] = (int)$body['type_id'];
             }
 
-            if (!empty($_GET['brand_id'])) {
+            if (!empty($body['brand_id'])) {
                 $baseSql .= " AND b.id = ?";
                 $types .= "i";
-                $params[] = (int)$_GET['brand_id'];
+                $params[] = (int)$body['brand_id'];
             }
 
-            if (!empty($_GET['storing_condition_id'])) {
+            if (!empty($body['storing_condition_id'])) {
                 $baseSql .= " AND st.id = ?";
                 $types .= "i";
-                $params[] = (int)$_GET['storing_condition_id'];
+                $params[] = (int)$body['storing_condition_id'];
             }
 
-            if (isset($_GET['amount_min']) && $_GET['amount_min'] !== '') {
+            if (isset($body['amount_min']) && $body['amount_min'] !== '') {
                 $baseSql .= " AND p.amount >= ?";
                 $types .= "i";
-                $params[] = (int)$_GET['amount_min'];
+                $params[] = (int)$body['amount_min'];
             }
-            if (isset($_GET['amount_max']) && $_GET['amount_max'] !== '') {
+            if (isset($body['amount_max']) && $body['amount_max'] !== '') {
                 $baseSql .= " AND p.amount <= ?";
                 $types .= "i";
-                $params[] = (int)$_GET['amount_max'];
+                $params[] = (int)$body['amount_max'];
             }
 
-            if (isset($_GET['price_min']) && $_GET['price_min'] !== '') {
+            if (isset($body['price_min']) && $body['price_min'] !== '') {
                 $baseSql .= " AND p.price >= ?";
                 $types .= "i";
-                $params[] = (int)$_GET['price_min'];
+                $params[] = (int)$body['price_min'];
             }
-            if (isset($_GET['price_max']) && $_GET['price_max'] !== '') {
+            if (isset($body['price_max']) && $body['price_max'] !== '') {
                 $baseSql .= " AND p.price <= ?";
                 $types .= "i";
-                $params[] = (int)$_GET['price_max'];
+                $params[] = (int)$body['price_max'];
             }
 
-            if (isset($_GET['size_val']) && $_GET['size_val'] !== '') {
+            if (isset($body['size_val']) && $body['size_val'] !== '') {
                 $baseSql .= " AND p.size = ?";
                 $types .= "d";
-                $params[] = (float)$_GET['size_val'];
+                $params[] = (float)$body['size_val'];
             }
 
-            if (!empty($_GET['size_type'])) {
+            if (!empty($body['size_type'])) {
                 $baseSql .= " AND p.size_type = ?";
                 $types .= "s";
-                $params[] = $_GET['size_type'];
+                $params[] = $body['size_type'];
             }
 
-            if (isset($_GET['is_discounted']) && $_GET['is_discounted'] === 'true') {
+            if (isset($body['is_discounted']) && $body['is_discounted'] === 'true') {
                 $baseSql .= " AND p.discount > 0";
             }
 
-            if (isset($_GET['has_warranty']) && $_GET['has_warranty'] === 'true') {
+            if (isset($body['has_warranty']) && $body['has_warranty'] === 'true') {
                 $baseSql .= " AND p.warranty IS NOT NULL AND p.warranty > CURDATE()";
             }
 
-            if (isset($_GET['show_expired']) && $_GET['show_expired'] === 'true') {
+            if (isset($body['show_expired']) && $body['show_expired'] === 'true') {
                 $baseSql .= " AND p.expires_at IS NOT NULL AND p.expires_at < CURDATE()";
             }
 
