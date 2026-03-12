@@ -33,7 +33,7 @@ func main() {
     }
     defer db.Disconnect()
 
-    err = network.NewNetworkManager("", "", "")
+    err = network.NewNetworkManager(config.CentralServerAddress, config.CentralServerPort, config.Psk)
     if err != nil {
         slog.Error("could not create network manager", "error", err)
     }

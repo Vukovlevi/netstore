@@ -22,7 +22,7 @@ type Connection struct {
 
 func ConnectToCentralServer(ip, port string) (*Connection, error) {
 	if ip == "" {
-		ip = os.Getenv("CENTRAL_SERVER_IP")
+		ip = os.Getenv("CENTRAL_SERVER_ADDRESS")
 	}
 	if port == "" {
 		port = os.Getenv("CENTRAL_SERVER_PORT")
