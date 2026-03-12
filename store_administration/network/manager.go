@@ -54,6 +54,7 @@ func NewNetworkManager(ip, port, psk string) error {
 		return err
 	}
     Manager = &NetworkManager{Connection: conn, Status: STATUS_CAN_SEARCH, psk: psk, mutex: new(sync.RWMutex)}
+    slog.Debug("setting psk for network manager", "psk", Manager.psk)
 	go Manager.StartReadLoop()
 	return nil
 }
@@ -157,6 +158,7 @@ func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
 	}
 	req.AddCookie(cookie)
 
+    slog.Debug("setting network manager psk to cookie", "n.psk", n.psk, "Manager.psk", Manager.psk, "cookie psk", cookie.Value)
     slog.Debug("sending http request to product admin", "cookie", *req.Cookies()[0])
 
 	client := &http.Client{}
