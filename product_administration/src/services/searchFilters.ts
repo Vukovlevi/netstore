@@ -108,7 +108,8 @@ export const searchService = {
       headers: {
         'Content-Type':'application/json'
       },
-      body: JSON.stringify(params)
+      body: JSON.stringify(params),
+      credentials: 'include'
     });
     if (!res.ok) {
       throw new Error("Hiba a keresés során");
