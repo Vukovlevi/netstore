@@ -162,7 +162,7 @@ func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
 	defer resp.Body.Close()
 
 	// Decode JSON response
-    if err = json.NewDecoder(resp.Body).Decode(data); err != nil {
+    if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
         return data, err
     }
     return data, nil
