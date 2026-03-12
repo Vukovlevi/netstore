@@ -39,7 +39,12 @@ func main() {
     }
 
     e := echo.New()
-    e.Use(mw.CORS())
+    e.Use(mw.CORSWithConfig(mw.CORSConfig{
+        AllowOrigins: []string{"http://localhost"}, //TODO: read from config
+        AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders: []string{"Content-Type", "Authorization"},
+        AllowCredentials: true,
+    }))
 
     apiGroup := e.Group("/api")
     apiAuthGroup := apiGroup.Group("", middleware.AuthenticateUser)
