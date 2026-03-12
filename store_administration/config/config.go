@@ -12,6 +12,9 @@ type Config struct {
     dbConfig db.DBConfig
     Ip string
     Port string
+    CentralServerAddress string
+    CentralServerPort string
+    Psk string
 }
 
 func CreateApplicationConfig() Config {
@@ -24,10 +27,25 @@ func CreateApplicationConfig() Config {
     if port == "" {
         port = "8000"
     }
+
+    centralServerAddress := os.Getenv("CENTRAl_SERVER_ADDRESS")
+    if centralServerAddress == "" {
+        centralServerAddress = "localhost"
+    }
+
+    centralServerPort := os.Getenv("CENTRAl_SERVER_PORT")
+    if centralServerPort == "" {
+        centralServerPort = "42069"
+    }
+
+    psk := os.Getenv("PSK")
     return Config{
         dbConfig: db.CreateDatabaseConfig(),
         Ip: ip,
         Port: port,
+        CentralServerAddress: centralServerAddress,
+        CentralServerPort: centralServerPort,
+        Psk: psk,
     }
 }
 
