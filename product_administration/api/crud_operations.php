@@ -25,13 +25,13 @@ $body = json_decode(file_get_contents('php://input'), true);
 $resource = end($uri);
 
 $isAuth = authentication();
-if (!$isAuth && $resource !== 'auth' && $resource !== 'search_product') {
+if (!$isAuth && $resource !== 'auth') {
     http_response_code(401);
-    echo json_encode(['message' => 'Nincs bejelentkezve!'], JSON_UNESCAPED_UNICODE);
+    echo json_encode(['message' => 'Nincs bejelentkezve!'.$_COOKIE["auth_token"]], JSON_UNESCAPED_UNICODE);
     exit();
 }
 
-if ($method !== 'GET' && $resource !== 'auth' && $resource !== 'search_product') {
+if ($method !== 'GET' && $resource !== 'auth') {
     if (!checkResourceAccess($resource, $method)) {
         exit();
     }
