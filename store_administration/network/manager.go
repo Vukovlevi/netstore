@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -148,10 +149,16 @@ func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
 	}
 
 	cookie := &http.Cookie{
-		Name:  "auth_token",
+        Name: "auth_token",
         Value: n.psk,
+        Path: "/",
+        SameSite: http.SameSiteStrictMode,
+        HttpOnly: true,
+        Secure: os.Getenv("SECURE_COOKIE") == "TRUE",
 	}
 	req.AddCookie(cookie)
+
+    slog.Debug("sending http request to product admin", "req", req, "cookie", *req.Cookies()[0])
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -160,6 +167,10 @@ func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
         return data, err
 	}
 	defer resp.Body.Close()
+
+    if resp.Status != "200 OK" {
+        return data, errors.New("prod admin endpoint returned an error")
+    }
 
 	// Decode JSON response
     if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
