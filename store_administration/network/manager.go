@@ -169,16 +169,14 @@ func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
 	}
 	defer resp.Body.Close()
 
-    if resp.Status != "200 OK" {
-        bodyData := make([]byte, 0)
-        n, err := resp.Body.Read(bodyData)
-        slog.Error("prod admin returned an error", "body reading error", err, "read bytes from body", n, "body string", string(bodyData))
-        return data, errors.New("prod admin endpoint returned an error")
-    }
-
 	// Decode JSON response
     if err = json.NewDecoder(resp.Body).Decode(&data); err != nil {
         return data, err
+    }
+
+    if resp.Status != "200 OK" {
+        slog.Error("prod admin returned an error", "data", data)
+        return data, errors.New("prod admin returned error")
     }
     return data, nil
 }
