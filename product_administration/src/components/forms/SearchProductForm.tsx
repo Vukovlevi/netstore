@@ -7,7 +7,7 @@ import type {
   StoringCondition,
 } from "../../types/Types";
 import type { SearchFilters } from "../../services/searchFilters";
-import { Filter, ChevronRight, ChevronLeft, Layers, Tag } from "lucide-react";
+import { Filter, ChevronRight, ChevronLeft, Layers, Tag, ScanSearch } from "lucide-react";
 
 interface SearchProductFormProps {
   categories: Category[];
@@ -25,7 +25,7 @@ interface SearchProductFormProps {
   handleSearch: (e?: React.FormEvent) => void;
   handleNetworkSearch: (e?: React.FormEvent) => void;
   clearFilters: () => void;
-  loading: boolean;
+  loading: "local" | "network" | null;
 }
 
 export default function SearchProductForm({
@@ -529,9 +529,9 @@ export default function SearchProductForm({
               <button
                 type="submit"
                 className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-sm px-8 py-3 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
-                disabled={loading}
+                disabled={!!loading}
               >
-                {loading ? (
+                {loading === "local" ? (
                   "Keresés..."
                 ) : (
                   <>
@@ -541,15 +541,15 @@ export default function SearchProductForm({
               </button>
               <button
                 type="button"
-                className="text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-sm px-8 py-3 transition-colors flex items-center gap-2 shadow-lg shadow-blue-200"
-                disabled={loading}
+                className="text-blue-600 border-2 border-blue-600 hover:bg-blue-50 focus:ring-4 focus:ring-blue-300 font-bold rounded-xl text-sm px-8 py-3 transition-colors flex items-center gap-2"
+                disabled={!!loading}
                 onClick={handleNetworkSearch}
               >
-                {loading ? (
+                {loading === "network" ? (
                   "Keresés..."
                 ) : (
                   <>
-                    <Filter className="w-5 h-5" /> Hálózatos keresés indítása
+                    <ScanSearch className="w-5 h-5" /> Hálózatos keresés indítása
                   </>
                 )}
               </button>
