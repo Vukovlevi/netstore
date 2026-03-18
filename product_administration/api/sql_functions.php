@@ -1,7 +1,8 @@
 <?php
+require './loadenv.php';
 function getDbConnection() {
-    $env = parse_ini_file(__DIR__ . "/.env");
-    $db = new mysqli($env['DB_HOST'], $env['DB_USER'], $env['DB_PASSWORD'], $env['DB_NAME']);
+    loadEnv();
+    $db = new mysqli($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD'], $_ENV['DB_NAME']);
     if ($db->connect_errno != 0) {
         return null;
     }
