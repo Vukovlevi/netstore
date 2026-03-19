@@ -263,6 +263,7 @@ async function passwordReset() {
         </div>
 
         <button
+          v-if="isUpdate"
           class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
           type="button"
           @click="
