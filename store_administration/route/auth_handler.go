@@ -42,7 +42,7 @@ func HandleLogin(c echo.Context) error {
     }
 
     SetSessionCookie(c, *session)
-    return c.JSON(http.StatusOK, map[string]string{"message": "faca"}) //TODO: ezzel kezdeni valamit
+    return c.JSON(http.StatusOK, map[string]string{"message": "Sikeres bejelentkezés"})
 }
 
 func createLoginErrorCodeAndMessage(err error) (int, string) {
