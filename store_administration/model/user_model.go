@@ -75,8 +75,8 @@ func GetAllUser() ([]User, error) {
     return users, nil
 }
 
-func (u *User) UpdatePassword() error {
-    _, err := db.DB.Exec("UPDATE user SET password = ?, password_changed = TRUE WHERE id = ?", u.Password, u.Id)
+func (u *User) UpdatePassword(isPasswordChanged bool) error {
+    _, err := db.DB.Exec("UPDATE user SET password = ?, password_changed = ? WHERE id = ?", u.Password, isPasswordChanged, u.Id)
     return err
 }
 

@@ -32,7 +32,7 @@ async function login() {
     }
 
     isError.value = false;
-    router.push("/");
+    setTimeout(() => router.push("/"), 100);
   } catch (err) {
     errorMessage.value =
       "Ismeretlen hiba miatt nem sikerült bejelentkezni. Próbáld újra!";
