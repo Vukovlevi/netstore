@@ -35,13 +35,13 @@ func HandleLogin(c echo.Context) error {
     }
 
     sessionContext := ctx.Value("session")
-    session, ok := sessionContext.(model.Session)
+    session, ok := sessionContext.(*model.Session)
     if !ok {
         slog.Error("could not read session from login context")
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A bejelentkezés során hiba lépett fel!"))
     }
 
-    SetSessionCookie(c, session)
+    SetSessionCookie(c, *session)
     return c.JSON(http.StatusOK, map[string]string{"message": "faca"}) //TODO: ezzel kezdeni valamit
 }
 
