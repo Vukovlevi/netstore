@@ -32,7 +32,7 @@ type Contract struct {
 }
 
 func GetContractByUserId(userId int) (Contract, error) {
-	row := db.DB.QueryRow("SELECT contract.id, CONCAT(user.lastname, ' ', user.firstname), contract_type.name, salary, starts_at, ends_at, file, contract.deleted_at FROM contract INNER JOIN contract_type ON contract.contract_type_id = contract_type.id INNER JOIN user ON contract.user_id = user.id WHERE user.id = ? AND contract.deleted_at IS NULL ODER BY starts_at DESC LIMIT 1", userId)
+	row := db.DB.QueryRow("SELECT contract.id, CONCAT(user.lastname, ' ', user.firstname), contract_type.name, salary, starts_at, ends_at, file, contract.deleted_at FROM contract INNER JOIN contract_type ON contract.contract_type_id = contract_type.id INNER JOIN user ON contract.user_id = user.id WHERE user.id = ? AND contract.deleted_at IS NULL ORDER BY starts_at DESC LIMIT 1", userId)
 
 	contract := Contract{}
 	err := row.Scan(&contract.Id, &contract.UserName, &contract.ContractType, &contract.Salary, &contract.StartsAt, &contract.EndsAt, &contract.Filename, &contract.DeletedAt)
