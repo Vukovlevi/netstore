@@ -17,6 +17,7 @@ if (props.user != null)
 let oldUser = user.toUser();
 const isUpdate = ref(false);
 const isModalOpen = ref(false);
+const isPasswordReset = ref(false);
 
 function validate(): { message: string; valid: boolean } {
   if (props.user == null) return validateNewUser();
@@ -126,6 +127,65 @@ function confirm() {
   isModalOpen.value = false;
   emits("back");
 }
+
+async function passwordReset() {
+  if (!user.password.value || !user.passwordConfirm.value) {
+    emits(
+      "feedback",
+      "warning",
+      "A jelszót és a megerősítését ki kell tölteni",
+      null,
+      false,
+    );
+    return;
+  }
+
+  if (user.password.value != user.passwordConfirm.value) {
+    emits(
+      "feedback",
+      "warning",
+      "A megadott jelszavak nem egyeznek",
+      null,
+      false,
+    );
+    return;
+  }
+
+  try {
+    const resp = await fetch("/api/password-reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id.value,
+        password: user.password.value,
+        passwordConfirm: user.passwordConfirm.value,
+      }),
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      emits(
+        "feedback",
+        "error",
+        "A mentés közben hiba történt: " + data.error,
+        null,
+        false,
+      );
+      return;
+    }
+
+    emits("feedback", "success", data.message, null, false);
+  } catch (err) {
+    console.error(err);
+    emits(
+      "feedback",
+      "error",
+      "Ismeretlen hiba miatt a következő műveletet nem sikerült visszaállítani a jelszót: ",
+      null,
+      false,
+    );
+  }
+}
 </script>
 
 <template>
@@ -202,7 +262,23 @@ function confirm() {
           </div>
         </div>
 
-        <div v-if="!isUpdate" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button
+          v-if="isUpdate"
+          class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
+          type="button"
+          @click="
+            () => {
+              isPasswordReset = !isPasswordReset;
+            }
+          "
+        >
+          Jelszó visszaállítás
+        </button>
+
+        <div
+          v-if="!isUpdate || isPasswordReset"
+          class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+        >
           <div>
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -274,7 +350,7 @@ function confirm() {
             </div>
           </div>
 
-          <div v-if="!isUpdate">
+          <div v-if="!isUpdate || isPasswordReset">
             <label
               class="block text-sm font-medium text-gray-700 dark:text-gray-300"
               for="password_confirm"
@@ -421,6 +497,14 @@ function confirm() {
         </div>
 
         <div class="flex justify-end gap-3 pt-4">
+          <button
+            v-if="isPasswordReset"
+            class="rounded bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            type="button"
+            @click="passwordReset"
+          >
+            Jelszó visszaállítás mentése
+          </button>
           <button
             class="rounded bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600 dark:hover:bg-background-dark"
             type="button"

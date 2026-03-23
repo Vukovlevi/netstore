@@ -72,6 +72,7 @@ func main() {
     apiStoreLeaderOrHRGroup.DELETE("/user", route.HandleDeleteUser)
     apiStoreLeaderOrHRGroup.GET("/role", route.HandleGetAllRole)
     apiAuthGroup.POST("/password-change", route.HandleUpdateUserPassword)
+    apiStoreLeaderGroup.POST("/password-reset", route.HandlePasswordReset)
 
     apiStoreLeaderGroup.GET("/open-hour", route.HandleGetOpenHours)
     apiStoreLeaderGroup.POST("/open-hour", route.HandlePostOpenHour)

@@ -83,7 +83,7 @@ function search(searchValue: string) {
       x.username.toLowerCase().includes(searchValue) ||
       x.email.toLowerCase().includes(searchValue) ||
       x.phoneNumber.includes(searchValue) ||
-      x.role.toLowerCase().includes(searchValue)
+      x.role.toLowerCase().includes(searchValue),
   );
 }
 
@@ -97,7 +97,7 @@ function handleFeedback(
   type: FeedbackType,
   msg: string,
   user: User | null,
-  isUpdate: boolean
+  isUpdate: boolean,
 ) {
   feedback.value = { type: type, message: msg };
   if (user == null) return;
@@ -235,13 +235,18 @@ function confirmDelete() {
     <Feedback v-if="feedback != null" :feedback="feedback" />
 
     <div
-      class="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+      class="lg:overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
       <UserTable
         :users="filteredUsers"
         v-if="mode == 'all'"
         @modify="(user: User) => modifyUser(user)"
-        @delete="(userId: number) => {toDeleteUserId = userId; isDeleteModalOpen = true}"
+        @delete="
+          (userId: number) => {
+            toDeleteUserId = userId;
+            isDeleteModalOpen = true;
+          }
+        "
       />
       <UserData
         v-if="mode == 'single'"
@@ -266,9 +271,12 @@ function confirmDelete() {
         v-if="mode == 'contract'"
         :userId="currentUser!.id"
         @feedback="handleFeedback"
-        @back="(wasSaved: boolean) => {if (!wasSaved) isModalOpen = true;
-          else confirmBackFromContract()
-        }"
+        @back="
+          (wasSaved: boolean) => {
+            if (!wasSaved) isModalOpen = true;
+            else confirmBackFromContract();
+          }
+        "
       />
     </div>
   </div>

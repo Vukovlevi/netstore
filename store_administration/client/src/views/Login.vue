@@ -68,7 +68,7 @@ async function login() {
         {{ errorMessage }}
       </div>
 
-      <form class="space-y-6">
+      <form class="space-y-6" @submit.prevent="login">
         <div>
           <label
             class="text-sm font-medium text-foreground-light dark:text-foreground-dark"
@@ -162,8 +162,7 @@ async function login() {
         <div>
           <button
             class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark"
-            type="button"
-            @click="login"
+            type="submit"
           >
             Bejelentkezés
           </button>

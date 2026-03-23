@@ -20,7 +20,7 @@ func CreateOrUpdateSessionForUser(userId int, ctx *context.Context) error {
         }
         return err
     }
-    *ctx = context.WithValue(*ctx, "session", session)
+    *ctx = context.WithValue(*ctx, "session", &session)
 
     if session.ExpiresAt.Before(time.Now()) {
         session.Token = generateToken(TOKEN_LENGTH)

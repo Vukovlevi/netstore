@@ -14,6 +14,12 @@ type PasswordUpdate struct {
     NewPassword string `json:"newPassword"`
 }
 
+type PasswordReset struct {
+    UserId int `json:"userId"`
+    Password string `json:"password"`
+    PasswordConfirm string `json:"passwordConfirm"`
+}
+
 func HandlePostUser(c echo.Context) error {
     user := model.User{}
     if err := c.Bind(&user); err != nil {
@@ -129,10 +135,39 @@ func HandleUpdateUserPassword(c echo.Context) error {
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A jelszó módosítása közben nem sikerült titkosítani azt, ezért nem került változtatásra!"))
     }
 
-    if err := user.UpdatePassword(); err != nil {
+    if err := user.UpdatePassword(true); err != nil {
         slog.Error("could not update password for user", "error", err, "user", user)
         return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A jelszó módosítása sikertelen!"))
     }
 
     return c.JSON(http.StatusOK, CreateMessage("A jelszó módosítása sikeres!"))
+}
+
+func HandlePasswordReset(c echo.Context) error {
+    passwordReset := PasswordReset{}
+    if err := c.Bind(&passwordReset); err != nil {
+        slog.Error("could not bind password reset", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A jelszó visszaállításához szükséges adatokat nem sikerült értelmezni!"))
+    }
+
+    if passwordReset.UserId == 0 {
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage("A jelszó visszaállításához a felhasználó azonosítójának megadása kötelező"))
+    }
+
+    if passwordReset.Password != passwordReset.PasswordConfirm {
+        return c.JSON(http.StatusBadRequest, CreateErrorMessage("A megadott jelszavak nem egyeznek"))
+    }
+
+    user := model.User{Id: passwordReset.UserId, Password: passwordReset.Password}
+    if err := user.EncryptPassword(); err != nil {
+        slog.Error("could not encrypt user password", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A jelszót nem sikerült titkosítani, ezért a mentése nem történt meg!"))
+    }
+
+    if err := user.UpdatePassword(false); err != nil {
+        slog.Error("could not save password reset", "error", err)
+        return c.JSON(http.StatusInternalServerError, CreateErrorMessage("A jelszó mentése nem sikerült"))
+    }
+
+    return c.JSON(http.StatusOK, CreateMessage("A jelszó visszaállítása sikeres"))
 }
