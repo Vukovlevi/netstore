@@ -151,7 +151,7 @@ CREATE TABLE `product` (
   `price` int(11) NOT NULL,
   `warranty` date DEFAULT NULL,
   `discount` double NOT NULL,
-  `other_properties` varchar(255) NOT NULL,
+  `other_properties` varchar(255) DEFAULT NULL,
   `type_id` int(11) NOT NULL,
   `brand_id` int(11) NOT NULL,
   `deleted_at` date DEFAULT NULL
