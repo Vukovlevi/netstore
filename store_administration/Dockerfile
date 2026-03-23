@@ -3,7 +3,7 @@ FROM node:24 AS frontend-build
 
 WORKDIR /app
 COPY . .
-RUN cd client && npm install && npm run build
+RUN mkdir public && cd client && npm install && npm run build
 
 # ---- Go build ----
 FROM golang:1.24 AS backend-build
@@ -23,6 +23,6 @@ WORKDIR /app
 COPY --from=backend-build /app/main .
 
 # copy Vue dist
-COPY --from=frontend-build /app/public .
+COPY --from=frontend-build /app/public ./public
 
 CMD ["./main"]

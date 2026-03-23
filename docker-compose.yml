@@ -13,6 +13,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   central_server:
     build: ./central_server
@@ -49,8 +54,8 @@ services:
       PSK: asd
       PROD_ADMIN_FILTER_ENDPOINT: http://product_app/api/search_product
     depends_on:
-      - mysql
-      - central_server
+      mysql:
+        condition: service_healthy
 
 volumes:
   mysql_data:

@@ -35,6 +35,6 @@ func createSessionForUser(userId int, ctx *context.Context) error {
         UserId: userId,
         Token: generateToken(TOKEN_LENGTH),
     }
-    *ctx = context.WithValue(*ctx, "session", session)
+    *ctx = context.WithValue(*ctx, "session", &session)
     return session.InsertNewSession()
 }
