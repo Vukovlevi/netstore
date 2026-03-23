@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -20,14 +19,10 @@ import (
 func main() {
     slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
 
-    err := godotenv.Load()
-    if err != nil {
-        slog.Error("could not load environment variables", "error", err)
-        panic("unable to load environment variables")
-    }
+    godotenv.Load()
 
     config := config.CreateApplicationConfig()
-    err = config.Apply()
+    err := config.Apply()
     if err != nil {
         slog.Error("unable to apply application config", "error", err)
         panic("unable to apply application config")
@@ -40,12 +35,12 @@ func main() {
     }
 
     e := echo.New()
-    prodAdminOrigin := strings.Split(os.Getenv("PROD_ADMIN_FILTER_ENDPOINT"), "/api")[0]
     e.Use(mw.CORSWithConfig(mw.CORSConfig{
-        AllowOrigins: []string{prodAdminOrigin},
+        AllowOrigins: []string{},
         AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders: []string{"Content-Type", "Authorization"},
         AllowCredentials: true,
+        AllowOriginFunc: func(origin string) (bool, error) {return true, nil},
     }))
 
     apiGroup := e.Group("/api")
