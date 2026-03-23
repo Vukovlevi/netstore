@@ -55,3 +55,25 @@ export interface ApiResponse {
   id?: number;
   name?: string;
 }
+
+export interface NetworkStoreResult {
+  open_hours: OpenHour[];
+  store_detail: NetworkStoreDetail;
+  products: {
+    data: Product[];
+    total: number;
+    page: number;
+    limit: number;
+  };
+}
+
+export interface NetworkStoreDetail {
+  address: string;
+  storeTypeName?: string;
+}
+
+export interface OpenHour {
+  day_name: string;
+  open: string;
+  close: string;
+}

@@ -103,7 +103,7 @@ export default function Dashboard() {
       </div>
 
       <a
-        href="http://localhost:8000"
+        href={import.meta.env.VITE_STORE_ADMIN_URL}
         className="inline-flex px-6 py-3 text-sm font-bold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm shadow-blue-200 focus:outline-none focus:ring-4 focus:ring-blue-100"
       >
         Ugrás a központi felületre

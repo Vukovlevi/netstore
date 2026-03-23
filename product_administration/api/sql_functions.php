@@ -1,11 +1,20 @@
 <?php
-function getData($operation, $types = null, $data = null) {
-    $db = new mysqli('localhost', 'root', 'root', 'netstore');
+require './loadenv.php';
+function getDbConnection() {
+    loadEnv();
+    $db = new mysqli($_ENV['DB_HOST'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD'], $_ENV['DB_NAME']);
     if ($db->connect_errno != 0) {
-        return $db->connect_error;
+        return null;
     }
-    
     $db->set_charset("utf8mb4");
+    return $db;
+}
+
+function getData($operation, $types = null, $data = null) {
+    $db = getDbConnection();
+    if ($db === null) {
+        return "Database connection failed";
+    }
 
     if (!is_null($types) && !is_null($data)) {
         $stmt = $db->prepare($operation);
@@ -16,7 +25,7 @@ function getData($operation, $types = null, $data = null) {
     else {
         $result = $db->query($operation);
     }
-    
+
     if ($db->errno != 0) {
         return $db->error;
     }
@@ -32,12 +41,10 @@ function getData($operation, $types = null, $data = null) {
 }
 
 function changeData($operation, $types = null, $data = null) {
-    $db = new mysqli('localhost', 'root', 'root', 'netstore');
-    if ($db->connect_errno != 0) {
-        return $db->connect_error;
+    $db = getDbConnection();
+    if ($db === null) {
+        return false;
     }
-    
-    $db->set_charset("utf8mb4");
 
     if (!is_null($types) && !is_null($data)) {
         $stmt = $db->prepare($operation);
@@ -48,7 +55,7 @@ function changeData($operation, $types = null, $data = null) {
     else {
         $success = $db->query($operation);
     }
-    
+
     if ($db->errno != 0) {
         return false;
     }
