@@ -20,14 +20,10 @@ import (
 func main() {
     slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
 
-    err := godotenv.Load()
-    if err != nil {
-        slog.Error("could not load environment variables", "error", err)
-        panic("unable to load environment variables")
-    }
+    godotenv.Load()
 
     config := config.CreateApplicationConfig()
-    err = config.Apply()
+    err := config.Apply()
     if err != nil {
         slog.Error("unable to apply application config", "error", err)
         panic("unable to apply application config")
