@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
 const AUTH_API_PATH = './api/auth';
-const LOGIN_PATH = 'http://localhost:8000/login';
+const LOGIN_PATH = `${import.meta.env.VITE_STORE_ADMIN_URL}/login`;
 
 export const ROLES = {
   UZLETVEZETO: 'Üzletvezető',

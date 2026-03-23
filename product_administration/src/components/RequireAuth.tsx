@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
-const LOGIN_PATH = 'http://localhost:8000/login';
+const LOGIN_PATH = `${import.meta.env.VITE_STORE_ADMIN_URL}/login`;
 
 export default function RequireAuth() {
   const { isAuthenticated, isLoading } = useAuth();
