@@ -1,8 +1,11 @@
 # ---- Vue build ----
 FROM node:24 AS frontend-build
 
+ARG VITE_PROD_ADMIN_ORIGIN
+
 WORKDIR /app
 COPY . .
+ENV VITE_PROD_ADMIN_ORIGIN=$VITE_PROD_ADMIN_ORIGIN
 RUN mkdir public && cd client && npm install && npm run build
 
 # ---- Go build ----
