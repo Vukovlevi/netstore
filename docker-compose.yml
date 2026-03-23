@@ -1,6 +1,16 @@
 version: "3.9"
 
 services:
+  central_server:
+    build: ./central_server
+    container_name: central_server
+    ports:
+      - "42069:42069"
+    environment:
+      IP_ADDRESS: 0.0.0.0
+      PORT: 42069
+      PSK: asd
+
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -18,16 +28,6 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-
-  central_server:
-    build: ./central_server
-    container_name: central_server
-    ports:
-      - "42069:42069"
-    environment:
-      IP_ADDRESS: 0.0.0.0
-      PORT: 42069
-      PSK: asd
 
   prod_admin:
     build:
