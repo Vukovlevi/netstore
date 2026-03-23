@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/vukovlevi/netstore/store_administration/model"
 )
 
@@ -140,7 +141,8 @@ func (n *NetworkManager) GetSearchResults(searchParam []byte) ([]byte, error) {
 }
 
 func (n *NetworkManager) CallApi(searchData []byte) (any, error) {
-    url := "http://localhost/api/search_product" //TODO: read from config
+    godotenv.Load()
+    url := os.Getenv("PROD_ADMIN_FILTER_ENDPOINT")
     var data any
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(searchData))

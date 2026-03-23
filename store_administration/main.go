@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
@@ -39,8 +40,9 @@ func main() {
     }
 
     e := echo.New()
+    prodAdminOrigin := strings.Split(os.Getenv("PROD_ADMIN_FILTER_ENDPOINT"), "/api")[0]
     e.Use(mw.CORSWithConfig(mw.CORSConfig{
-        AllowOrigins: []string{"http://localhost"}, //TODO: read from config
+        AllowOrigins: []string{prodAdminOrigin},
         AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
         AllowHeaders: []string{"Content-Type", "Authorization"},
         AllowCredentials: true,
