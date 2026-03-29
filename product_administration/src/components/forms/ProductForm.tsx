@@ -102,7 +102,7 @@ export default function ProductForm({
     setSizeType("");
     setExpiresAt("");
     setPrice("");
-    setDiscount("");
+    setDiscount(0);
     setWarranty("");
     setCategoryId("");
     setSubCategoryId("");
@@ -375,7 +375,7 @@ export default function ProductForm({
                 type="text"
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
-                placeholder="pl. 0.5L"
+                placeholder="pl. 0.5"
                 className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
               />
             </div>
@@ -390,7 +390,7 @@ export default function ProductForm({
                 type="text"
                 value={sizeType}
                 onChange={(e) => setSizeType(e.target.value)}
-                placeholder="pl. Liter"
+                placeholder="pl. kg"
                 className="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 block p-3 outline-none transition-all"
               />
             </div>
