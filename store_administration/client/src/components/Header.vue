@@ -13,7 +13,7 @@ const toggleMenu = () => {
   <header
     class="absolute top-0 left-0 right-0 z-10 flex h-16 items-center border-b border-background-light-darken dark:border-background-dark-lighten bg-background-light dark:bg-background-dark px-4 sm:px-6 lg:px-8">
     <!-- Logo -->
-    <div class="flex items-center gap-4">
+    <RouterLink to="/" class="flex items-center gap-4">
       <div class="text-primary">
         <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path d="M12 2L2 7v10l10 5 10-5V7L12 2z"></path>
@@ -25,7 +25,7 @@ const toggleMenu = () => {
         </svg>
       </div>
       <h1 class="text-lg font-bold text-gray-900 dark:text-white">NetStore</h1>
-    </div>
+    </RouterLink>
 
     <!-- Desktop Nav -->
     <nav
