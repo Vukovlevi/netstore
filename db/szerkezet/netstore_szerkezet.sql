@@ -241,7 +241,7 @@ CREATE TABLE `store_detail` (
 --
 
 INSERT INTO `store_detail` (`address`, `central_server_address`, `central_server_port`, `store_type_id`) VALUES
-('-', '-', 0, 1);
+('-', '', 0, 1);
 
 -- --------------------------------------------------------
 
