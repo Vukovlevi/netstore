@@ -8,8 +8,8 @@ import (
 
 type StoreDetail struct {
     Address string `json:"address"`
-    CentralServerAddress string `json:"centralServerAddress,omitzero,omitempty"`
-    CentralServerPort uint16 `json:"centralServerPort,omitzero,omitempty"`
+    CentralServerAddress string `json:"centralServerAddress"`
+    CentralServerPort uint16 `json:"centralServerPort"`
     StoreTypeId int `json:"storeTypeId,omitempty,omitzero"`
     StoreTypeName string `json:"storeTypeName,omitempty,omitzero"`
 }
@@ -28,7 +28,7 @@ func (s *StoreDetail) UpdateStoreDetail() error {
 
 //Returns user-readable error
 func (s *StoreDetail) ValidateUpdate() error {
-    if s.Address == "" || s.CentralServerAddress == "" || s.CentralServerPort == 0 || s.StoreTypeId == 0 {
+    if s.Address == "" || s.StoreTypeId == 0 {
         return errors.New("Az üzlet adatai hiányosak (cím, központi szerver címe, központi szerver portja, vagy az üzlet típusa)!")
     }
     return nil
