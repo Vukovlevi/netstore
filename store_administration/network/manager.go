@@ -50,7 +50,7 @@ func NewNetworkManager(ip, port, psk string) error {
 		return errors.New("Csatlakozás a központi szerverhez sikertelen!")
 	}
     if psk == "" {
-        psk = os.Getenv("psk")
+        psk = os.Getenv("PSK")
     }
 	err = conn.Authenticate(psk)
 	if err != nil {
