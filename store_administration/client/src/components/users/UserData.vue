@@ -335,7 +335,7 @@ function changeToContract() {
           </div>
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="position">Rang</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300" for="position">Rang*</label>
           <div class="mt-1">
             <select
               class="block w-full rounded border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:focus:border-primary dark:focus:ring-primary"
