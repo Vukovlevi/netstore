@@ -19,6 +19,8 @@ COPY --from=frontend-build /app/dist/ /var/www/html/
 # copy PHP API
 COPY api/ /var/www/html/api/
 
+COPY ./.htaccess /var/www/html/
+
 # Apache config (optional: enable rewrite)
 RUN a2enmod rewrite
 

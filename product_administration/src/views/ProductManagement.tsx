@@ -32,7 +32,7 @@ export default function ProductManagement() {
   const [sizeType, setSizeType] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [price, setPrice] = useState<number | "">("");
-  const [discount, setDiscount] = useState<number | "">("");
+  const [discount, setDiscount] = useState<number | "">(0);
   const [warranty, setWarranty] = useState("");
   const [categoryId, setCategoryId] = useState<number | "">("");
   const [subCategoryId, setSubCategoryId] = useState<number | "">("");
@@ -199,7 +199,7 @@ export default function ProductManagement() {
         setSizeType("");
         setExpiresAt("");
         setPrice("");
-        setDiscount("");
+        setDiscount(0);
         setWarranty("");
         setCategoryId("");
         setSubCategoryId("");

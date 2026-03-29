@@ -1,0 +1,14 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Check if the requested URI is an existing file (e.g., /styles.css, /logo.png)
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # 2. Check if the requested URI is an existing directory (e.g., /images/)
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # 3. If it's neither an existing file nor an existing directory, 
+    #    internally rewrite the request to /index.html
+    RewriteRule ^ index.html [L]
+</IfModule>
