@@ -49,6 +49,9 @@ func NewNetworkManager(ip, port, psk string) error {
 		slog.Error("could not connect to central server", "error", err)
 		return errors.New("Csatlakozás a központi szerverhez sikertelen!")
 	}
+    if psk == "" {
+        psk = os.Getenv("PSK")
+    }
 	err = conn.Authenticate(psk)
 	if err != nil {
 		slog.Error("authentication failure in manager")

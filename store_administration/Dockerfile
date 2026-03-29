@@ -28,4 +28,6 @@ COPY --from=backend-build /app/main .
 # copy Vue dist
 COPY --from=frontend-build /app/public ./public
 
+RUN mkdir -p /app/contracts
+
 CMD ["./main"]
