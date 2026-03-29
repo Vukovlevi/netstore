@@ -68,9 +68,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
               <>
                 <SidebarItem icon={ShoppingBag} label="Kategóriák" to="/categories" onClick={onClose} />
                 <SidebarItem icon={Layers} label="Alkategóriák" to="/subcategories" onClick={onClose} />
+                <SidebarItem icon={Archive} label="Tárolási körülmények" to="/storing-condition" onClick={onClose} />
                 <SidebarItem icon={Tag} label="Terméktípusok" to="/product-types" onClick={onClose} />
                 <SidebarItem icon={Award} label="Gyártók" to="/brands" onClick={onClose} />
-                <SidebarItem icon={Archive} label="Tárolási körülmények" to="/storing-condition" onClick={onClose} />
               </>
             )}
 

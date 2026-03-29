@@ -207,28 +207,10 @@ export default function SearchProductManagement() {
             </select>
           </div>
 
-          {/* Store open hours */}
-          {selectedStore && selectedStore.open_hours && selectedStore.open_hours.length > 0 && (
-            <div className="px-4 pb-4">
-              <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">
-                Nyitvatartás
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {selectedStore.open_hours.map((oh, i) => (
-                  <span
-                    key={i}
-                    className="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full border border-blue-200"
-                  >
-                    {oh.day_name}: {oh.open} - {oh.close}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
+
         </div>
       )}
 
-      {/* Network search: product list for selected store (read-only) */}
       {isNetworkMode && selectedStore && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -291,7 +273,6 @@ export default function SearchProductManagement() {
         </div>
       )}
 
-      {/* Local search results */}
       {!isNetworkMode && searched && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-10">
           <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">

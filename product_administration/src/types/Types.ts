@@ -57,7 +57,6 @@ export interface ApiResponse {
 }
 
 export interface NetworkStoreResult {
-  open_hours: OpenHour[];
   store_detail: NetworkStoreDetail;
   products: {
     data: Product[];
@@ -70,10 +69,4 @@ export interface NetworkStoreResult {
 export interface NetworkStoreDetail {
   address: string;
   storeTypeName?: string;
-}
-
-export interface OpenHour {
-  day_name: string;
-  open: string;
-  close: string;
 }

@@ -24,10 +24,10 @@ export default function App() {
               <Route index element={<Dashboard />} />
               <Route path="categories" element={<CategoryManagement />} />
               <Route path="subcategories" element={<SubCategoryManagement/>} />
+              <Route path="storing-condition" element={<StoringConditionManagement />} />
               <Route path="product-types" element={<ProductTypeManagement />} />
               <Route path="products" element={<ProductManagement/>} />
               <Route path="brands" element={<BrandManagement />} />
-              <Route path="storing-condition" element={<StoringConditionManagement />} />
               <Route path="search" element={<SearchProductManagement/>} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
