@@ -94,7 +94,6 @@ async function saveStoreDetail() {
 function validate(): { message: string; valid: boolean } {
   if (
     storeDetail.value.address == "" ||
-    storeDetail.value.centralServerAddress == "" ||
     storeDetail.value.storeTypeId == 0
   ) {
     return {
@@ -104,10 +103,10 @@ function validate(): { message: string; valid: boolean } {
   }
 
   if (
-    storeDetail.value.centralServerPort < 1024 ||
+    (storeDetail.value.centralServerPort < 1024 && storeDetail.value.centralServerPort != 0) ||
     storeDetail.value.centralServerPort > 65535 ||
     storeDetail.value.centralServerPort !=
-      parseInt(storeDetail.value.centralServerPort.toString())
+    parseInt(storeDetail.value.centralServerPort.toString())
   ) {
     return {
       message:
@@ -136,12 +135,13 @@ function confirm() {
 
 async function connect() {
   try {
+    const port = storeDetail.value.centralServerPort == 0 ? "" : storeDetail.value.centralServerPort.toString()
     const resp = await fetch("/api/connect", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ipAddress: storeDetail.value.centralServerAddress,
-        port: storeDetail.value.centralServerPort.toString(),
+        port: port,
         psk: psk.value,
       }),
     });
@@ -183,25 +183,17 @@ async function getConnectionState() {
 </script>
 
 <template>
-  <Modal
-    v-if="isModalOpen"
-    title="Biztosan vissza akar lépni?"
-    message="Az üzlet adatainak nem mentett módosításai elvesznek!"
-    confirm-text="Igen, visszalépek"
-    @cancel="cancel"
-    @confirm="confirm"
-  />
+  <Modal v-if="isModalOpen" title="Biztosan vissza akar lépni?"
+    message="Az üzlet adatainak nem mentett módosításai elvesznek!" confirm-text="Igen, visszalépek" @cancel="cancel"
+    @confirm="confirm" />
 
   <div
-    class="min-h-screen bg-gray-50 dark:bg-background-dark flex items-start justify-center px-4 py-6 sm:py-10 overflow-y-auto mt-[3rem] lg:overflow-y-hidden"
-  >
+    class="min-h-screen bg-gray-50 dark:bg-background-dark flex items-start justify-center px-4 py-6 sm:py-10 overflow-y-auto mt-[3rem] lg:overflow-y-hidden">
     <div class="w-full max-w-3xl">
       <Feedback v-if="connectionState != null" :feedback="connectionState" />
 
-      <form
-        class="bg-white dark:bg-background-dark/70 rounded-xl shadow-lg overflow-hidden"
-        @submit.prevent="saveStoreDetail"
-      >
+      <form class="bg-white dark:bg-background-dark/70 rounded-xl shadow-lg overflow-hidden"
+        @submit.prevent="saveStoreDetail">
         <!-- Header -->
         <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -219,31 +211,21 @@ async function getConnectionState() {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Address -->
             <div class="md:col-span-2">
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Üzlet címe*
               </label>
-              <input
-                type="text"
-                v-model="storeDetail.address"
-                placeholder="Adja meg az üzlet címét"
+              <input type="text" v-model="storeDetail.address" placeholder="Adja meg az üzlet címét"
                 class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400"
-                required
-              />
+                required />
             </div>
 
             <!-- Store type -->
             <div>
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Üzlet típusa*
               </label>
-              <select
-                v-model="storeDetail.storeTypeId"
-                class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white"
-              >
+              <select v-model="storeDetail.storeTypeId"
+                class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white">
                 <option value="0">Válasszon üzlet típust</option>
                 <option v-for="storeType in storeTypes" :value="storeType.id">
                   {{ storeType.name }}
@@ -253,83 +235,55 @@ async function getConnectionState() {
 
             <!-- Port -->
             <div>
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Központi szerver portja*
               </label>
-              <input
-                type="number"
-                v-model="storeDetail.centralServerPort"
-                placeholder="Port"
+              <input type="number" v-model="storeDetail.centralServerPort" placeholder="Port"
                 class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white"
-                required
-              />
+                required />
             </div>
 
             <!-- Central server -->
             <div class="md:col-span-2">
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Központi szerver címe*
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Központi szerver címe
               </label>
-              <input
-                type="text"
-                v-model="storeDetail.centralServerAddress"
-                placeholder="https://example.com"
-                class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400"
-                required
-              />
+              <input type="text" v-model="storeDetail.centralServerAddress" placeholder="https://example.com"
+                class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400" />
             </div>
 
             <!-- PSK -->
             <div class="md:col-span-2">
-              <label
-                class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Előre megbeszélt kulcs (PSK)
               </label>
-              <input
-                type="text"
-                v-model="psk"
-                placeholder="Kulcs"
-                class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400"
-                required
-              />
+              <input type="text" v-model="psk" placeholder="Kulcs"
+                class="mt-1 w-full rounded-md border-gray-300 bg-white shadow-sm focus:border-primary focus:ring-primary dark:border-gray-600 dark:bg-background-dark/50 dark:text-white dark:placeholder-gray-400" />
             </div>
           </div>
         </div>
 
         <!-- Actions -->
-        <div
-          class="bg-gray-50 dark:bg-background-dark/40 px-6 py-4 flex flex-col sm:flex-row gap-3 sm:justify-end"
-        >
-          <button
-            type="button"
+        <div class="bg-gray-50 dark:bg-background-dark/40 px-6 py-4 flex flex-col sm:flex-row gap-3 sm:justify-end">
+          <button type="button"
             class="rounded-md bg-green-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-            @click="connect"
-          >
+            @click="connect">
             Csatlakozás
           </button>
 
-          <button
-            type="button"
+          <button type="button"
             class="rounded-md bg-background-light px-4 py-2 text-sm font-bold text-gray-700 shadow-sm ring-1 ring-gray-300 hover:bg-gray-100 dark:bg-background-dark/50 dark:text-gray-300 dark:ring-gray-600"
             @click="
               () => {
                 if (!storeDetail.compare(oldStoreDetail)) isModalOpen = true;
                 else confirm();
               }
-            "
-          >
+            ">
             Mégse
           </button>
 
-          <button
-            type="submit"
-            class="rounded-md bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary/90"
-          >
+          <button type="submit"
+            class="rounded-md bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary/90">
             Mentés
           </button>
         </div>

@@ -1,12 +1,50 @@
 <script setup lang="ts">
-const prodAdminOrigin = import.meta.env.VITE_PROD_ADMIN_ORIGIN
+import { useRouter } from "vue-router";
+import DashboardCard from "../components/DashboardCard.vue";
+
+const router = useRouter();
+
+function goTo(path: string) {
+    router.push(path);
+};
+
+function openExternal() {
+    window.open(import.meta.env.VITE_PROD_ADMIN_ORIGIN, "_self");
+};
 </script>
 
 <template>
-    <div class="mt-[5rem]">
-        <h1>Home</h1>
-        <a :href="prodAdminOrigin"
-            class="rounded bg-primary px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Termék
-            kezelő felület</a>
+    <div class="container mt-[5rem] mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-10">
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+                Főoldal
+            </h1>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                Válasszon egy menüpontot az alábbiak közül
+            </p>
+        </div>
+
+        <!-- Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <DashboardCard title="Felhasználók kezelése"
+                description="Felhasználók létrehozása, módosítása, törlése és szerződésük kezelése"
+                @click="goTo('/users')" />
+
+            <DashboardCard title="Üzlet adatai"
+                description="Üzlet címének, típusának, valamint a központi szerverre csatlakozás adatainak kezelése"
+                @click="goTo('/store-detail')" />
+
+            <DashboardCard title="Szerződéstípusok" description="Szerződéstípusok kezelése"
+                @click="goTo('/contract-types')" />
+
+            <DashboardCard title="Nyitvatartás" description="Nyitvatartási idő beállítása"
+                @click="goTo('/open-hour')" />
+
+            <DashboardCard title="Profil" description="Saját adatok módosítása" @click="goTo('/profile')" />
+
+            <DashboardCard title="Termék kezelő" description="A termék kezelő felület megnyitása" external
+                @click="openExternal" />
+        </div>
     </div>
 </template>

@@ -28,12 +28,12 @@ func CreateApplicationConfig() Config {
         port = "8000"
     }
 
-    centralServerAddress := os.Getenv("CENTRAl_SERVER_ADDRESS")
+    centralServerAddress := os.Getenv("CENTRAL_SERVER_ADDRESS")
     if centralServerAddress == "" {
         centralServerAddress = "localhost"
     }
 
-    centralServerPort := os.Getenv("CENTRAl_SERVER_PORT")
+    centralServerPort := os.Getenv("CENTRAL_SERVER_PORT")
     if centralServerPort == "" {
         centralServerPort = "42069"
     }
