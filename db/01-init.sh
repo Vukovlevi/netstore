@@ -1,15 +1,18 @@
 #!/bin/bash
 set -e
 
-echo "DB_TYPE: $DB_TYPE"
-
-# Default fallback
 DB_TYPE=${DB_TYPE:-szerkezet}
 
+echo "Initializing database with: $DB_TYPE"
+
 if [ "$DB_TYPE" = "adatok" ]; then
-  echo "Using data.sql"
-  rm -f /docker-entrypoint-initdb.d/netstore_szerkezet.sql
+  for f in /db/adatok/*.sql; do
+    echo "Running $f"
+    mysql -u root -p"$MYSQL_ROOT_PASSWORD" < "$f"
+  done
 else
-  echo "Using structure.sql"
-  rm -f /docker-entrypoint-initdb.d/netstore_adatok.sql
+  for f in /db/szerkezet/*.sql; do
+    echo "Running $f"
+    mysql -u root -p"$MYSQL_ROOT_PASSWORD" < "$f"
+  done
 fi
