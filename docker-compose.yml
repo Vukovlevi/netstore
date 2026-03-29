@@ -18,13 +18,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: app_db
+      DB_TYPE: adatok
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./db:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -49,6 +50,7 @@ services:
         condition: service_healthy
 
   store_admin:
+    restart: always
     build:
       context: ./store_administration
       args:
@@ -78,13 +80,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: app_db
+      DB_TYPE: szerkezet
     ports:
       - "3308:3306"
     volumes:
       - mysql_data2:/var/lib/mysql
       - ./db:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-proot"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -109,6 +112,7 @@ services:
         condition: service_healthy
 
   store_admin2:
+    restart: always
     build:
       context: ./store_administration
       args:
