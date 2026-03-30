@@ -26,7 +26,15 @@ services:
       - ./db/init:/docker-entrypoint-initdb.d
       - ./db:/db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-p${MYSQL_ROOT_PASSWORD}",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -45,7 +53,6 @@ services:
       DB_PASSWORD: root
       DB_HOST: mysql
       DB_NAME: netstore
-
     depends_on:
       mysql:
         condition: service_healthy
@@ -89,7 +96,15 @@ services:
       - ./db/init:/docker-entrypoint-initdb.d
       - ./db:/db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-p${MYSQL_ROOT_PASSWORD}",
+        ]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -108,7 +123,6 @@ services:
       DB_PASSWORD: root
       DB_HOST: mysql2
       DB_NAME: netstore
-
     depends_on:
       mysql2:
         condition: service_healthy

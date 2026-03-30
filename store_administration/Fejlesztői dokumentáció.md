@@ -685,7 +685,7 @@ A szerződés modalját, feedbackjét és műveleteit a Contract komponens végz
 ## A docker konténer
 
 Az alkalmazás minden része docker konténerben futásra van tervezve.
-Ennek megfelelően megtalálható a projekt gyökérmappájában egy Dockerfile és .dockerignore.
+Ennek megfelelően megtalálható a projektrész gyökérmappájában (store_administration mappában) egy Dockerfile és .dockerignore.
 
 ### Frontend build
 

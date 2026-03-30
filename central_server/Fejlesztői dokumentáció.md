@@ -251,7 +251,7 @@ Három konstans található a fájlban, amik hibaüzeneteket tartalmaznak.
 ## A docker konténer
 
 Az alkalmazás minden része docker konténerben futásra van tervezve.  
-Ennek megfelelően megtalálható a projekt gyökérmappájában egy Dockerfile és .dockerignore.
+Ennek megfelelően megtalálható a projektrész gyökérmappájában (central_server mappában) egy Dockerfile és .dockerignore.
 
 ### A projekt build
 
