@@ -10,6 +10,7 @@ A központi szerver feladata, hogy képes legyen fogadni a hozzá csatlakozó kl
 2. google/uuid könyvtár
 3. joho/godotenv könyvtár
 4. TCP alapú kommunikációs protokoll (lásd: Protokoll.md)
+5. Docker
 
 ## A szerver működésének leírása
 
@@ -246,3 +247,25 @@ Három konstans található a fájlban, amik hibaüzeneteket tartalmaznak.
    - BroadCastMessage(\*ClientSearchMessage, chan []byte) függvény: átveszi a ClientSearchMessage üzenetet, illetve a csatornát, ahova az összesített válaszból előállított byte tömböt küldeni kell (erre hallgat a Connection struktúra WaitForAnswer() függvénye), thread-safe módon kiküldi a keresési kérést a klienseknek, majd elindítja a válaszra várási folyamatot (ListenForAnswers() függvény)
    - ListenForAnswers(chan *AnswerMessage, chan []byte, *sync.WaitGrouo) függvény: átveszi a csatornát, amire az egyek kapcsolatokat a saját egyéni válaszukat küldik, a csatornát, ahova az összesített válaszból előállított byte tömböt küldeni kell (erre hallgat a Connection WaitForAnswers() függvénye), valamint a waitgroupot, ami tartalmazza, hogy hány kiküldött üzenet volt (ennyi választ várunk a timeout előtt), elindít egy TIMEOUT_IN_SECONDS hosszúságú időzítőt, és amíg az tart, addig hallgatja a válaszokat, ha beérkezett az összes válasz, elküldi azt a kérdezőnek (CreateAndSendClientAnswer() függvény), ha az időzítő lejár, ugyanezt teszi az addig beérkezett üzenetekkel
    - CreateAndSendClientAnswer([]\*AnswerMessage, chan []byte) függvény: átveszi az összes beérkezett egyéni választ tömbként, valamint a csatornát, ahova az összesített válaszokból előállított byte tömb küldendő, előállítja a JSON objektumot az összesített válaszokból, byte tömbbé alakítja az eredményt, létrehoz egy ClientAnswerMessage üzenetet, majd annak a byte-jait elküldi a csatornába, amire a kérdező Connection hallgat (majd a Connection továbbítja az üzenetet, ami lehet egy hibaüzenet is, ha nem sikerült az összesített választ előállítani)
+
+## A docker konténer
+
+Az alkalmazás minden része docker konténerben futásra van tervezve.  
+Ennek megfelelően megtalálható a projekt gyökérmappájában egy Dockerfile és .dockerignore.
+
+### A projekt build
+
+Először a docker kibuildeli az alkalmazást:
+
+1. A golang:1.24-es image-ből indul ki.
+2. A dockerben megszokott módon a /app könyvtárat jelöli meg kiindulóként, felmásolja a projektet, telepíti a függőségeket (go mod tidy), majd egy statikusan linkelt futtatható go binary-t buildel (CGO_ENABLED=0 go build -o main). Erre azért van szükség, hogy egy minimális alpine linuxon (ahol nincs libc) is fusson a projekt.
+3. A build eredményére később backend-build néven lehet hivatkozni.
+
+### A futó konténer
+
+A build után a docker létrehozza a végül futó konténert:
+
+1. Az alpine:latest image-ből indul ki.
+2. A dockerben megszokott módon a /app könyvtárat jelöli meg kiindulóként.
+3. A backend-buildből bemásolja a go binary-t.
+4. A konténer indító parancsaként pedig a go binary-t indítja.
