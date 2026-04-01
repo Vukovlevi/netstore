@@ -18,7 +18,7 @@ Az ez utáni teendők a felhasználói dokumentációban kerültek kifejtésre.
 
 Amennyiben az adatbázisokat újra akarjuk telepíteni (mondjuk mert megváltoztattuk a DB_TYPE környezeti változó értékét, és szeretnénk ha lenne hatása), akkor a: docker compose down -v paranccsal állíthatók le a konténerek, hogy az adatbázisok törlődjenek. Ha adatvesztés nélkül kell leállítani, akkor: docker compose down parancs.
 
-Ha mondjuk frissült valamelyik alkalmazásrész, ezért újra kéne építeni a konténert, akkor a: docker compose up -d --build paranccsal tehetjük meg (csak leállított konténerek esetén). Ha nem szükséges újra felépíteni őket, csak el szeretnénk indítani, akkor a: docker compose up parancs használható.
+Ha mondjuk frissült valamelyik alkalmazásrész, ezért újra kéne építeni a konténert, akkor a: docker compose up -d --build paranccsal tehetjük meg (csak leállított konténerek esetén). Ha nem szükséges újra felépíteni őket, csak el szeretnénk indítani, akkor a: docker compose up -d parancs használható.
 
 ### A központi szerver
 
