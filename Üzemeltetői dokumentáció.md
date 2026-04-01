@@ -13,7 +13,7 @@ Az indításhoz a következő szabad portok szükségesek: 3307, 3308, 3309, 800
 
 Amennyiben ezek megfelelők, a compose fájlt tartalmazó mappában kiadható a: docker compose up -d parancs. Ez első indításkor létrehozza az adatbázisokat (DB_TYPE környezeti változó alapján szerkezetet, vagy teszt adatokat), kiépíti a konténereket és elindítja őket. A futás után ellenőrizendő, hogy minden konténer elindult-e, az üzlet adminisztrációk folyamatosan újraindulhatnak, amíg nincs kész az adatbázis. Amint mindegyik fut, a teljes szimuláció elindult.
 
-A használathoz a 3 üzletre lehet belépni, az elsőre a 8000-es, a másodikra a 11000-es, a harmadikra a 13000-es porton keresztül.
+A használathoz a 3 üzletre lehet belépni, az elsőre a 8000-es, a másodikra a 11000-es, a harmadikra a 13000-es porton keresztül, alapvető üzletvezető rangú felhasználó bejelentkezési adatai: admin - admin.
 Az ez utáni teendők a felhasználói dokumentációban kerültek kifejtésre.
 
 Amennyiben az adatbázisokat újra akarjuk telepíteni (mondjuk mert megváltoztattuk a DB_TYPE környezeti változó értékét, és szeretnénk ha lenne hatása), akkor a: docker compose down -v paranccsal állíthatók le a konténerek, hogy az adatbázisok törlődjenek. Ha adatvesztés nélkül kell leállítani, akkor: docker compose down parancs.
