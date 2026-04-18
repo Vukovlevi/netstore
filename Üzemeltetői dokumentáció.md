@@ -20,6 +20,11 @@ Amennyiben az adatbázisokat újra akarjuk telepíteni (mondjuk mert megváltozt
 
 Ha mondjuk frissült valamelyik alkalmazásrész, ezért újra kéne építeni a konténert, akkor a: docker compose up -d --build paranccsal tehetjük meg (csak leállított konténerek esetén). Ha nem szükséges újra felépíteni őket, csak el szeretnénk indítani, akkor a: docker compose up -d parancs használható.
 
+## Gyors indítás - TLDR
+
+A projekthez szükséges a gépen a telepített és futó docker.
+A projekt leggyorsabban úgy indítható el, hogy a letöltött (és kicsomagolt) mappában, a docker-compose.yml fájlt tartalmazó mappát megnyitva egy terminálban a következő parancsot kell futtatni: docker compose up -d. Ezek után egy központi szerver és 3 szimulált üzlet jön létre, amik elérhetők a http://localhost:8000/ http://localhost:11000/ http://localhost:13000/ linkeken. Ezekbe a felhasználónév: admin, jelszó: admin felhasználóval be lehet lépni. Az első két üzletben vannak teszt adatok, a harmadikban nincsenek.
+
 ### A központi szerver
 
 A szimulációban a központi szerver egy belső docker hálózaton fut az üzletekkel. Ennek megfelelően van konfigurálva a fájlban, környezeti változókon keresztül az összes üzlet adminisztráció rész. A valóságban ez egy külön szerveren kapna helyet, míg az üzlet rész minden üzletben lenne telepítve.
