@@ -214,7 +214,7 @@ export default function ProductForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Főkategória
+                Főkategória<span className="text-red-500"> *</span>
               </label>
               <select
                 className={`appearance-none w-full border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-all ${
@@ -243,7 +243,7 @@ export default function ProductForm({
 
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Alkategória
+                Alkategória<span className="text-red-500"> *</span>
               </label>
               <select
                 className={`appearance-none w-full border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-all ${
@@ -272,7 +272,7 @@ export default function ProductForm({
 
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Terméktípus
+              Terméktípus<span className="text-red-500"> *</span>
             </label>
             <select
               className={`appearance-none w-full border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-all ${
@@ -297,7 +297,7 @@ export default function ProductForm({
 
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Márka
+              Márka<span className="text-red-500"> *</span>
             </label>
             <select
               className="w-full bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 outline-none transition-all appearance-none"
@@ -317,7 +317,7 @@ export default function ProductForm({
 
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Termék neve
+              Termék neve<span className="text-red-500"> *</span>
             </label>
             <input
               type="text"
@@ -342,7 +342,7 @@ export default function ProductForm({
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Ár (Ft)
+                Ár (Ft)<span className="text-red-500"> *</span>
               </label>
               <input
                 type="number"
@@ -357,7 +357,7 @@ export default function ProductForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Mennyiség
+                Mennyiség<span className="text-red-500"> *</span>
               </label>
               <input
                 type="number"
@@ -369,7 +369,7 @@ export default function ProductForm({
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Kiszerelés
+                Kiszerelés<span className="text-red-500"> *</span>
               </label>
               <input
                 type="text"
@@ -384,7 +384,7 @@ export default function ProductForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                Kiszerelés Típusa
+                Kiszerelés Típusa<span className="text-red-500"> *</span>
               </label>
               <input
                 type="text"
@@ -424,7 +424,7 @@ export default function ProductForm({
 
           <div className="flex flex-col gap-2">
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              Termék leírása
+              Termék leírása<span className="text-red-500"> *</span>
             </label>
             <textarea
               value={description}
