@@ -27,8 +27,9 @@ A maradék 4 byte: a PAYLOAD hossza
 
       1 byte                                    4 byte
 
-| - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - |  
- verzió + PAYLOAD hossz
+| - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - |
+
+      verzó                                    payload hossz
 
 ### PAYLOAD
 
