@@ -136,7 +136,7 @@ function handleProduct($method, $body) {
                 $warrantyDate = isset($body['warranty']) ? $sanitizeDate($body['warranty']) : null;
                 $expiresDate = isset($body['expires_at']) ? $sanitizeDate($body['expires_at']) : null;
 
-                $success = changeData("UPDATE product SET name = ?, description = ?, amount = ?, size = ?, size_type = ?, expires_at = ?, price = ?, discount = ?, warranty = ?, type_id = ?, brand_id = ? WHERE id = ?", 'ssisssidisii', [
+                $success = changeData("UPDATE product SET name = ?, description = ?, amount = ?, size = ?, size_type = ?, expires_at = ?, price = ?, discount = ?, warranty = ?, type_id = ?, brand_id = ? WHERE id = ?", 'ssisssidssii', [
                     $body['name'], 
                     $body['description'],
                     (int)$body['amount'],
