@@ -1,4 +1,4 @@
-# Közpotni szerver fejlesztői dokumentáció
+# Közpotni szerver fejlesztői dokumentáció (Szabó-Vukov Levente)
 
 ## A központi szerver feladata
 

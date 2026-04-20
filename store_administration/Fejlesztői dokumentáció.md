@@ -1,4 +1,4 @@
-# Netstore webalkalmazás - üzlet adminisztráció fejlesztői dokumentáció
+# Netstore webalkalmazás - üzlet adminisztráció fejlesztői dokumentáció (Szabó-Vukov Levente)
 
 ## Backend
 
