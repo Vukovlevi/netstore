@@ -1,4 +1,4 @@
-# A Netstore alkalmazás által használt TCP alapú bináris protokoll dokumentációja
+# A Netstore alkalmazás által használt TCP alapú bináris protokoll dokumentációja - Szabó-Vukov Levente
 
 ## A protokoll alapvető működése
 
@@ -6,13 +6,13 @@ A protokoll egy TCP-re épülő, üzenet alapú kommunikációs módszer, amit a
 
 ## A protokoll fogalmai
 
-HEADER: az üzenet fejléce, az üzenettel kapcsolatos információkat tartalmaz
-PAYLOAD: az üzenet teljes tartalma ([MessageType] és [EOF] byte-okkal együtt)
-CONTENT: az üzenet által küldött lényegi információ, a [MessageType] és az [EOF] byte-ok között foglal helyet a PAYLOAD részeként
-[EOF] byte: minden üzenet lezáró byte-ja, a protokollban ez a 0x4E
-PSK: a kliensek és szerver közötti authentikációs célra szolgáló, előre megbeszélt kulcs (pre-shared key), jellemzően a konfigurációkban kell megadni
-[SearchParam]: az a JSON blob (byte tömbként reprezentált JSON), ami a termék adminisztráció komplex szűrés végpontjának meghívásakor átadandó a HTTP kérés BODY részében. A szűrési paramétereket tartalmazza.
-[SingleAnswer]: az a JSON blob (byte tömbként reprezentált JSON), ami egy kliens válaszát tartalmazza egy keresési kérésre
+HEADER: az üzenet fejléce, az üzenettel kapcsolatos információkat tartalmaz  
+PAYLOAD: az üzenet teljes tartalma ([MessageType] és [EOF] byte-okkal együtt)  
+CONTENT: az üzenet által küldött lényegi információ, a [MessageType] és az [EOF] byte-ok között foglal helyet a PAYLOAD részeként  
+[EOF] byte: minden üzenet lezáró byte-ja, a protokollban ez a 0x4E  
+PSK: a kliensek és szerver közötti authentikációs célra szolgáló, előre megbeszélt kulcs (pre-shared key), jellemzően a konfigurációkban kell megadni  
+[SearchParam]: az a JSON blob (byte tömbként reprezentált JSON), ami a termék adminisztráció komplex szűrés végpontjának meghívásakor átadandó a HTTP kérés BODY részében. A szűrési paramétereket tartalmazza.  
+[SingleAnswer]: az a JSON blob (byte tömbként reprezentált JSON), ami egy kliens válaszát tartalmazza egy keresési kérésre  
 [FullAnswer]: az a JSON blob (byte tömbként reprezentált JSON), ami az összes kliens összesített válaszait tartalmazza egy keresési kérésre
 
 ## Az üzenetek felépítése
@@ -26,8 +26,9 @@ Ebből az első byte: protokoll verzió
 A maradék 4 byte: a PAYLOAD hossza
 
       1 byte                                    4 byte
-| - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - |
-    verzió                                      PAYLOAD hossz
+
+| - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - |  
+ verzió + PAYLOAD hossz
 
 ### PAYLOAD
 
@@ -120,9 +121,7 @@ A HEADER-ben található PAYLOAD hossz ezen esetben: hibaüzenet hossza + 2 (+2 
 ### Az authentikációs folyamat
 
 1. A kliens Authentication üzenetet küld a szerver részére.
-2. A szerver az üzenetben érkező PSK-t ellenőrzi a saját konfigurációja alapján, majd két módon kezelheti:
-    2. a, Egyező PSK: a szerver egy AuthenticationSuccess üzenetet küld a kliens részére, a kapcsolat a két állomás között innentől kezdve használható egyéb jellegű (nem authentikációs célú) kommunikációra.
-    2. b, Nem egyező PSK: a szerver egy Error üzenetet küld a kliensnek, a kapcsolat a két állomás között továbbra is csak authentikációs célra alkalmazható.
+2. A szerver az üzenetben érkező PSK-t ellenőrzi a saját konfigurációja alapján, majd két módon kezelheti: 2. a, Egyező PSK: a szerver egy AuthenticationSuccess üzenetet küld a kliens részére, a kapcsolat a két állomás között innentől kezdve használható egyéb jellegű (nem authentikációs célú) kommunikációra. 2. b, Nem egyező PSK: a szerver egy Error üzenetet küld a kliensnek, a kapcsolat a két állomás között továbbra is csak authentikációs célra alkalmazható.
 3. Ha nem Authentication üzenet érkezik a klienstől, miközben a kapcsolat csak authentikációs célra alkalmazható, akkor a szerver bontja a kapcsolatot.
 
 ### Hálózatos keresés küldése
@@ -131,7 +130,7 @@ A HEADER-ben található PAYLOAD hossz ezen esetben: hibaüzenet hossza + 2 (+2 
 2. A szerver ezt továbbítja az összes többi kliensnek megválaszolásra (ClientSearch üzenet).
 3. A szerver időlimittel összegyűjti a válaszokat (Answer üzenet).
 4. A szerver addig vár, amíg minden kiküldött üzenetre nem érkezik válasz, vagy lejár az idő. Az idő lejárása esetén az addig megérkezett válaszokat továbbítja, a később érkezőket eldobja.
-4. A szerver elküldi a válaszokat a kliensnek (ClientAnswer üzenet).
+5. A szerver elküldi a válaszokat a kliensnek (ClientAnswer üzenet).
 
 ### Hálózatos keresés megválaszolása
 
