@@ -1,4 +1,4 @@
-# Netstore webalkalmazás - termék adminisztráció fejlesztői dokumentáció
+# Netstore webalkalmazás - termék adminisztráció fejlesztői dokumentáció (Illés Dávid)
 
 ## Backend
 
