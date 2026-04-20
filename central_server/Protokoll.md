@@ -25,11 +25,11 @@ A header hossza 5 byte.
 Ebből az első byte: protokoll verzió
 A maradék 4 byte: a PAYLOAD hossza
 
-      1 byte                                    4 byte
+      1 byte                         4 byte
 
 | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - | - - - - - - - - |
 
-      verzó                                    payload hossz
+      verzó                          payload hossz
 
 ### PAYLOAD
 
