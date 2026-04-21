@@ -14,6 +14,10 @@ dist-ssr
 .vite
 .env
 
+# PHP / PHPUnit
+/vendor/
+/.phpunit.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
