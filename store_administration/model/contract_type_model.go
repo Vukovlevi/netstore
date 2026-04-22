@@ -49,7 +49,7 @@ func (c *ContractType) UpdateContractType() error {
 }
 
 func (c *ContractType) DeleteContractType() error {
-    _, err := db.DB.Exec("UPDATE contract_type SET deleted_at = NOW() WHERE id = ?", c.Id)
+    _, err := db.DB.Exec("UPDATE contract_type SET name = CONCAT('deleted_contract_type_', name, '_', UNIX_TIMESTAMP(NOW())), deleted_at = NOW() WHERE id = ?", c.Id)
     return err
 }
 
