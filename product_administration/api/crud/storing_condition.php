@@ -2,6 +2,16 @@
 function handleStoringCondition($method, $body) {
     switch ($method) {
         case 'GET':
+            if (isset($_GET['check_deleted'])) {
+                $needle = trim((string)$_GET['check_deleted']);
+                if ($needle === '') {
+                    echo json_encode(null, JSON_UNESCAPED_UNICODE);
+                    break;
+                }
+                $row = getData("SELECT id, description, deleted_at FROM storing_condition WHERE LOWER(TRIM(description)) = LOWER(?) AND deleted_at IS NOT NULL ORDER BY id DESC LIMIT 1", 's', [$needle]);
+                echo json_encode(!empty($row) ? $row[0] : null, JSON_UNESCAPED_UNICODE);
+                break;
+            }
             if (isset($_GET['id'])) {
                 $condition = getData("SELECT id, description FROM storing_condition WHERE id = ? AND deleted_at IS NULL", 'i', [$_GET['id']]);
                 
@@ -16,31 +26,65 @@ function handleStoringCondition($method, $body) {
             }
             break;
         case 'POST':
-            if (empty($body['description'])) {
+            $descInput = isset($body['description']) ? trim((string)$body['description']) : '';
+
+            if (!empty($body['restore']) && !empty($body['id']) && $descInput !== '') {
+                $deletedRow = getData("SELECT id FROM storing_condition WHERE id = ? AND deleted_at IS NOT NULL", 'i', [$body['id']]);
+
+                if (empty($deletedRow)) {
+                    echo json_encode(['message' => 'Nincs visszaállítható tárolási körülmény ezzel az azonosítóval!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(404);
+                }
+
+                $clash = getData("SELECT id FROM storing_condition WHERE LOWER(TRIM(description)) = LOWER(?) AND id != ? AND deleted_at IS NULL", 'si', [$descInput, $body['id']]);
+
+                if (!empty($clash)) {
+                    echo json_encode(['message' => 'Már létezik ilyen leírású aktív tárolási körülmény!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(409);
+                }
+
+                $restored = changeData("UPDATE storing_condition SET description = ?, deleted_at = NULL WHERE id = ?", 'si', [$descInput, $body['id']]);
+
+                if (!$restored) {
+                    echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(500);
+                }
+
+                $row = getData("SELECT id, description FROM storing_condition WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
+                echo json_encode($row[0], JSON_UNESCAPED_UNICODE);
+                http_response_code(200);
+                break;
+            }
+
+            if ($descInput === '') {
                 echo json_encode(['message' => 'Hiányzó adat: leírás kötelező!'], JSON_UNESCAPED_UNICODE);
                 return http_response_code(400);
             }
 
-            $existing = getData("SELECT id, deleted_at FROM storing_condition WHERE description = ?", 's', [$body['description']]);
-            
+            $existing = getData("SELECT id, deleted_at FROM storing_condition WHERE LOWER(TRIM(description)) = LOWER(?) ORDER BY (deleted_at IS NULL) DESC LIMIT 1", 's', [$descInput]);
+
             if (!empty($existing)) {
                 if (is_null($existing[0]['deleted_at'])) {
                     echo json_encode(['message' => 'Már létezik ilyen leírású aktív tárolási körülmény!'], JSON_UNESCAPED_UNICODE);
                     return http_response_code(409);
                 } else {
-                    echo json_encode(['message' => 'Már létezik ilyen tárolási körülmény, de törölve lett.'], JSON_UNESCAPED_UNICODE);
+                    echo json_encode([
+                        'message' => 'Létezik egy korábban törölt tárolási körülmény ezen a leírással. Szeretné visszaállítani?',
+                        'restorable' => true,
+                        'id' => (int)$existing[0]['id']
+                    ], JSON_UNESCAPED_UNICODE);
                     return http_response_code(409);
                 }
             }
 
-            $success = changeData("INSERT INTO storing_condition (description) VALUES (?)", 's', [$body['description']]);
+            $success = changeData("INSERT INTO storing_condition (description) VALUES (?)", 's', [$descInput]);
             
             if (!$success) {
                 echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
                 return http_response_code(500);
             }
 
-            $newCondition = getData("SELECT id, description FROM storing_condition WHERE description = ? AND deleted_at IS NULL", 's', [$body['description']]);
+            $newCondition = getData("SELECT id, description FROM storing_condition WHERE description = ? AND deleted_at IS NULL", 's', [$descInput]);
             
             echo json_encode($newCondition[0], JSON_UNESCAPED_UNICODE);
             http_response_code(201);

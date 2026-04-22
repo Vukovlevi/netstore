@@ -53,10 +53,25 @@ export default function SubCategoryManagement() {
         await subCategoryService.update(selectedId, name, Number(categoryId));
         setSuccessMsg("Alkategória sikeresen frissítve!");
       } else {
-        await subCategoryService.create(name, Number(categoryId));
-        setSuccessMsg("Új alkategória létrehozva!");
-        setName('');
-        setCategoryId('');
+        const deleted = await subCategoryService.checkDeleted(name);
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt alkategória ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await subCategoryService.restore(deleted.id, name, Number(categoryId));
+            setSuccessMsg("Alkategória visszaállítva!");
+            setName('');
+            setCategoryId('');
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          await subCategoryService.create(name, Number(categoryId));
+          setSuccessMsg("Új alkategória létrehozva!");
+          setName('');
+          setCategoryId('');
+        }
       }
       loadData();
     } catch (err: any) {

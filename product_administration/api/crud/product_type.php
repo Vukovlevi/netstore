@@ -2,6 +2,16 @@
 function handleProductType($method, $body) {
     switch ($method) {
         case 'GET':
+            if (isset($_GET['check_deleted'])) {
+                $needle = trim((string)$_GET['check_deleted']);
+                if ($needle === '') {
+                    echo json_encode(null, JSON_UNESCAPED_UNICODE);
+                    break;
+                }
+                $row = getData("SELECT id, name, description, sub_id, storing_condition_id, deleted_at FROM product_type WHERE LOWER(TRIM(name)) = LOWER(?) AND deleted_at IS NOT NULL ORDER BY id DESC LIMIT 1", 's', [$needle]);
+                echo json_encode(!empty($row) ? $row[0] : null, JSON_UNESCAPED_UNICODE);
+                break;
+            }
             if (isset($_GET['id'])) {
                 $type = getData("SELECT id, name, description, sub_id, storing_condition_id FROM product_type WHERE id = ? AND deleted_at IS NULL", 'i', [$_GET['id']]);
                 
@@ -17,31 +27,65 @@ function handleProductType($method, $body) {
             }
             break;
         case 'POST':
-            if (empty($body['name']) || empty($body['description']) || empty($body['sub_id']) || empty($body['storing_condition_id'])) {
+            $nameInput = isset($body['name']) ? trim((string)$body['name']) : '';
+
+            if (!empty($body['restore']) && !empty($body['id']) && $nameInput !== '' && !empty($body['description']) && !empty($body['sub_id']) && !empty($body['storing_condition_id'])) {
+                $deletedRow = getData("SELECT id FROM product_type WHERE id = ? AND deleted_at IS NOT NULL", 'i', [$body['id']]);
+
+                if (empty($deletedRow)) {
+                    echo json_encode(['message' => 'Nincs visszaállítható terméktípus ezzel az azonosítóval!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(404);
+                }
+
+                $nameClash = getData("SELECT id FROM product_type WHERE LOWER(TRIM(name)) = LOWER(?) AND id != ? AND deleted_at IS NULL", 'si', [$nameInput, $body['id']]);
+
+                if (!empty($nameClash)) {
+                    echo json_encode(['message' => 'Már létezik ilyen nevű aktív terméktípus!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(409);
+                }
+
+                $restored = changeData("UPDATE product_type SET name = ?, description = ?, sub_id = ?, storing_condition_id = ?, deleted_at = NULL WHERE id = ?", 'ssiii', [$nameInput, $body['description'], $body['sub_id'], $body['storing_condition_id'], $body['id']]);
+
+                if (!$restored) {
+                    echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(500);
+                }
+
+                $row = getData("SELECT id, name, description, sub_id, storing_condition_id FROM product_type WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
+                echo json_encode($row[0], JSON_UNESCAPED_UNICODE);
+                http_response_code(200);
+                break;
+            }
+
+            if ($nameInput === '' || empty($body['description']) || empty($body['sub_id']) || empty($body['storing_condition_id'])) {
                 echo json_encode(['message' => "Hiányzó adat: 'name', 'description', 'sub_id' és 'storing_condition_id' megadása kötelező!"], JSON_UNESCAPED_UNICODE);
                 return http_response_code(400);
             }
 
-            $existing = getData("SELECT id, deleted_at FROM product_type WHERE name = ?", 's', [$body['name']]);
-            
+            $existing = getData("SELECT id, deleted_at FROM product_type WHERE LOWER(TRIM(name)) = LOWER(?) ORDER BY (deleted_at IS NULL) DESC LIMIT 1", 's', [$nameInput]);
+
             if (!empty($existing)) {
                 if (is_null($existing[0]['deleted_at'])) {
                     echo json_encode(['message' => 'Már létezik ilyen nevű aktív terméktípus!'], JSON_UNESCAPED_UNICODE);
                     return http_response_code(409);
                 } else {
-                    echo json_encode(['message' => 'Már létezik ilyen nevű terméktípus, de törölve lett. Kérem, használjon más nevet!'], JSON_UNESCAPED_UNICODE);
+                    echo json_encode([
+                        'message' => 'Létezik egy korábban törölt terméktípus ezen a néven. Szeretné visszaállítani?',
+                        'restorable' => true,
+                        'id' => (int)$existing[0]['id']
+                    ], JSON_UNESCAPED_UNICODE);
                     return http_response_code(409);
                 }
             }
 
-            $success = changeData("INSERT INTO product_type (name, description, sub_id, storing_condition_id) VALUES (?, ?, ?, ?)", 'ssii', [$body['name'], $body['description'], $body['sub_id'], $body['storing_condition_id']]);
+            $success = changeData("INSERT INTO product_type (name, description, sub_id, storing_condition_id) VALUES (?, ?, ?, ?)", 'ssii', [$nameInput, $body['description'], $body['sub_id'], $body['storing_condition_id']]);
             
             if (!$success) {
                 echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
                 return http_response_code(500);
             }
 
-            $newType = getData("SELECT id, name, description, sub_id, storing_condition_id FROM product_type WHERE name = ? AND deleted_at IS NULL", 's', [$body['name']]);
+            $newType = getData("SELECT id, name, description, sub_id, storing_condition_id FROM product_type WHERE name = ? AND deleted_at IS NULL", 's', [$nameInput]);
             
             echo json_encode($newType[0], JSON_UNESCAPED_UNICODE);
             http_response_code(201);

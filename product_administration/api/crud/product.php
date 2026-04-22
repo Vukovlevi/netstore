@@ -29,6 +29,16 @@ function handleProduct($method, $body) {
     try {
         switch ($method) {
             case 'GET':
+                if (isset($_GET['check_deleted']) && isset($_GET['brand_id'])) {
+                    $needle = trim((string)$_GET['check_deleted']);
+                    if ($needle === '') {
+                        echo json_encode(null, JSON_UNESCAPED_UNICODE);
+                        break;
+                    }
+                    $row = getData("SELECT id, name, brand_id, deleted_at FROM product WHERE LOWER(TRIM(name)) = LOWER(?) AND brand_id = ? AND deleted_at IS NOT NULL ORDER BY id DESC LIMIT 1", 'si', [$needle, (int)$_GET['brand_id']]);
+                    echo json_encode(!empty($row) ? $row[0] : null, JSON_UNESCAPED_UNICODE);
+                    break;
+                }
                 if (isset($_GET['id'])) {
                     $query = "SELECT product.id, product.name, product.description, product.amount, product.size, product.size_type, product.expires_at, product.price, product.discount, product.warranty, product.type_id, product.brand_id, 
                                      product_type.name as type_name, brand.name as brand_name, 
@@ -59,19 +69,78 @@ function handleProduct($method, $body) {
                 break;
 
             case 'POST':
-                if (empty($body['name']) || empty($body['description']) || !isset($body['amount']) || empty($body['size']) || empty($body['size_type']) || !isset($body['price']) || !isset($body['discount']) || empty($body['type_id']) || empty($body['brand_id'])) {
+                $nameInput = isset($body['name']) ? trim((string)$body['name']) : '';
+
+                if (!empty($body['restore']) && !empty($body['id']) && $nameInput !== '' && !empty($body['brand_id']) && !empty($body['type_id'])) {
+                    $deletedRow = getData("SELECT id FROM product WHERE id = ? AND deleted_at IS NOT NULL", 'i', [$body['id']]);
+
+                    if (empty($deletedRow)) {
+                        echo json_encode(['message' => 'Nincs visszaállítható termék ezzel az azonosítóval!'], JSON_UNESCAPED_UNICODE);
+                        return http_response_code(404);
+                    }
+
+                    $clash = getData("SELECT id FROM product WHERE LOWER(TRIM(name)) = LOWER(?) AND brand_id = ? AND id != ? AND deleted_at IS NULL", 'sii', [$nameInput, $body['brand_id'], $body['id']]);
+
+                    if (!empty($clash)) {
+                        echo json_encode(['message' => 'Már létezik ilyen nevű aktív termék ezen a márkán belül!'], JSON_UNESCAPED_UNICODE);
+                        return http_response_code(409);
+                    }
+
+                    $warrantyDate = isset($body['warranty']) ? $sanitizeDate($body['warranty']) : null;
+                    $expiresDate = isset($body['expires_at']) ? $sanitizeDate($body['expires_at']) : null;
+
+                    $restored = changeData("UPDATE product SET name = ?, description = ?, amount = ?, size = ?, size_type = ?, expires_at = ?, price = ?, discount = ?, warranty = ?, type_id = ?, brand_id = ?, deleted_at = NULL WHERE id = ?", 'ssisssidssii', [
+                        $nameInput,
+                        $body['description'],
+                        (int)$body['amount'],
+                        $body['size'],
+                        $body['size_type'],
+                        $expiresDate,
+                        (int)$body['price'],
+                        (int)$body['discount']/100,
+                        $warrantyDate,
+                        (int)$body['type_id'],
+                        (int)$body['brand_id'],
+                        (int)$body['id']
+                    ]);
+
+                    if ($restored !== true && $restored !== 1 && is_string($restored)) {
+                        echo json_encode(['message' => 'Adatbázis hiba: ' . $restored], JSON_UNESCAPED_UNICODE);
+                        return http_response_code(500);
+                    }
+
+                    if (!$restored) {
+                        echo json_encode(['message' => 'Ismeretlen hiba a visszaállításkor!'], JSON_UNESCAPED_UNICODE);
+                        return http_response_code(500);
+                    }
+
+                    $row = getData("SELECT id, name FROM product WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
+                    if (!empty($row)) {
+                        echo json_encode($row[0], JSON_UNESCAPED_UNICODE);
+                    } else {
+                        echo json_encode(['message' => 'Termék visszaállítva', 'name' => $nameInput], JSON_UNESCAPED_UNICODE);
+                    }
+                    http_response_code(200);
+                    break;
+                }
+
+                if ($nameInput === '' || empty($body['description']) || !isset($body['amount']) || empty($body['size']) || empty($body['size_type']) || !isset($body['price']) || !isset($body['discount']) || empty($body['type_id']) || empty($body['brand_id'])) {
                     echo json_encode(['message' => 'Hiányzó adat: név, leírás, mennyiség, kiszerelés, ár, kedvezmény, típus és márka kötelező!'], JSON_UNESCAPED_UNICODE);
                     return http_response_code(400);
                 }
 
-                $existing = getData("SELECT id, deleted_at FROM product WHERE name = ? AND brand_id = ?", 'si', [$body['name'], $body['brand_id']]);
-                
+                $existing = getData("SELECT id, deleted_at FROM product WHERE LOWER(TRIM(name)) = LOWER(?) AND brand_id = ? ORDER BY (deleted_at IS NULL) DESC LIMIT 1", 'si', [$nameInput, $body['brand_id']]);
+
                 if (!empty($existing)) {
                     if (is_null($existing[0]['deleted_at'])) {
                         echo json_encode(['message' => 'Már létezik ilyen nevű aktív termék ezen a márkán belül!'], JSON_UNESCAPED_UNICODE);
                         return http_response_code(409);
                     } else {
-                        echo json_encode(['message' => 'Már létezik ilyen termék, de törölve lett.'], JSON_UNESCAPED_UNICODE);
+                        echo json_encode([
+                            'message' => 'Létezik egy korábban törölt termék ezen a néven és márkán belül. Szeretné visszaállítani?',
+                            'restorable' => true,
+                            'id' => (int)$existing[0]['id']
+                        ], JSON_UNESCAPED_UNICODE);
                         return http_response_code(409);
                     }
                 }
@@ -80,7 +149,7 @@ function handleProduct($method, $body) {
                 $expiresDate = isset($body['expires_at']) ? $sanitizeDate($body['expires_at']) : null;
 
                 $success = changeData("INSERT INTO product (name, description, amount, size, size_type, expires_at, price, discount, warranty, type_id, brand_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 'ssisssidsii', [
-                    $body['name'], 
+                    $nameInput,
                     $body['description'],
                     (int)$body['amount'],
                     $body['size'],
@@ -103,12 +172,12 @@ function handleProduct($method, $body) {
                     return http_response_code(500);
                 }
 
-                $newProduct = getData("SELECT id, name FROM product WHERE name = ? AND brand_id = ? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1", 'si', [$body['name'], $body['brand_id']]);
-                
+                $newProduct = getData("SELECT id, name FROM product WHERE name = ? AND brand_id = ? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1", 'si', [$nameInput, $body['brand_id']]);
+
                 if (!empty($newProduct)) {
                      echo json_encode($newProduct[0], JSON_UNESCAPED_UNICODE);
                 } else {
-                     echo json_encode(['message' => 'Termék létrehozva', 'name' => $body['name']], JSON_UNESCAPED_UNICODE);
+                     echo json_encode(['message' => 'Termék létrehozva', 'name' => $nameInput], JSON_UNESCAPED_UNICODE);
                 }
                 http_response_code(201);
                 break;

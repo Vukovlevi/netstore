@@ -190,21 +190,47 @@ export default function ProductManagement() {
         await productService.update(selectedId, productData);
         setSuccessMsg("Termék sikeresen frissítve!");
       } else {
-        await productService.create(productData);
-        setSuccessMsg("Új termék létrehozva!");
-        setName("");
-        setDescription("");
-        setAmount("");
-        setSize("");
-        setSizeType("");
-        setExpiresAt("");
-        setPrice("");
-        setDiscount(0);
-        setWarranty("");
-        setCategoryId("");
-        setSubCategoryId("");
-        setTypeId("");
-        setBrandId("");
+        const deleted = await productService.checkDeleted(name, Number(brandId));
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt termék ezen a néven és márkán. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await productService.restore(deleted.id, productData);
+            setSuccessMsg("Termék visszaállítva!");
+            setName("");
+            setDescription("");
+            setAmount("");
+            setSize("");
+            setSizeType("");
+            setExpiresAt("");
+            setPrice("");
+            setDiscount(0);
+            setWarranty("");
+            setCategoryId("");
+            setSubCategoryId("");
+            setTypeId("");
+            setBrandId("");
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          await productService.create(productData);
+          setSuccessMsg("Új termék létrehozva!");
+          setName("");
+          setDescription("");
+          setAmount("");
+          setSize("");
+          setSizeType("");
+          setExpiresAt("");
+          setPrice("");
+          setDiscount(0);
+          setWarranty("");
+          setCategoryId("");
+          setSubCategoryId("");
+          setTypeId("");
+          setBrandId("");
+        }
       }
       loadData();
     } catch (err: any) {

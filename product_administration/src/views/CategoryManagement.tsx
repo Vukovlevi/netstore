@@ -42,9 +42,23 @@ export default function CategoryManagement() {
         await categoryService.update(selectedId, name);
         setSuccessMsg("Kategória sikeresen frissítve!");
       } else {
-        await categoryService.create(name);
-        setSuccessMsg("Új kategória létrehozva!");
-        setName('');
+        const deleted = await categoryService.checkDeleted(name);
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt kategória ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await categoryService.restore(deleted.id, name);
+            setSuccessMsg("Kategória visszaállítva!");
+            setName('');
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          await categoryService.create(name);
+          setSuccessMsg("Új kategória létrehozva!");
+          setName('');
+        }
       }
       loadCategories();
     } catch (err: any) {

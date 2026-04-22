@@ -2,9 +2,19 @@
 function handleCategory($method, $body) {
     switch ($method) {
         case 'GET':
+            if (isset($_GET['check_deleted'])) {
+                $needle = trim((string)$_GET['check_deleted']);
+                if ($needle === '') {
+                    echo json_encode(null, JSON_UNESCAPED_UNICODE);
+                    break;
+                }
+                $row = getData("SELECT id, name, deleted_at FROM category WHERE LOWER(TRIM(name)) = LOWER(?) AND deleted_at IS NOT NULL ORDER BY id DESC LIMIT 1", 's', [$needle]);
+                echo json_encode(!empty($row) ? $row[0] : null, JSON_UNESCAPED_UNICODE);
+                break;
+            }
             if (isset($_GET['id'])) {
                 $category = getData("SELECT id, name FROM category WHERE id = ? AND deleted_at IS NULL", 'i', [$_GET['id']]);
-                
+
                 if (empty($category)) {
                     echo json_encode(['message' => 'Kategória nem található vagy törölve lett!'], JSON_UNESCAPED_UNICODE);
                     return http_response_code(404);
@@ -12,36 +22,70 @@ function handleCategory($method, $body) {
                 echo json_encode($category[0], JSON_UNESCAPED_UNICODE);
             } else {
                 $categories = getData("SELECT id, name FROM category WHERE deleted_at IS NULL ORDER BY name");
-                
+
                 echo json_encode($categories, JSON_UNESCAPED_UNICODE);
             }
             break;
         case 'POST':
-            if (empty($body['name'])) {
+            $nameInput = isset($body['name']) ? trim((string)$body['name']) : '';
+
+            if (!empty($body['restore']) && !empty($body['id']) && $nameInput !== '') {
+                $deletedRow = getData("SELECT id FROM category WHERE id = ? AND deleted_at IS NOT NULL", 'i', [$body['id']]);
+
+                if (empty($deletedRow)) {
+                    echo json_encode(['message' => 'Nincs visszaállítható kategória ezzel az azonosítóval!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(404);
+                }
+
+                $nameClash = getData("SELECT id FROM category WHERE LOWER(TRIM(name)) = LOWER(?) AND id != ? AND deleted_at IS NULL", 'si', [$nameInput, $body['id']]);
+
+                if (!empty($nameClash)) {
+                    echo json_encode(['message' => 'Már létezik ilyen nevű aktív kategória!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(409);
+                }
+
+                $restored = changeData("UPDATE category SET name = ?, deleted_at = NULL WHERE id = ?", 'si', [$nameInput, $body['id']]);
+
+                if (!$restored) {
+                    echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
+                    return http_response_code(500);
+                }
+
+                $row = getData("SELECT id, name FROM category WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
+                echo json_encode($row[0], JSON_UNESCAPED_UNICODE);
+                http_response_code(200);
+                break;
+            }
+
+            if ($nameInput === '') {
                 echo json_encode(['message' => 'Hiányzó adat!'], JSON_UNESCAPED_UNICODE);
                 return http_response_code(400);
             }
 
-            $existing = getData("SELECT id, deleted_at FROM category WHERE name = ?", 's', [$body['name']]);
-            
+            $existing = getData("SELECT id, deleted_at FROM category WHERE LOWER(TRIM(name)) = LOWER(?) ORDER BY (deleted_at IS NULL) DESC LIMIT 1", 's', [$nameInput]);
+
             if (!empty($existing)) {
                 if (is_null($existing[0]['deleted_at'])) {
                     echo json_encode(['message' => 'Már létezik ilyen nevű aktív kategória!'], JSON_UNESCAPED_UNICODE);
                     return http_response_code(409);
                 } else {
-                    echo json_encode(['message' => 'Már létezik ilyen nevű kategória, de törölve lett. Kérem, használjon más nevet!'], JSON_UNESCAPED_UNICODE);
+                    echo json_encode([
+                        'message' => 'Létezik egy korábban törölt kategória ezen a néven. Szeretné visszaállítani?',
+                        'restorable' => true,
+                        'id' => (int)$existing[0]['id']
+                    ], JSON_UNESCAPED_UNICODE);
                     return http_response_code(409);
                 }
             }
 
-            $success = changeData("INSERT INTO category (name) VALUES (?)", 's', [$body['name']]);
+            $success = changeData("INSERT INTO category (name) VALUES (?)", 's', [$nameInput]);
             
             if (!$success) {
                 echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
                 return http_response_code(500);
             }
 
-            $newCategory = getData("SELECT id, name FROM category WHERE name = ? AND deleted_at IS NULL", 's', [$body['name']]);
+            $newCategory = getData("SELECT id, name FROM category WHERE name = ? AND deleted_at IS NULL", 's', [$nameInput]);
             
             echo json_encode($newCategory[0], JSON_UNESCAPED_UNICODE);
             http_response_code(201);
