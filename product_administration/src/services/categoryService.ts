@@ -10,7 +10,7 @@ export const categoryService = {
 
   getOne: async (id: number): Promise<Category> => {
     const res = await fetch(`${API_URL}?id=${id}`);
-    if (!res.ok) throw new Error('Category not found');
+    if (!res.ok) throw new Error('Kategória nem található!');
     return res.json();
   },
 

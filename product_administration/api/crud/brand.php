@@ -14,10 +14,11 @@ function handleBrand($method, $body) {
             }
             if (isset($_GET['id'])) {
                 $brand = getData("SELECT id, name, is_own, is_temporary FROM brand WHERE id = ? AND deleted_at IS NULL", 'i', [$_GET['id']]);
-                
+
                 if (empty($brand)) {
+                    http_response_code(404);
                     echo json_encode(['message' => 'Márka nem található vagy törölve lett!'], JSON_UNESCAPED_UNICODE);
-                    return http_response_code(404);
+                    return;
                 }
                 echo json_encode($brand[0], JSON_UNESCAPED_UNICODE);
             } else {
@@ -32,15 +33,17 @@ function handleBrand($method, $body) {
                 $deletedRow = getData("SELECT id FROM brand WHERE id = ? AND deleted_at IS NOT NULL", 'i', [$body['id']]);
 
                 if (empty($deletedRow)) {
+                    http_response_code(404);
                     echo json_encode(['message' => 'Nincs visszaállítható márka ezzel az azonosítóval!'], JSON_UNESCAPED_UNICODE);
-                    return http_response_code(404);
+                    return;
                 }
 
                 $nameClash = getData("SELECT id FROM brand WHERE LOWER(TRIM(name)) = LOWER(?) AND id != ? AND deleted_at IS NULL", 'si', [$nameInput, $body['id']]);
 
                 if (!empty($nameClash)) {
+                    http_response_code(409);
                     echo json_encode(['message' => 'Már létezik ilyen nevű aktív márka!'], JSON_UNESCAPED_UNICODE);
-                    return http_response_code(409);
+                    return;
                 }
 
                 $isOwn = isset($body['is_own']) ? (int)$body['is_own'] : 0;
@@ -49,34 +52,38 @@ function handleBrand($method, $body) {
                 $restored = changeData("UPDATE brand SET name = ?, is_own = ?, is_temporary = ?, deleted_at = NULL WHERE id = ?", 'siii', [$nameInput, $isOwn, $isTemporary, $body['id']]);
 
                 if (!$restored) {
+                    http_response_code(500);
                     echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
-                    return http_response_code(500);
+                    return;
                 }
 
                 $row = getData("SELECT id, name, is_own, is_temporary FROM brand WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
-                echo json_encode($row[0], JSON_UNESCAPED_UNICODE);
                 http_response_code(200);
+                echo json_encode($row[0], JSON_UNESCAPED_UNICODE);
                 break;
             }
 
             if ($nameInput === '') {
-                echo json_encode(['message' => 'Hiányzó adat: név kötelező!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(400);
+                http_response_code(400);
+                echo json_encode(['message' => 'Hiányzó adat: a márka neve kötelező!'], JSON_UNESCAPED_UNICODE);
+                return;
             }
 
             $existing = getData("SELECT id, deleted_at FROM brand WHERE LOWER(TRIM(name)) = LOWER(?) ORDER BY (deleted_at IS NULL) DESC LIMIT 1", 's', [$nameInput]);
 
             if (!empty($existing)) {
                 if (is_null($existing[0]['deleted_at'])) {
-                    echo json_encode(['message' => 'Már létezik ilyen nevű aktív márka!'], JSON_UNESCAPED_UNICODE);
-                    return http_response_code(409);
+                    http_response_code(409);
+                    echo json_encode(['message' => 'Már létezik ilyen nevű márka!'], JSON_UNESCAPED_UNICODE);
+                    return;
                 } else {
+                    http_response_code(409);
                     echo json_encode([
                         'message' => 'Létezik egy korábban törölt márka ezen a néven. Szeretné visszaállítani?',
                         'restorable' => true,
                         'id' => (int)$existing[0]['id']
                     ], JSON_UNESCAPED_UNICODE);
-                    return http_response_code(409);
+                    return;
                 }
             }
 
@@ -84,45 +91,52 @@ function handleBrand($method, $body) {
             $isTemporary = isset($body['is_temporary']) ? (int)$body['is_temporary'] : 0;
 
             $success = changeData("INSERT INTO brand (name, is_own, is_temporary) VALUES (?, ?, ?)", 'sii', [$nameInput, $isOwn, $isTemporary]);
-            
+
             if (!$success) {
+                http_response_code(500);
                 echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(500);
+                return;
             }
 
             $newBrand = getData("SELECT id, name, is_own, is_temporary FROM brand WHERE name = ? AND deleted_at IS NULL", 's', [$nameInput]);
-            
-            echo json_encode($newBrand[0], JSON_UNESCAPED_UNICODE);
+
             http_response_code(201);
+            echo json_encode($newBrand[0], JSON_UNESCAPED_UNICODE);
             break;
         case 'PUT':
             if (empty($body['id']) || empty($body['name'])) {
-                echo json_encode(['message' => "Hiányzó adat!"], JSON_UNESCAPED_UNICODE);
-                return http_response_code(400);
+                http_response_code(400);
+                echo json_encode(['message' => "Hiányzó adat: az azonosító és a név megadása kötelező!"], JSON_UNESCAPED_UNICODE);
+                return;
             }
+
+            $nameInput = trim((string)$body['name']);
 
             $brandToUpdate = getData("SELECT id FROM brand WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
-            
+
             if (empty($brandToUpdate)) {
+                http_response_code(404);
                 echo json_encode(['message' => 'Nincs ilyen azonosítójú márka, vagy törölve lett!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(404);
+                return;
             }
 
-            $existingName = getData("SELECT id FROM brand WHERE name = ? AND id != ?", 'si', [$body['name'], $body['id']]);
-            
+            $existingName = getData("SELECT id FROM brand WHERE LOWER(TRIM(name)) = LOWER(?) AND id != ? AND deleted_at IS NULL", 'si', [$nameInput, $body['id']]);
+
             if (!empty($existingName)) {
-                echo json_encode(['message' => 'Ez a név már foglalt!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(409);
+                http_response_code(409);
+                echo json_encode(['message' => 'Már létezik ilyen nevű márka!'], JSON_UNESCAPED_UNICODE);
+                return;
             }
 
             $isOwn = isset($body['is_own']) ? (int)$body['is_own'] : 0;
             $isTemporary = isset($body['is_temporary']) ? (int)$body['is_temporary'] : 0;
 
-            $success = changeData("UPDATE brand SET name = ?, is_own = ?, is_temporary = ? WHERE id = ?", 'siii', [$body['name'], $isOwn, $isTemporary, $body['id']]);
-            
+            $success = changeData("UPDATE brand SET name = ?, is_own = ?, is_temporary = ? WHERE id = ?", 'siii', [$nameInput, $isOwn, $isTemporary, $body['id']]);
+
             if (!$success) {
+                http_response_code(500);
                 echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(500);
+                return;
             }
 
             $updatedBrand = getData("SELECT id, name, is_own, is_temporary FROM brand WHERE id = ? AND deleted_at IS NULL", 'i', [$body['id']]);
@@ -130,36 +144,41 @@ function handleBrand($method, $body) {
             break;
         case 'DELETE':
             if (empty($_GET['id'])) {
-                echo json_encode(['message' => "Hiányzó adat: 'id'!"], JSON_UNESCAPED_UNICODE);
-                return http_response_code(400);
+                http_response_code(400);
+                echo json_encode(['message' => "Hiányzó adat: az azonosító megadása kötelező!"], JSON_UNESCAPED_UNICODE);
+                return;
             }
 
             $brandToDelete = getData("SELECT id FROM brand WHERE id = ? AND deleted_at IS NULL", 'i', [$_GET['id']]);
-            
+
             if (empty($brandToDelete)) {
+                http_response_code(404);
                 echo json_encode(['message' => 'Nincs ilyen azonosítójú márka!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(404);
+                return;
             }
 
             $products = getData("SELECT id FROM product WHERE brand_id = ? AND deleted_at IS NULL", 'i', [$_GET['id']]);
-            
+
             if (!empty($products)) {
+                http_response_code(409);
                 echo json_encode([
                     'message' => 'Törlés sikertelen: Ehhez a márkához aktív termékek tartoznak.'
                 ], JSON_UNESCAPED_UNICODE);
-                return http_response_code(409);
+                return;
             }
 
             $success = changeData("UPDATE brand SET deleted_at = CURDATE() WHERE id = ?", 'i', [$_GET['id']]);
-            
+
             if (!$success) {
+                http_response_code(500);
                 echo json_encode(['message' => 'Sikertelen művelet, adatbázis hiba!'], JSON_UNESCAPED_UNICODE);
-                return http_response_code(500);
+                return;
             }
-            
+
             http_response_code(204);
             break;
         default:
-            return http_response_code(405);
+            http_response_code(405);
+            return;
     }
 }

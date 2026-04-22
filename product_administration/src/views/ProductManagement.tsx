@@ -215,21 +215,41 @@ export default function ProductManagement() {
             setError("Visszaállítás megszakítva.");
           }
         } else {
-          await productService.create(productData);
-          setSuccessMsg("Új termék létrehozva!");
-          setName("");
-          setDescription("");
-          setAmount("");
-          setSize("");
-          setSizeType("");
-          setExpiresAt("");
-          setPrice("");
-          setDiscount(0);
-          setWarranty("");
-          setCategoryId("");
-          setSubCategoryId("");
-          setTypeId("");
-          setBrandId("");
+          const resetProductFields = () => {
+            setName("");
+            setDescription("");
+            setAmount("");
+            setSize("");
+            setSizeType("");
+            setExpiresAt("");
+            setPrice("");
+            setDiscount(0);
+            setWarranty("");
+            setCategoryId("");
+            setSubCategoryId("");
+            setTypeId("");
+            setBrandId("");
+          };
+          try {
+            await productService.create(productData);
+            setSuccessMsg("Új termék létrehozva!");
+            resetProductFields();
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt termék ezen a néven és márkán. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await productService.restore(err.restoreId, productData);
+                setSuccessMsg("Termék visszaállítva!");
+                resetProductFields();
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
         }
       }
       loadData();

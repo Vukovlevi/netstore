@@ -56,9 +56,26 @@ export default function StoringConditionManagement() {
             setError("Visszaállítás megszakítva.");
           }
         } else {
-          await storingConditionService.create(description);
-          setSuccessMsg("Új tárolási körülmény létrehozva!");
-          setDescription('');
+          try {
+            await storingConditionService.create(description);
+            setSuccessMsg("Új tárolási körülmény létrehozva!");
+            setDescription('');
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt tárolási körülmény ezen a leírással. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await storingConditionService.restore(err.restoreId, description);
+                setSuccessMsg("Tárolási körülmény visszaállítva!");
+                setDescription('');
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
         }
       }
       loadData();

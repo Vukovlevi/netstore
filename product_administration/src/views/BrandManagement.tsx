@@ -60,11 +60,30 @@ export default function BrandManagement() {
             setError("Visszaállítás megszakítva.");
           }
         } else {
-          await brandService.create(name, isOwn, isTemporary);
-          setSuccessMsg("Új márka létrehozva!");
-          setName('');
-          setIsOwn(false);
-          setIsTemporary(false);
+          try {
+            await brandService.create(name, isOwn, isTemporary);
+            setSuccessMsg("Új márka létrehozva!");
+            setName('');
+            setIsOwn(false);
+            setIsTemporary(false);
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt márka ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await brandService.restore(err.restoreId, name, isOwn, isTemporary);
+                setSuccessMsg("Márka visszaállítva!");
+                setName('');
+                setIsOwn(false);
+                setIsTemporary(false);
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
         }
       }
       loadData();
