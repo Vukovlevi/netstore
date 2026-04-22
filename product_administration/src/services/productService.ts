@@ -22,6 +22,13 @@ export const productService = {
     return res.json();
   },
 
+  checkDeleted: async (name: string, brand_id: number): Promise<{ id: number; name: string; brand_id: number } | null> => {
+    const res = await fetch(`${API_URL}?check_deleted=${encodeURIComponent(name)}&brand_id=${brand_id}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.id ? data : null;
+  },
+
   create: async (data: ProductPayload): Promise<ApiResponse> => {
     const res = await fetch(API_URL, {
       method: "POST",
@@ -29,8 +36,26 @@ export const productService = {
       body: JSON.stringify(data),
     });
     const responseData = await res.json();
+    if (!res.ok) {
+      const err: any = new Error(responseData.message || "Hiba a létrehozáskor");
+      if (responseData && responseData.restorable) {
+        err.restorable = true;
+        err.restoreId = responseData.id;
+      }
+      throw err;
+    }
+    return responseData;
+  },
+
+  restore: async (id: number, data: ProductPayload): Promise<ApiResponse> => {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ restore: true, id, ...data }),
+    });
+    const responseData = await res.json();
     if (!res.ok)
-      throw new Error(responseData.message || "Hiba a létrehozáskor");
+      throw new Error(responseData.message || "Hiba a visszaállításkor");
     return responseData;
   },
 
