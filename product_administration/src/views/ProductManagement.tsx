@@ -95,7 +95,7 @@ export default function ProductManagement() {
         setSizeType(product.size_type);
         setExpiresAt(formatDate(product.expires_at));
         setPrice(product.price);
-        setDiscount(product.discount);
+        setDiscount(Math.round(Number(product.discount) * 10000) / 100);
         setWarranty(formatDate(product.warranty));
         setBrandId(product.brand_id);
         const type = types.find((t) => Number(t.id) === Number(product.type_id));
@@ -132,7 +132,7 @@ export default function ProductManagement() {
     setSizeType(product.size_type);
     setExpiresAt(formatDate(product.expires_at));
     setPrice(product.price);
-    setDiscount(product.discount);
+    setDiscount(Math.round(Number(product.discount) * 10000) / 100);
     setWarranty(formatDate(product.warranty));
     setBrandId(product.brand_id);
 
@@ -179,7 +179,7 @@ export default function ProductManagement() {
       size_type: sizeType,
       expires_at: formatDate(expiresAt) || null,
       price: Number(price),
-      discount: Number(discount),
+      discount: Number(discount) / 100,
       warranty: formatDate(warranty) || null,
       type_id: Number(typeId),
       brand_id: Number(brandId),

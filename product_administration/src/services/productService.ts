@@ -22,6 +22,13 @@ export const productService = {
     return res.json();
   },
 
+  getSizeTypes: async (): Promise<string[]> => {
+    const res = await fetch(`${API_URL}?distinct_size_types=1`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  },
+
   checkDeleted: async (name: string, brand_id: number): Promise<{ id: number; name: string; brand_id: number } | null> => {
     const res = await fetch(`${API_URL}?check_deleted=${encodeURIComponent(name)}&brand_id=${brand_id}`);
     if (!res.ok) return null;

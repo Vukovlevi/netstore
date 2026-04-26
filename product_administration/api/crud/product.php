@@ -29,6 +29,12 @@ function handleProduct($method, $body) {
     try {
         switch ($method) {
             case 'GET':
+                if (isset($_GET['distinct_size_types'])) {
+                    $rows = getData("SELECT DISTINCT size_type FROM product WHERE deleted_at IS NULL AND size_type IS NOT NULL AND size_type != '' ORDER BY size_type");
+                    $sizeTypes = array_map(function($r) { return $r['size_type']; }, $rows ?: []);
+                    echo json_encode($sizeTypes, JSON_UNESCAPED_UNICODE);
+                    break;
+                }
                 if (isset($_GET['check_deleted']) && isset($_GET['brand_id'])) {
                     $needle = trim((string)$_GET['check_deleted']);
                     if ($needle === '') {
@@ -100,7 +106,7 @@ function handleProduct($method, $body) {
                         $body['size_type'],
                         $expiresDate,
                         (int)$body['price'],
-                        (int)$body['discount']/100,
+                        (float)$body['discount'],
                         $warrantyDate,
                         (int)$body['type_id'],
                         (int)$body['brand_id'],
@@ -164,7 +170,7 @@ function handleProduct($method, $body) {
                     $body['size_type'],
                     $expiresDate,
                     (int)$body['price'],
-                    (int)$body['discount']/100,
+                    (float)$body['discount'],
                     $warrantyDate,
                     (int)$body['type_id'],
                     (int)$body['brand_id']
@@ -228,7 +234,7 @@ function handleProduct($method, $body) {
                     $body['size_type'],
                     $expiresDate,
                     (int)$body['price'],
-                    (int)$body['discount']/100,
+                    (float)$body['discount'],
                     $warrantyDate,
                     (int)$body['type_id'],
                     (int)$body['brand_id'],
