@@ -71,7 +71,7 @@ final class ProductTest extends HandlerTestCase
         $this->assertStringContainsString('INSERT INTO product', $insert['sql']);
         $this->assertSame('ssisssidsii', $insert['types']);
 
-        $this->assertEqualsWithDelta(0.2, $insert['data'][7], 0.0001);
+        $this->assertEqualsWithDelta(20.0, $insert['data'][7], 0.0001);
 
         $this->assertSame('2027-01-01', $insert['data'][8]);
 
