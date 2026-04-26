@@ -62,26 +62,77 @@ export default function ProductTypeManagement() {
     try {
       if (selectedId) {
         await productTypeService.update(
-            selectedId, 
-            name, 
-            description, 
+            selectedId,
+            name,
+            description,
             Number(subCategoryId),
             Number(storingConditionId)
         );
         setSuccessMsg("Terméktípus sikeresen frissítve!");
       } else {
-        await productTypeService.create(
-            name, 
-            description, 
-            Number(subCategoryId),
-            Number(storingConditionId)
-        );
-        setSuccessMsg("Új terméktípus létrehozva!");
-        setName('');
-        setDescription('');
-        setCategoryId('');
-        setSubCategoryId('');
-        setStoringConditionId('');
+        const deleted = await productTypeService.checkDeleted(name);
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt terméktípus ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await productTypeService.restore(
+              deleted.id,
+              name,
+              description,
+              Number(subCategoryId),
+              Number(storingConditionId)
+            );
+            setSuccessMsg("Terméktípus visszaállítva!");
+            setName('');
+            setDescription('');
+            setCategoryId('');
+            setSubCategoryId('');
+            setStoringConditionId('');
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          try {
+            await productTypeService.create(
+                name,
+                description,
+                Number(subCategoryId),
+                Number(storingConditionId)
+            );
+            setSuccessMsg("Új terméktípus létrehozva!");
+            setName('');
+            setDescription('');
+            setCategoryId('');
+            setSubCategoryId('');
+            setStoringConditionId('');
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt terméktípus ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await productTypeService.restore(
+                  err.restoreId,
+                  name,
+                  description,
+                  Number(subCategoryId),
+                  Number(storingConditionId)
+                );
+                setSuccessMsg("Terméktípus visszaállítva!");
+                setName('');
+                setDescription('');
+                setCategoryId('');
+                setSubCategoryId('');
+                setStoringConditionId('');
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
+        }
       }
       loadData();
     } catch (err: any) {

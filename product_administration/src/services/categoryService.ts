@@ -10,8 +10,15 @@ export const categoryService = {
 
   getOne: async (id: number): Promise<Category> => {
     const res = await fetch(`${API_URL}?id=${id}`);
-    if (!res.ok) throw new Error('Category not found');
+    if (!res.ok) throw new Error('Kategória nem található!');
     return res.json();
+  },
+
+  checkDeleted: async (name: string): Promise<{ id: number; name: string } | null> => {
+    const res = await fetch(`${API_URL}?check_deleted=${encodeURIComponent(name)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && data.id ? data : null;
   },
 
   create: async (name: string): Promise<ApiResponse> => {
@@ -21,7 +28,25 @@ export const categoryService = {
       body: JSON.stringify({ name }),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Hiba a létrehozáskor');
+    if (!res.ok) {
+      const err: any = new Error(data.message || 'Hiba a létrehozáskor');
+      if (data && data.restorable) {
+        err.restorable = true;
+        err.restoreId = data.id;
+      }
+      throw err;
+    }
+    return data;
+  },
+
+  restore: async (id: number, name: string): Promise<ApiResponse> => {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ restore: true, id, name }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Hiba a visszaállításkor');
     return data;
   },
 

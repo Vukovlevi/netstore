@@ -45,11 +45,46 @@ export default function BrandManagement() {
         await brandService.update(selectedId, name, isOwn, isTemporary);
         setSuccessMsg("Márka sikeresen frissítve!");
       } else {
-        await brandService.create(name, isOwn, isTemporary);
-        setSuccessMsg("Új márka létrehozva!");
-        setName('');
-        setIsOwn(false);
-        setIsTemporary(false);
+        const deleted = await brandService.checkDeleted(name);
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt márka ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await brandService.restore(deleted.id, name, isOwn, isTemporary);
+            setSuccessMsg("Márka visszaállítva!");
+            setName('');
+            setIsOwn(false);
+            setIsTemporary(false);
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          try {
+            await brandService.create(name, isOwn, isTemporary);
+            setSuccessMsg("Új márka létrehozva!");
+            setName('');
+            setIsOwn(false);
+            setIsTemporary(false);
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt márka ezen a néven. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await brandService.restore(err.restoreId, name, isOwn, isTemporary);
+                setSuccessMsg("Márka visszaállítva!");
+                setName('');
+                setIsOwn(false);
+                setIsTemporary(false);
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
+        }
       }
       loadData();
     } catch (err: any) {

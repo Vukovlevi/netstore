@@ -35,7 +35,7 @@ final class ProductTest extends HandlerTestCase
         $res = $this->runAndCapture(fn () => handleProduct('POST', $this->validPostBody()));
 
         $this->assertSame(409, $res['code']);
-        $this->assertStringContainsString('aktív termék', $res['json']['message']);
+        $this->assertStringContainsString('Már létezik', $res['json']['message']);
     }
 
     public function testPostDuplicateSoftDeletedProductReturns409(): void
@@ -47,7 +47,8 @@ final class ProductTest extends HandlerTestCase
         $res = $this->runAndCapture(fn () => handleProduct('POST', $this->validPostBody()));
 
         $this->assertSame(409, $res['code']);
-        $this->assertStringContainsString('törölve', $res['json']['message']);
+        $this->assertStringContainsString('korábban törölt', $res['json']['message']);
+        $this->assertTrue($res['json']['restorable']);
     }
 
     public function testPostInsertsAndReturnsNewProduct(): void
@@ -70,7 +71,7 @@ final class ProductTest extends HandlerTestCase
         $this->assertStringContainsString('INSERT INTO product', $insert['sql']);
         $this->assertSame('ssisssidsii', $insert['types']);
 
-        $this->assertEqualsWithDelta(0.2, $insert['data'][7], 0.0001);
+        $this->assertEqualsWithDelta(20.0, $insert['data'][7], 0.0001);
 
         $this->assertSame('2027-01-01', $insert['data'][8]);
 
@@ -118,7 +119,7 @@ final class ProductTest extends HandlerTestCase
         ));
 
         $this->assertSame(409, $res['code']);
-        $this->assertStringContainsString('foglalt', $res['json']['message']);
+        $this->assertStringContainsString('Már létezik', $res['json']['message']);
     }
 
     public function testPutUpdatesProductSuccessfully(): void

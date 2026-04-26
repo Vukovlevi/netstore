@@ -8,6 +8,7 @@ import { subCategoryService } from "../services/subCategoryService";
 import { productTypeService } from "../services/productTypeService";
 import { brandService } from "../services/brandService";
 import { storingConditionService } from "../services/storingConditionService";
+import { productService } from "../services/productService";
 import type {
   Category,
   SubCategory,
@@ -38,6 +39,7 @@ export default function SearchProductManagement() {
   const [storingConditions, setStoringConditions] = useState<
     StoringCondition[]
   >([]);
+  const [sizeTypes, setSizeTypes] = useState<string[]>([]);
 
   const [filters, setFilters] = useState<SearchFilters>({
     page: 1,
@@ -56,18 +58,20 @@ export default function SearchProductManagement() {
 
   const loadDependencies = async () => {
     try {
-      const [cats, subs, types, brs, conds] = await Promise.all([
+      const [cats, subs, types, brs, conds, sTypes] = await Promise.all([
         categoryService.getAll().catch(() => []),
         subCategoryService.getAll().catch(() => []),
         productTypeService.getAll().catch(() => []),
         brandService.getAll().catch(() => []),
         storingConditionService.getAll().catch(() => []),
+        productService.getSizeTypes().catch(() => []),
       ]);
       setCategories(Array.isArray(cats) ? cats : []);
       setSubCategories(Array.isArray(subs) ? subs : []);
       setProductTypes(Array.isArray(types) ? types : []);
       setBrands(Array.isArray(brs) ? brs : []);
       setStoringConditions(Array.isArray(conds) ? conds : []);
+      setSizeTypes(Array.isArray(sTypes) ? sTypes : []);
     } catch (err) {
       setError("Hiba történt az adatok betöltésekor.");
     }
@@ -168,6 +172,7 @@ export default function SearchProductManagement() {
         productTypes={productTypes}
         brands={brands}
         storingConditions={storingConditions}
+        sizeTypes={sizeTypes}
         filters={filters}
         setFilters={setFilters}
         activeTab={activeTab}

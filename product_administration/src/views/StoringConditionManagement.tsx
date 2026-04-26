@@ -43,9 +43,40 @@ export default function StoringConditionManagement() {
         await storingConditionService.update(selectedId, description);
         setSuccessMsg("Tárolási körülmény sikeresen frissítve!");
       } else {
-        await storingConditionService.create(description);
-        setSuccessMsg("Új tárolási körülmény létrehozva!");
-        setDescription('');
+        const deleted = await storingConditionService.checkDeleted(description);
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt tárolási körülmény ezen a leírással. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await storingConditionService.restore(deleted.id, description);
+            setSuccessMsg("Tárolási körülmény visszaállítva!");
+            setDescription('');
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          try {
+            await storingConditionService.create(description);
+            setSuccessMsg("Új tárolási körülmény létrehozva!");
+            setDescription('');
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt tárolási körülmény ezen a leírással. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await storingConditionService.restore(err.restoreId, description);
+                setSuccessMsg("Tárolási körülmény visszaállítva!");
+                setDescription('');
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
+        }
       }
       loadData();
     } catch (err: any) {

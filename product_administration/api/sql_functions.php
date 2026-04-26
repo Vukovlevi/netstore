@@ -12,7 +12,7 @@ function getDbConnection() {
 function getData($operation, $types = null, $data = null) {
     $db = getDbConnection();
     if ($db === null) {
-        return "Database connection failed";
+        return "Adatbázis kapcsolódási hiba!";
     }
 
     if (!is_null($types) && !is_null($data)) {

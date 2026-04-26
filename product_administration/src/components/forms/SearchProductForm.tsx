@@ -15,6 +15,7 @@ interface SearchProductFormProps {
   productTypes: ProductType[];
   brands: Brand[];
   storingConditions: StoringCondition[];
+  sizeTypes: string[];
 
   filters: SearchFilters;
   setFilters: React.Dispatch<React.SetStateAction<SearchFilters>>;
@@ -34,6 +35,7 @@ export default function SearchProductForm({
   productTypes,
   brands,
   storingConditions,
+  sizeTypes,
   filters,
   setFilters,
   activeTab,
@@ -448,10 +450,11 @@ export default function SearchProductForm({
                   }
                 >
                   <option value="">Mindegy</option>
-                  <option value="L">L</option>
-                  <option value="kg">kg</option>
-                  <option value="g">g</option>
-                  <option value="db">db</option>
+                  {sizeTypes.map((st) => (
+                    <option key={st} value={st}>
+                      {st}
+                    </option>
+                  ))}
                 </select>
               </div>
 

@@ -95,7 +95,7 @@ export default function ProductManagement() {
         setSizeType(product.size_type);
         setExpiresAt(formatDate(product.expires_at));
         setPrice(product.price);
-        setDiscount(product.discount);
+        setDiscount(Math.round(Number(product.discount) * 10000) / 100);
         setWarranty(formatDate(product.warranty));
         setBrandId(product.brand_id);
         const type = types.find((t) => Number(t.id) === Number(product.type_id));
@@ -132,7 +132,7 @@ export default function ProductManagement() {
     setSizeType(product.size_type);
     setExpiresAt(formatDate(product.expires_at));
     setPrice(product.price);
-    setDiscount(product.discount);
+    setDiscount(Math.round(Number(product.discount) * 10000) / 100);
     setWarranty(formatDate(product.warranty));
     setBrandId(product.brand_id);
 
@@ -179,7 +179,7 @@ export default function ProductManagement() {
       size_type: sizeType,
       expires_at: formatDate(expiresAt) || null,
       price: Number(price),
-      discount: Number(discount),
+      discount: Number(discount) / 100,
       warranty: formatDate(warranty) || null,
       type_id: Number(typeId),
       brand_id: Number(brandId),
@@ -190,21 +190,67 @@ export default function ProductManagement() {
         await productService.update(selectedId, productData);
         setSuccessMsg("Termék sikeresen frissítve!");
       } else {
-        await productService.create(productData);
-        setSuccessMsg("Új termék létrehozva!");
-        setName("");
-        setDescription("");
-        setAmount("");
-        setSize("");
-        setSizeType("");
-        setExpiresAt("");
-        setPrice("");
-        setDiscount(0);
-        setWarranty("");
-        setCategoryId("");
-        setSubCategoryId("");
-        setTypeId("");
-        setBrandId("");
+        const deleted = await productService.checkDeleted(name, Number(brandId));
+        if (deleted) {
+          const ok = window.confirm(
+            `Létezik egy korábban törölt termék ezen a néven és márkán. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+          );
+          if (ok) {
+            await productService.restore(deleted.id, productData);
+            setSuccessMsg("Termék visszaállítva!");
+            setName("");
+            setDescription("");
+            setAmount("");
+            setSize("");
+            setSizeType("");
+            setExpiresAt("");
+            setPrice("");
+            setDiscount(0);
+            setWarranty("");
+            setCategoryId("");
+            setSubCategoryId("");
+            setTypeId("");
+            setBrandId("");
+          } else {
+            setError("Visszaállítás megszakítva.");
+          }
+        } else {
+          const resetProductFields = () => {
+            setName("");
+            setDescription("");
+            setAmount("");
+            setSize("");
+            setSizeType("");
+            setExpiresAt("");
+            setPrice("");
+            setDiscount(0);
+            setWarranty("");
+            setCategoryId("");
+            setSubCategoryId("");
+            setTypeId("");
+            setBrandId("");
+          };
+          try {
+            await productService.create(productData);
+            setSuccessMsg("Új termék létrehozva!");
+            resetProductFields();
+          } catch (err: any) {
+            if (err.restorable && err.restoreId) {
+              const ok = window.confirm(
+                `Létezik egy korábban törölt termék ezen a néven és márkán. Szeretné visszaállítani?\n\nKattintson az OK-ra a visszaállításhoz, vagy a Mégse-re a megszakításhoz.`
+              );
+              if (ok) {
+                await productService.restore(err.restoreId, productData);
+                setSuccessMsg("Termék visszaállítva!");
+                resetProductFields();
+              } else {
+                setError("Visszaállítás megszakítva.");
+              }
+            } else {
+              throw err;
+            }
+          }
+        }
       }
       loadData();
     } catch (err: any) {

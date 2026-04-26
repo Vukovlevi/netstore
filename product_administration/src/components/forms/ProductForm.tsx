@@ -137,7 +137,7 @@ export default function ProductForm({
         setSizeType(prod.size_type);
         setExpiresAt(formatDate(prod.expires_at));
         setPrice(Number(prod.price));
-        setDiscount(Number(prod.discount));
+        setDiscount(Math.round(Number(prod.discount) * 10000) / 100);
         setWarranty(formatDate(prod.warranty));
         setBrandId(Number(prod.brand_id));
 
