@@ -52,7 +52,7 @@ func (u *User) UpdateUser() error {
 }
 
 func (u *User) DeleteUser() error {
-    _, err := db.DB.Exec("UPDATE user SET deleted_at = NOW() WHERE id = ?", u.Id)
+    _, err := db.DB.Exec("UPDATE user SET username = CONCAT('deleted_user_', username, '_', UNIX_TIMESTAMP(NOW())), deleted_at = NOW() WHERE id = ?", u.Id)
     return err
 }
 
